@@ -7,6 +7,7 @@ the helper also validates their runtime bytes before enabling ownership work.
 import hashlib
 import struct
 from . import prediction_selection
+from . import prediction_click_provenance
 
 SUPPORTED_ORIGINAL_SHA256 = 'e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758'
 CALL_HOOKS = [
@@ -17,7 +18,8 @@ CALL_HOOKS = [
     # only the complete typed membership operation; the return is ignored.
     dict(name='OfflinePredictionGroupReleaseRemove', rva=0x3ea625a,
          offset=0x3ea485a, before='e8b103dcff'),
-] + prediction_selection.CALL_HOOKS
+] + prediction_selection.CALL_HOOKS + prediction_click_provenance.CALL_HOOKS
+TAIL_HOOKS = list(prediction_click_provenance.TAIL_HOOKS)
 POINTER_HOOKS = list(prediction_selection.POINTER_HOOKS)
 PATCHES = list(prediction_selection.PATCHES)
 BODY_GUARDS = [
@@ -36,7 +38,7 @@ BODY_GUARDS = [
     dict(rva=0x3b02170, before='807910007511488b01488b909001000048ffa088010000c6411201c3'),
     dict(rva=0x3ea5790, before='4883ec28488b49404885c9740c4533c04883c428e9e7c9c5ff'),
     dict(rva=0x3b02160, before='33d2e979010000'),
-]
+] + prediction_click_provenance.BODY_GUARDS
 
 
 def _pe_sections(data):
@@ -208,10 +210,18 @@ def validate_original(original, *, expected_sha256):
             raise ValueError('Prediction actor call guard/mapping mismatch: ' + hook['name'])
         calls.append(dict(hook))
     pointers = validate_pointer_hooks(original, POINTER_HOOKS)
+    tails = []
+    for hook in TAIL_HOOKS:
+        before = bytes.fromhex(hook['before'])
+        offset = _mapped_offset(headers, sections, hook['rva'], len(before))
+        if (len(before) != 5 or before[0] != 0xe9 or offset != hook['offset'] or
+                original[offset:offset + len(before)] != before):
+            raise ValueError('Prediction actor tail guard/mapping mismatch: ' + hook['name'])
+        tails.append(dict(hook))
     patches = validate_byte_patches(original, PATCHES)
     return dict(original_sha256=actual_sha256,
                 supported_original_sha256=SUPPORTED_ORIGINAL_SHA256,
-                body_guards=guarded, call_hooks=calls,
+                body_guards=guarded, call_hooks=calls, tail_hooks=tails,
                 pointer_hooks=[dict(hook) for hook in POINTER_HOOKS], pointer_guards=pointers,
                 patches=patches,
                 selection_admission=selection)

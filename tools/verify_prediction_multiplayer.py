@@ -178,7 +178,10 @@ def prepare(args):
     require(args.scenario in ('startup', 'movement', 'mobile'), 'unknown prepared scenario')
     expired_click = getattr(args, 'expired_click', False)
     require(type(expired_click) is bool, 'expired click option must be Boolean')
-    frames = args.frames if args.frames is not None else (650 if changing_rtt or expired_click or args.scenario == 'mobile' else 200 if args.scenario == 'startup' else 600)
+    held_click = getattr(args, 'held_click', False)
+    require(type(held_click) is bool, 'held click option must be Boolean')
+    require(not (held_click and expired_click), 'held and expired click fixtures are mutually exclusive')
+    frames = args.frames if args.frames is not None else (650 if changing_rtt or expired_click or held_click or args.scenario == 'mobile' else 200 if args.scenario == 'startup' else 600)
     actor_correction = bool(getattr(args, 'actor_correction', False))
     mobile_correction = bool(getattr(args, 'mobile_correction', False))
     mobile_group_intent = bool(getattr(args, 'mobile_group_intent', False))
@@ -193,6 +196,11 @@ def prepare(args):
     mobile_ui_cast = bool(getattr(args, 'mobile_ui_cast', False))
     if expired_click:
         validate_expired_click_plan(dict(expired_click=True, actor_correction=actor_correction,
+            scenario=args.scenario, lifecycle=args.lifecycle, frames=frames, expected_matches=2 if args.lifecycle == 'natural' else 1,
+            move_slot=args.move_slot, rtt_ms=list(args.rtt_ms), changing_rtt=changing_rtt, transition_orders=transition_orders,
+            native_position_trace=position_trace, **{key: getattr(args, key, False) for key in EXPIRED_CLICK_MOBILE_FLAGS}))
+    if held_click:
+        validate_held_click_plan(dict(held_click=True, actor_correction=actor_correction,
             scenario=args.scenario, lifecycle=args.lifecycle, frames=frames, expected_matches=2 if args.lifecycle == 'natural' else 1,
             move_slot=args.move_slot, rtt_ms=list(args.rtt_ms), changing_rtt=changing_rtt, transition_orders=transition_orders,
             native_position_trace=position_trace, **{key: getattr(args, key, False) for key in EXPIRED_CLICK_MOBILE_FLAGS}))
@@ -269,15 +277,17 @@ def prepare(args):
                          (mobile_caster_survey,'-prediction-mobile-caster-survey-smoke'),
                          (mobile_caster_lifetime,'-prediction-mobile-caster-lifetime-smoke'),
                          (mobile_ui_cast,'-prediction-mobile-ui-cast-smoke'),
-                         (expired_click,'-prediction-expired-click-smoke')):
+                         (expired_click,'-prediction-expired-click-smoke'),
+                         (held_click,'-prediction-held-click-smoke')):
         require(not enabled or flag.encode('utf-16-le') in helper, 'helper lacks explicit ' + flag)
     required_hooks = prediction_worker.CALL_HOOKS + prediction_actor_repair.CALL_HOOKS
+    required_tails = prediction_actor_repair.TAIL_HOOKS
     required_pointers = prediction_actor_repair.POINTER_HOOKS
     required_patches = prediction_actor_repair.PATCHES
     require(all(marker in helper for marker in (
         b'BA_RESURRECTION_MOVEMENT_PIPELINE_V1', b'BA_RESURRECTION_NATIVE_WORKER_PROXY_V1',
         b'BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1')) and all(
-            h['name'].encode('ascii') + b'\0' in helper for h in required_hooks + required_pointers),
+            h['name'].encode('ascii') + b'\0' in helper for h in required_hooks + required_tails + required_pointers),
             'helper lacks the explicit movement/actor/selection exports')
     manifest = json.loads(read(files['patch_manifest']['path'], 4 * 1024 * 1024))
     require(manifest.get('helper_sha256') == files['helper']['sha256'] and
@@ -285,6 +295,8 @@ def prepare(args):
             'owned patch manifest differs from installed pins')
     for hook in required_hooks:
         require(hook in manifest.get('call_hooks', []), 'owned manifest lacks movement hook: ' + hook['name'])
+    for hook in required_tails:
+        require(hook in manifest.get('tail_hooks', []), 'owned manifest lacks movement tail hook: ' + hook['name'])
     require(type(manifest.get('pointer_hooks', [])) is list, 'owned manifest lacks movement pointer hook list')
     for hook in required_pointers:
         require(hook in manifest.get('pointer_hooks', []), 'owned manifest lacks movement pointer hook: ' + hook['name'])
@@ -365,6 +377,9 @@ def prepare(args):
     if expired_click:
         invocation['expired_click'] = True
         validate_expired_click_plan(invocation)
+    if held_click:
+        invocation['held_click'] = True
+        validate_held_click_plan(invocation)
     if args.scenario == 'mobile':
         invocation.update(generic_movement_not_exercised=True,
             mobile_scope='Explicit original mobile release/reinit/freshMove; generic newborn440/460 feel is not exercised; group intent remains a separate open claim')
@@ -437,6 +452,15 @@ def validate_expired_click_plan(plan):
             'expired click requires explicit HQ actor correction, natural movement650, slot0,130/475ms and no other fixture')
 
 
+def validate_held_click_plan(plan):
+    require('held_click' not in plan or type(plan['held_click']) is bool,
+            'prepared held click option must be Boolean')
+    if not plan.get('held_click'):
+        return
+    require(not plan.get('expired_click'), 'held and expired click fixtures are mutually exclusive')
+    validate_expired_click_plan(dict(plan, expired_click=True))
+
+
 def verify_prepared(output):
     output = Path(output).resolve(strict=True)
     require(output.is_relative_to((ROOT / 'local').resolve()), 'prepared output must be ignored and owned')
@@ -447,6 +471,7 @@ def verify_prepared(output):
     if plan.get('scenario') == 'mobile':
         validate_mobile_plan(plan)
     validate_expired_click_plan(plan)
+    validate_held_click_plan(plan)
     require(Path(plan['game']).resolve() == (ROOT / 'local/prediction-runtime/game').resolve(),
             'prepared game is not the independent runtime copy')
     require(source_hashes() == plan['source_sha256'], 'source changed since preparation')
@@ -460,6 +485,7 @@ def verify_prepared(output):
 
 def command_extra(plan, index, run):
     validate_expired_click_plan(plan)
+    validate_held_click_plan(plan)
     role = ('host', 'guest')[index]
     result = [f'-community-match-{role}-smoke', '-lan-smoke', '-dedicated-surrender-smoke',
         '-dedicated-surrender-frame=' + str(plan['surrender_frame']),
@@ -477,6 +503,8 @@ def command_extra(plan, index, run):
         result.append('-prediction-actor-correction-smoke')
     if plan.get('expired_click'):
         result.append('-prediction-expired-click-smoke')
+    if plan.get('held_click'):
+        result.append('-prediction-held-click-smoke')
     if plan.get('mobile_correction'):
         result.append('-prediction-mobile-correction-smoke')
     if plan.get('mobile_group_intent'):
@@ -1649,6 +1677,39 @@ def expired_click_final_gate(plan, report):
         all(row.get('passed') is True for row in episodes + actors))
 
 
+def finalize_held_click_observation(report, plan, *, contexts, worker_states):
+    from tools.prediction_held_click_evidence import evaluate
+    report['held_click_witness_passed'] = False
+    validate_held_click_plan(plan)
+    matches = [row['match'] for row in report.get('matches', [])]
+    require(plan.get('held_click') is True and len(matches) == 2 and
+            [row.get('match') for row in contexts] == matches and not report.get('error') and
+            report.get('actor_correction', {}).get('passed') is True,
+            'held click lacks both original actor contexts and the unchanged primary gate')
+    episodes = [dict(match=context['match'], **actor_correction_evidence(**context, worker_states=worker_states))
+                for context in contexts]
+    proof = evaluate(contexts[0]['log'], actor_episodes=episodes, expected_matches=matches)
+    proof['actor_correction_episodes'] = episodes
+    report['held_click'] = proof
+    report['held_click_witness_passed'] = proof['passed']
+
+
+def held_click_final_gate(plan, report):
+    validate_held_click_plan(plan)
+    if not plan.get('held_click'):
+        return True
+    proof = report.get('held_click', {})
+    matches = [row.get('match') for row in report.get('matches', [])]
+    episodes, actors = proof.get('episodes', []), proof.get('actor_correction_episodes', [])
+    return bool(report.get('held_click_witness_passed') is True and proof.get('passed') is True and
+        report.get('actor_correction', {}).get('passed') is True and
+        proof.get('original_actor_gate_passed') is True and proof.get('expected_refusal_is_pass') is False and
+        proof.get('physical_input_exercised') is False and proof.get('inputsystem_update_serial_observed') is False and
+        len(matches) == 2 and len(set(matches)) == 2 and len(episodes) == len(actors) == 2 and
+        [row.get('match') for row in episodes] == [row.get('match') for row in actors] == matches and
+        all(row.get('passed') is True for row in episodes + actors))
+
+
 def resume(process):
     ntdll = C.WinDLL('ntdll', use_last_error=True)
     ntdll.NtResumeProcess.argtypes, ntdll.NtResumeProcess.restype = [C.c_void_p], C.c_long
@@ -2273,7 +2334,7 @@ async def run_prepared(output):
     actor_states = defaultdict(list)
     feel_context = remote_context = actor_context = None
     mobile_contexts = []
-    expired_actor_contexts = []
+    click_actor_contexts = []
     turn_contexts=[];native_receipt_rows={}
     server = audit = pki = None
     tick = C.WinDLL('kernel32').GetTickCount64; tick.restype = C.c_uint64
@@ -2288,6 +2349,8 @@ async def run_prepared(output):
         forced_cleanup=False, clients=[], authority_workers=[], pid_evidence_refusals=[])
     if plan.get('expired_click'):
         report['expired_click_witness_passed'] = False
+    if plan.get('held_click'):
+        report['held_click_witness_passed'] = False
     if plan['scenario'] == 'mobile':
         report.update(mobile_input_witness_passed=False,generic_movement_not_exercised=True,
             full_mobile_controls_accepted=False,mobile_scope=plan['mobile_scope'])
@@ -2535,9 +2598,9 @@ async def run_prepared(output):
                     bridge_frames=clients[1]['wire'], canonical_payloads={r['frame']:r['frame_payload_sha256']
                         for r in events if r['event']=='frame_queued' and r.get('match')==first},
                     canonical_states=states[first], native_states=actor_states[first])
-                if plan.get('expired_click'):
+                if plan.get('expired_click') or plan.get('held_click'):
                     for match in created:
-                        expired_actor_contexts.append(dict(actor_context, match=match,
+                        click_actor_contexts.append(dict(actor_context, match=match,
                             journal=read_journal(run, match, plan['frames']),
                             canonical_payloads={row['frame']:row['frame_payload_sha256'] for row in events
                                 if row['event']=='frame_queued' and row.get('match')==match},
@@ -2800,8 +2863,11 @@ async def run_prepared(output):
                     require(actor_context is not None and 1 in worker_state_rows, 'victim actor native-state file unavailable')
                     report['actor_correction'] = actor_correction_evidence(**actor_context, worker_states=worker_state_rows[1])
                     if plan.get('expired_click'):
-                        finalize_expired_click_observation(report, plan, contexts=expired_actor_contexts,
+                        finalize_expired_click_observation(report, plan, contexts=click_actor_contexts,
                                                           worker_states=worker_state_rows[1])
+                    if plan.get('held_click'):
+                        finalize_held_click_observation(report, plan, contexts=click_actor_contexts,
+                                                       worker_states=worker_state_rows[1])
                 require(plan['move_slot'] in worker_state_rows, 'selected closed worker native-state file unavailable')
                 report['command_phase']=command_phase(feel_context['rows'],match=feel_context['match'],
                     slot=feel_context['slot'],commits=events)
@@ -2860,6 +2926,7 @@ async def run_prepared(output):
                                     else 'forced owned prefix teardown; no native Quit or acceptance claim')
         report['passed'] = bool(report['scoped_observation_passed'] and report['source_unchanged'] and
             expired_click_final_gate(plan, report) and
+            held_click_final_gate(plan, report) and
             (plan['scenario'] != 'mobile' or mobile_final_gate(plan,report)) and
             (changing is None or (report.get('changing_rtt_smoothness_passed') is True and
              report.get('changing_rtt_other_client_feel',{}).get('passed') is True)) and
@@ -3098,6 +3165,8 @@ def main(argv=None):
                         help='Explicit original Gunbot Move12/Core5 fixture; both clients use the same authored bootstrap')
     parser.add_argument('--expired-click', action='store_true',
                         help='With explicit HQ actor correction: already-bound Mouse inside owned process; Single-expired history through both natural650-frame rounds')
+    parser.add_argument('--held-click', action='store_true',
+                        help='With explicit HQ actor correction: genuine bound-Mouse Single held through correction and completed only by real release')
     parser.add_argument('--mobile-correction', action='store_true',
                         help='Explicit Gunbot10/11 fixture: original mobile group/focus death, correction and fresh Move')
     parser.add_argument('--mobile-group-intent', action='store_true',
@@ -3139,7 +3208,7 @@ def main(argv=None):
         report = asyncio.run(run_prepared(args.run_prepared))
         print(json.dumps({k: report[k] for k in ('passed', 'scoped_observation_passed', 'movement_feel_witness_passed',
             'mobile_input_witness_passed','group_intent_witness_passed','recovery_stall_witness_passed','recall_witness_passed','focus_witness_passed','focus_no_start_witness_passed','focus_restart_witness_passed','caster_survey_witness_passed','caster_lifetime_witness_passed','ui_command_witness_passed','generic_movement_not_exercised',
-            'expired_click_witness_passed', 'full_feature_accepted', 'forced_cleanup', 'error') if k in report}))
+            'expired_click_witness_passed', 'held_click_witness_passed', 'full_feature_accepted', 'forced_cleanup', 'error') if k in report}))
         return 0 if report['passed'] else 1
     required = ('game', 'assets', 'output', 'python', 'module_root', 'heap_helper', 'cooperative', 'helper_build_receipt',
                 'expected_helper_sha256', 'expected_gameassembly_sha256')

@@ -177,7 +177,7 @@ static wire::Response control(State& s,uint8_t opcode,const wire::Bytes& bytes,D
         throw std::runtime_error("movement worker control failed");
     return response;
 }
-static void requireMovementHook(int64_t site,const char* exportName) {
+static void requireMovementHook(int64_t site,const char* exportName,uint8_t opcode=0xe8) {
     const auto module=GetModuleHandleW(L"GameAssembly.dll");
     if(!module)throw std::runtime_error("movement actor module is unavailable");
     const auto image=reinterpret_cast<const uint8_t*>(module);
@@ -190,8 +190,8 @@ static void requireMovementHook(int64_t site,const char* exportName) {
         throw std::runtime_error("movement actor image layout differs");
     int32_t displacement=0;memcpy(&displacement,image+site+1,4);
     const int64_t thunk=site+5+displacement;
-    if(image[site]!=0xe8 || thunk<0 || thunk>size-6 || image[thunk]!=0xff || image[thunk+1]!=0x25)
-        throw std::runtime_error("movement requires its optional actor CALL hook");
+    if(image[site]!=opcode || thunk<0 || thunk>size-6 || image[thunk]!=0xff || image[thunk+1]!=0x25)
+        throw std::runtime_error("movement requires its optional actor call/tail hook");
     memcpy(&displacement,image+thunk+2,4);const int64_t iat=thunk+6+displacement;
     if(iat<0 || iat>size-8)throw std::runtime_error("movement actor import lies outside image");
     uintptr_t target=0;memcpy(&target,image+iat,8);
@@ -202,6 +202,7 @@ static void requireMovementHook(int64_t site,const char* exportName) {
     if(!expected || target!=expected)
         throw std::runtime_error(std::string("movement actor import target differs: ")+exportName);
 }
+static void requireMovementTailHook(int64_t site,const char* exportName) {requireMovementHook(site,exportName,0xe9);}
 static void requireMovementPointerHook(int64_t site,const char* exportName) {
     const auto module=GetModuleHandleW(L"GameAssembly.dll");
     if(!module)throw std::runtime_error("movement pointer module is unavailable");
@@ -247,6 +248,16 @@ static void requireMovementBytes(int64_t site,const char* bytes,size_t count) {
         throw std::runtime_error("movement requires its scoped focus argument patch");
 }
 static void requireActorHook() {
+    requireMovementTailHook(0x3bf3316,"OfflinePredictionNaturalSelectionRemove");
+    requireMovementTailHook(0x3bf24f7,"OfflinePredictionPreviewAdd");
+    requireMovementTailHook(0x3bf2666,"OfflinePredictionPreviewClear");
+    requireMovementTailHook(0x3bf25f0,"OfflinePredictionSelectionRemoveCurrent");
+    requireMovementTailHook(0x3bf26a8,"OfflinePredictionSelectionClear");
+    requireMovementHook(0x3bf1375,"OfflinePredictionPreviewClear");
+    requireMovementHook(0x3bf2856,"OfflinePredictionPreviewClear");
+    requireMovementHook(0x3bf253a,"OfflinePredictionSelectionAdd");
+    requireMovementHook(0x3bf25d0,"OfflinePredictionSelectionRemovePreview");
+    requireMovementHook(0x3bf2739,"OfflinePredictionSelectionClear");
     requireMovementHook(0x3e6608b,"OfflinePredictionActorUpdate");
     requireMovementHook(0x3ea625a,"OfflinePredictionGroupReleaseRemove");
     requireMovementHook(0x3b02322,"OfflinePredictionSelectionCommit");

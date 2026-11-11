@@ -109,6 +109,7 @@ struct Dispatch {
         actors::require(owner(selector)==ticket.owner,"input observer owner changed during original callback");
         const bool completed=ledger->complete(ticket);
         if(completed && ledger->accepted()) {
+            actors::clickCapture(actors::state(),selector,ticket);
             ba::log("Prediction input Single observed: world=%llu generation=%llu serial=%llu entity=%u originalDown=1 originalProcess=1 completedCallback=1 dispatchVerified=1 repairAuthorized=0",
                 static_cast<unsigned long long>(ticket.owner.world),
                 static_cast<unsigned long long>(ticket.owner.generation),

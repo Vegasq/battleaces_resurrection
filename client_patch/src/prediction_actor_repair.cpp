@@ -6,12 +6,15 @@
 #include <memory>
 #include <algorithm>
 #include <exception>
+#include <array>
 #include "../checkpoint/prediction_presentation_policy.hpp"
 #include "prediction_movement.hpp"
 #include "prediction_casting_cleanup.hpp"
 #include "prediction_group_intent.hpp"
 #include "prediction_click_policy.hpp"
 #include "prediction_input_observer.hpp"
+#include "prediction_click_provenance.hpp"
+#include "prediction_held_selection_policy.hpp"
 
 namespace ba_prediction_actors {
 using ba::Obj;
@@ -31,6 +34,11 @@ struct Retire {
     Obj actor=nullptr;
     policy::ActorIdentity resident,current;
     bool alreadyReleased=false;
+    uint64_t incarnation=0; // Immutable pre-pool lease, never read back from a reused Unit.
+};
+struct ClickSnapshot {
+    std::array<uint32_t,8> scalars{};
+    std::array<Obj,8> graph{}; // Compared only; the retained selector roots them.
 };
 struct State {
     uint64_t world=0;
@@ -45,6 +53,11 @@ struct State {
     uint64_t groupGeneration=0;
     ba_prediction_group_intent::Ledger groupIntent;
     ba_prediction_input_observer::Ledger inputIntent;
+    ba_prediction_click_provenance::Ledger clickProvenance;
+    std::unique_ptr<Root> clickSelector;
+    ClickSnapshot clickSnapshot;
+    uint64_t managerUpdateSerial=0;
+    bool originalManagerUpdate=false;
 };
 static State& state(){static State* lifetime=new State;return *lifetime;}
 static bool flag(){return ba::flag(L"-prediction-movement-experimental");}
@@ -59,7 +72,8 @@ static void clearInactive(State& s) {
     // native world API, selection callback or original collection is touched.
     ba::log("Prediction actors inactive: world=%llu match=%s observerRootsOnly=1 actorsUntouched=1",
         static_cast<unsigned long long>(s.world),s.match.c_str());
-    s.identities.clear();s.pending.clear();s.admission={};s.confirmedRecreation.clear();s.groupIntent.clear();s.inputIntent.discard();s.manager.reset();s.simulation.reset();
+    s.identities.clear();s.pending.clear();s.admission={};s.confirmedRecreation.clear();s.groupIntent.clear();s.inputIntent.discard();
+    s.clickProvenance.clear();s.clickSelector.reset();s.clickSnapshot={};s.originalManagerUpdate=false;s.manager.reset();s.simulation.reset();
     s.world=0;s.match.clear();s.thread=0;s.checked=false;s.failed=false;
 }
 
@@ -269,6 +283,7 @@ static void checkContext(State& s,Obj manager,Obj frames) {
         require(s.groupGeneration!=UINT64_MAX,"actor group generation exhausted");
         s.groupIntent.reset(++s.groupGeneration);
         s.inputIntent.discard();
+        s.clickProvenance.clear();s.clickSelector.reset();s.clickSnapshot={};
         s.identities.clear();s.pending.clear();s.admission={};s.confirmedRecreation.clear();s.simulation=std::make_unique<Root>(simulation);
         s.manager=std::make_unique<Root>(manager);s.world=world;s.match=match;s.thread=GetCurrentThreadId();
         s.failed=false;s.checked=false;
@@ -754,7 +769,11 @@ static bool affectedLiveClick(Obj selector,const std::set<uint32_t>& affected) {
     },[](){return clickNow();});
     return decision==click::Classification::LiveOrUnknown;
 }
-static void guardRetiringInteractions(Obj selector,const std::vector<Retire>& retire,bool clearingCasting=false) {
+#include "prediction_click_selection.hpp"
+#include "prediction_click_provenance_actor.hpp"
+#include "prediction_held_selection_actor.hpp"
+static void guardRetiringInteractions(Obj selector,const std::vector<Retire>& retire,bool clearingCasting=false,
+        const HeldSelection* held=nullptr) {
     std::set<uint32_t> retired;for(const auto& actor:retire)retired.insert(actor.resident.entityId);
     for(const auto& actor:retire) {
         Obj casting=ba::read<Obj>(selector,0x98);
@@ -764,7 +783,8 @@ static void guardRetiringInteractions(Obj selector,const std::vector<Retire>& re
             require(!unbox<bool>(has.get()),"retiring actor remains in an active casting set");
         }
     }
-    require(!affectedLiveClick(selector,retired),"retiring identity remains in live or unresolved click intent");
+    require(!affectedLiveClick(selector,retired) || (held && held->allows(selector)),
+        "retiring identity remains in live or unresolved click intent");
     if(!ba::read<bool>(selector,0x16c) && !ba::read<bool>(selector,0x16d))return;
     field(selector,"_activeAbilityCaster",0x100);
     require(!ba::read<Obj>(selector,0x100),"held gesture with an active ability caster is not qualified");
@@ -772,7 +792,8 @@ static void guardRetiringInteractions(Obj selector,const std::vector<Retire>& re
             {"_previewSelectionSet",0x88},{"_selectionSet",0x90},{"_castingSet",0x98}}) {
         field(selector,entry.first,entry.second);
         if(clearingCasting && entry.second==0x98)continue;
-        require(!selectionReferences(ba::read<Obj>(selector,entry.second),retired),
+        require(!selectionReferences(ba::read<Obj>(selector,entry.second),retired) ||
+                (entry.second!=0x98 && held && held->allows(selector)),
                 "retiring identity remains in held gesture selection or cached type subset");
     }
     // This preflight never changes button/selection/caster/queue state. A
@@ -878,7 +899,7 @@ static void beginRetirement(GroupChanges& changes,FocusCancellation& focus) {
     changes.begin();focus.cancel();changes.mutated=true;
 }
 static void beginRetiringInteractions(State& s,Obj selector,const std::vector<Retire>& retire,
-        const std::vector<Obj>& groups,GroupChanges& changes) {
+        const std::vector<Obj>& groups,GroupChanges& changes,HeldSelection* held=nullptr) {
     std::set<uint32_t> retiredIds;for(const auto& actor:retire)retiredIds.insert(actor.resident.entityId);
     field(selector,"_castingSet",0x98);
     const bool affectedCasting=selectionReferences(ba::read<Obj>(selector,0x98),retiredIds);
@@ -889,8 +910,9 @@ static void beginRetiringInteractions(State& s,Obj selector,const std::vector<Re
         casting=std::make_unique<CastingCleanup>(*castingAccess,true);casting->prepare();
     }
     FocusCancellation focus(selector,retire);
-    guardRetiringInteractions(selector,retire,casting && casting->willClear());
+    guardRetiringInteractions(selector,retire,casting && casting->willClear(),held);
     changes.prepare(groups,retire);
+    if(held && held->prepared())require(held->allows(selector),"held selection changed before original actor mutation");
     // This is the first mutation. Its SAME producer SRW checks queue180 again;
     // a new ICommand refuses before scratch/focus/selection/pool can change.
     if(casting && casting->commit())ba::log("Prediction actor casting scratch cleared: pendingCommands=0 originalAPI=1 serializedActionsUntouched=1");
@@ -934,7 +956,7 @@ struct DeferredSelection {
         selector=std::make_unique<Root>(owner);batch=std::make_unique<Root>(values);remove=original;
         return true;
     }
-    void commit(State& s) {
+    void commit(State& s,HeldSelection* held=nullptr) {
         if(!batch)return;
         require(!attempted,"retained HQ selection removal attempted twice");requireOwned(s);
         Current current(frames->get());
@@ -958,12 +980,15 @@ struct DeferredSelection {
                 "retained HQ selection notification precedes confirmed recreation");recreated=true;
         }
         require(recreated,"retained HQ selection notification lacks its recreated actor");
+        if(held && held->prepared()) {
+            attempted=true;held->complete(selector->get());requireOwned(s);return;
+        }
         attempted=true;void* args[]={batch->get()};invoke(remove,selector->get(),args);requireOwned(s);
         ba::log("Prediction retained HQ selection applied: world=%llu match=%s entity=%u originalRemoval=1 frozenIds=1 postRecreation=1",
             static_cast<unsigned long long>(s.world),s.match.c_str(),frozenIds.front());
     }
 };
-static void repair(State& s,Obj manager,Obj frames,GroupChanges& changes,DeferredSelection& selection) {
+static void repair(State& s,Obj manager,Obj frames,GroupChanges& changes,DeferredSelection& selection,HeldSelection* held=nullptr) {
     Current current(frames);
     Root active(ba::read<Obj>(manager,0x10)),retained(ba::read<Obj>(manager,0xa0)),pending(ba::read<Obj>(manager,0x18));
     const auto activeActors=units(active.get()),retainedActors=units(retained.get());
@@ -984,7 +1009,7 @@ static void repair(State& s,Obj manager,Obj frames,GroupChanges& changes,Deferre
             const auto nextToken=confirmedToken(s,*next);
             if(policy::actorDecision(old,next)==policy::ActorDecision::Reload ||
                (nextToken && observed.incarnation!=nextToken)) {
-                retire.push_back({actor,old,*next});
+                retire.push_back({actor,old,*next,false,observed.incarnation});
                 if(nextToken)s.confirmedRecreation.insert(old.entityId);
             }
         }
@@ -1002,7 +1027,7 @@ static void repair(State& s,Obj manager,Obj frames,GroupChanges& changes,Deferre
                     "retained actor lacks original released HQ ownership state");
             for(Obj activeActor:activeActors)require(resident(activeActor).entityId!=old.entityId,
                     "retained HQ cleanup would remove an already-created same-ID actor");
-            retire.push_back({actor,old,*next,true});
+            retire.push_back({actor,old,*next,true,s.identities.at(actor).incarnation});
             if(confirmedToken(s,*next))s.confirmedRecreation.insert(old.entityId);
         }
     }
@@ -1051,7 +1076,10 @@ static void repair(State& s,Obj manager,Obj frames,GroupChanges& changes,Deferre
     // Original RemoveSelection handles ordinary preview/current selection and
     // ability compatibility. Resolve supported affected-focus cancellation
     // separately; casting/click/ability refusals must happen before it runs.
-    beginRetiringInteractions(s,selector.get(),retire,groups,changes);
+    // Group Begin/Dispose can dispatch original callbacks. Qualify those
+    // separately before preserving a pending click through a grouped repair.
+    if(held && deferredSelection && groups.empty())held->prepare(selector.get(),retire);
+    beginRetiringInteractions(s,selector.get(),retire,groups,changes,held);
     requireOwned(s);
     for(const auto& actor:retire)
         ba::log("Prediction actor retirement begin: world=%llu match=%s frame=%d entity=%u actor=%p oldType=%u oldArmy=%u correctedType=%u correctedArmy=%u affectedGroups=%zu",
@@ -1128,6 +1156,7 @@ extern "C" __declspec(dllexport) void OfflinePredictionActorUpdate(void* manager
     auto& s=ba_prediction_actors::state();
     ba_prediction_actors::GroupChanges changes;
     ba_prediction_actors::DeferredSelection selection;
+    ba_prediction_actors::HeldSelection held(s);
     bool entered=false;
     try {
         // movementEnabled means requested, including startup before BEGIN and
@@ -1140,14 +1169,17 @@ extern "C" __declspec(dllexport) void OfflinePredictionActorUpdate(void* manager
         ba_prediction_actors::require(!s.inUpdate,"actor repair reentered");s.inUpdate=true;entered=true;
         ba_prediction_actors::checkContext(s,manager,frames);
         ba_prediction_actors::reconcileGroupIntent(s);
-        ba_prediction_actors::repair(s,manager,frames,changes,selection);
-        original(manager,frames,methodInfo);
+        ba_prediction_actors::repair(s,manager,frames,changes,selection,&held);
+        {
+            ba_prediction_actors::ClickOriginalUpdate boundary(s);
+            original(manager,frames,methodInfo);
+        }
         ba_prediction_actors::requireOwned(s);
         changes.close();
         ba_prediction_actors::requireOwned(s);
         ba_prediction_actors::after(s,manager,frames);
         ba_prediction_actors::reconcileGroupIntent(s);
-        selection.commit(s);
+        selection.commit(s,&held);
         s.inUpdate=false;
     } catch(const std::exception& error) {
         try{changes.close();}catch(const std::exception& cleanup){ba::log("Prediction actor group cleanup failed: reason=%s retry=0",cleanup.what());}

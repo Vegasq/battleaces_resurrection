@@ -203,6 +203,7 @@ static Span* ids(Span* result,Obj receiver,Obj){
 }
 }
 namespace ba {
+static int lanSlot(){return 1;}
 using Obj=void*;static DWORD initialThread=1;static Obj owner=nullptr;
 template<class T>T api(const char* name){
     if(!strcmp(name,"il2cpp_class_get_methods"))return reinterpret_cast<T>(&host::methods);

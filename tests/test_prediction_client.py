@@ -20,7 +20,7 @@ class PredictionClientTests(unittest.TestCase):
         self.package.mkdir();self.game.mkdir();self.original=b'ORIGINAL';self.ordinary=b'ORDINARY';self.prediction=b'PREDICTION'
         helper=b'MZ'+b' '.join((b'BA_RESURRECTION_MOVEMENT_PIPELINE_V1',b'BA_RESURRECTION_NATIVE_WORKER_PROXY_V1',
             b'BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1'))
-        helper+=b' '.join(h['name'].encode()+b'\0'for h in p.prediction_worker.CALL_HOOKS+p.prediction_actor_repair.CALL_HOOKS+p.prediction_actor_repair.POINTER_HOOKS)
+        helper+=b' '.join(h['name'].encode()+b'\0'for h in p.prediction_worker.CALL_HOOKS+p.prediction_actor_repair.CALL_HOOKS+p.prediction_actor_repair.TAIL_HOOKS+p.prediction_actor_repair.POINTER_HOOKS)
         self.helper=helper
         files={'program/runtime/python.exe':b'MZpython',
             'program/app/client_patch/prediction_worker/__main__.py':b'# authored\n',
@@ -45,6 +45,7 @@ class PredictionClientTests(unittest.TestCase):
         sim=self.game/'Battle Aces_Data/Plugins/x86_64/Simulation.dll';sim.parent.mkdir(parents=True);sim.write_bytes(b'MZoriginalSim')
         self.manifest=dict(schema=2,original_sha256=p.digest(self.original),patched_sha256=p.digest(self.ordinary),
             helper_sha256=p.digest(helper),call_hooks=p.patcher.CALL_HOOKS+p.patcher.COMMUNITY_CALL_HOOKS+p.patcher.COSMETIC_CALL_HOOKS,
+            tail_hooks=p.patcher.TAIL_HOOKS+p.patcher.COMMUNITY_TAIL_HOOKS+p.patcher.COSMETIC_TAIL_HOOKS,
             patches=p.patcher.PATCHES+p.patcher.COSMETIC_PATCHES+p.patcher.DLSS_PRIVACY_PATCHES,pointer_hooks=[],
             components={'GameAssembly.dll':dict(original_sha256=p.digest(self.original),patched_sha256=p.digest(self.ordinary),
                 installed_sha256=p.digest(self.ordinary),telemetry_guards=7),'Other.dll':dict(installed_sha256='f'*64)},
@@ -74,6 +75,7 @@ class PredictionClientTests(unittest.TestCase):
         self.assertEqual(value['components']['GameAssembly.dll']['patched_sha256'],expected)
         self.assertEqual(value['call_hooks'],self.manifest['call_hooks']+p.prediction_worker.CALL_HOOKS+p.prediction_actor_repair.CALL_HOOKS)
         self.assertEqual(value['pointer_hooks'],p.prediction_actor_repair.POINTER_HOOKS)
+        self.assertEqual(value['tail_hooks'],self.manifest['tail_hooks']+p.prediction_actor_repair.TAIL_HOOKS)
         self.assertEqual(value['patches'],self.manifest['patches']+p.prediction_actor_repair.PATCHES)
         for field in ('asset_loading','local_settings','other_user_data'):self.assertEqual(value[field],self.manifest[field])
         self.assertEqual(value['components']['Other.dll'],self.manifest['components']['Other.dll'])
@@ -92,7 +94,13 @@ class PredictionClientTests(unittest.TestCase):
         self.assertEqual(self.manifest_path.read_bytes(),snapshot)
 
     def test_verified_package_missing_repeat_pointer_export_refuses_before_game_changes(self):
-        name=p.prediction_actor_repair.POINTER_HOOKS[0]['name'].encode()+b'\0'
+        self.missing_export_refuses(p.prediction_actor_repair.POINTER_HOOKS[0]['name'])
+
+    def test_verified_package_missing_natural_removal_tail_export_refuses_before_game_changes(self):
+        self.missing_export_refuses(p.prediction_actor_repair.TAIL_HOOKS[0]['name'])
+
+    def missing_export_refuses(self, export):
+        name=export.encode()+b'\0'
         changed=self.helper.replace(name,b'authored_missing_export\0')
         self.assertNotEqual(changed,self.helper)
         helper_path=self.package/p.ARTIFACTS['main_helper'];helper_path.write_bytes(changed)
@@ -110,7 +118,7 @@ class PredictionClientTests(unittest.TestCase):
 
     def test_prediction_pointer_and_argument_manifest_must_match_exact_recipe(self):
         p.prepare(self.package,self.game);good=json.loads(self.manifest_path.read_bytes())
-        for field in ('pointer_hooks','patches'):
+        for field in ('pointer_hooks','patches','tail_hooks'):
             changed=copy.deepcopy(good);changed[field]=[];raw=p.json_bytes(changed);self.manifest_path.write_bytes(raw)
             with self.subTest(field=field),self.assertRaisesRegex(p.PackageError,'descriptors|byte patches'):
                 p.check(self.package,self.game)

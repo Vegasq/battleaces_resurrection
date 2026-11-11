@@ -142,6 +142,7 @@ struct Canonical{uint32_t type=0,army=0;uint64_t incarnation=0;};
 struct State{uint64_t world=0;std::string match;std::unique_ptr<Root> simulation,manager;std::map<Obj,Resident> identities;
     struct Admission{int frame=100;std::map<uint32_t,Canonical> entities;}admission;};
 State& state(){static State value;return value;}
+void clickExternalEdit(State&){} // Input provenance has its own actual-source host.
 void require(bool v,const char* why){host::check(v,why);}
 void guard(uintptr_t,const char*,size_t){require(host::codeGuardOkay,"authored original-code guard failed");}
 Obj type(const char* space,const char* name){return host::type(space,name);}

@@ -374,6 +374,7 @@ extern "C" __declspec(dllexport) bool OfflinePredictionFocusActuate(void* select
         Obj method=actors::method(selector,"ActuateControlGroup",1,0x0600220f,0x3bf1650);
         actors::instanceSignature(method,"Boolean","Int32");void* args[]={&group};Root result(actors::invoke(method,selector,args));
         const bool accepted=actors::unbox<bool>(result.get());if(!accepted)return false;
+        actors::clickExternalEdit(context.state); // Includes accepted no-scope/repeated focus.
         focusBeginWorld(selector);auto& s=focusSession();
         const int held=ba::read<int>(selector,0xa0);actors::require(held>=-1,"focus held group differs");
         // Original Actuate can return true without a selection scope while a

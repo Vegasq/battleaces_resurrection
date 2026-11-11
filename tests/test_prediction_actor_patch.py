@@ -42,6 +42,10 @@ class PredictionActorGuardTests(unittest.TestCase):
             r'requireMovementHook\((0x[0-9a-fA-F]+),\s*"([^"]+)"\);', body)]
         self.assertEqual(len(required), len(set(required)))
         self.assertEqual(set(required), {(hook['rva'], hook['name']) for hook in actor.CALL_HOOKS})
+        tails = [(int(site, 16), name) for site, name in re.findall(
+            r'requireMovementTailHook\((0x[0-9a-fA-F]+),\s*"([^"]+)"\);', body)]
+        self.assertEqual(len(tails), len(set(tails)))
+        self.assertEqual(set(tails), {(hook['rva'], hook['name']) for hook in actor.TAIL_HOOKS})
         pointers = [(int(site, 16), name) for site, name in re.findall(
             r'requireMovementPointerHook\((0x[0-9a-fA-F]+),\s*"([^"]+)"\);', body)]
         self.assertEqual(len(pointers), len(set(pointers)))
@@ -64,6 +68,7 @@ class PredictionActorGuardTests(unittest.TestCase):
         stack.enter_context(patch.object(actor, 'SUPPORTED_ORIGINAL_SHA256', self.sha))
         stack.enter_context(patch.object(actor, 'BODY_GUARDS', self.guards))
         stack.enter_context(patch.object(actor, 'CALL_HOOKS', self.hooks))
+        stack.enter_context(patch.object(actor, 'TAIL_HOOKS', []))
         stack.enter_context(patch.object(actor, 'POINTER_HOOKS', []))
         stack.enter_context(patch.object(actor, 'PATCHES', []))
         # The independent selection guard has its own authored controls in

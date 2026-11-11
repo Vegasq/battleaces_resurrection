@@ -58,6 +58,7 @@ class PredictionFocusPatchTests(unittest.TestCase):
 
     def recipe(self, *, quit_hooks=None):
         stack = ExitStack()
+        stack.enter_context(patch.object(actor, 'TAIL_HOOKS', []))
         for module in (actor, selection):
             stack.enter_context(patch.object(module, 'SUPPORTED_ORIGINAL_SHA256', self.sha))
             stack.enter_context(patch.object(module, 'CALL_HOOKS', [self.call]))

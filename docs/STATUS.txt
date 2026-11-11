@@ -118,8 +118,15 @@ original Down observer entry/completion in both rounds,with real MethodInfo0/+8
 matching the loaded thunk.13 named input callbacks forward originals once and
 invalidate no-op input;selection scopes also invalidate before SetEquals.9 policy
 and8 actual-source host groups,38 patcher tests,and185-source helper50 build pass.
-No held-click guard exception exists. Next:original dying/removal attribution,
-then preview refind after recreation/deferred commit and genuine release.
+Actual48 now passes both genuine held primary-click/HQ correction episodes:
+the same canonical entity and accepted Down retain exact current/preview numeric
+sets through recreation,then original Up confirms current5/empty preview. The
+qualified path skips the whole deferred original removal;it writes neither
+selection nor click history. Empty casting scratch/no affected groups are
+required. All fourteen phases per world and natural shutdown pass143.305s,
+with source/inputs unchanged,no force or cleanup errors. 42-47 stay FAILED.
+253 focused Python checks and the195-source helper59 build pass. Next:separate
+natural-removal/empty-preview recovery and forced-retirement group preservation.
 Broader held input,group/render and physical acceptance stay open.
 Forced-retirement group clearing remains open. Casting,held-input and
 physical/Internet acceptance remain open;

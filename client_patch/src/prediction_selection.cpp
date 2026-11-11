@@ -99,7 +99,7 @@ extern "C" __declspec(dllexport) void OfflinePredictionSelectionCommit(void* hel
         // dispatch also observes no-op edits, before original SetEquals decides
         // whether to emit SelectionChanged. Natural-death attribution is a
         // separate prerequisite; this observer never waives held-click guards.
-        context.state.inputIntent.invalidate();
+        actors::clickSelectionCommit(context.state,selector,helper);
         actors::require(ba::read<bool>(helper,0x10),"selection commit is outside its original suspension");
         actors::field(selector,"_selectionSet",0x90);
         Obj remove=actors::method(selector,"RemoveFromSelection",1,0x06002215,0x3bf25a0);

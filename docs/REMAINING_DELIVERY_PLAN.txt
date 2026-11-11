@@ -95,9 +95,15 @@ preserved.58 authored C++ groups/390 Python checks pass;live/deferred/held/unkno
 intent stays protected. Actual41 now qualifies the original Down observer in both
 rounds:actual callback dispatch pointers match the installed codegen thunk,and
 the original ProcessClick marker completes once per press.13 named input routes
-and no-op scope invalidation have authored coverage;held repair is still refused.
-Next:attribute original dying/removal to that episode,then preserve genuinely live
-click through correction and qualify broader held-input/group/render behavior.
+and no-op scope invalidation have authored coverage. Actual48 now qualifies a
+genuine primary click held through both same-identity HQ corrections and real Up.
+The original release preserves both numeric sets in this path;the repair retains
+them only with the same accepted Down,canonical token,exact raw typed caches,
+empty casting scratch and no affected groups. No selection/history writes are
+needed. Both fourteen-phase episodes,native replay and natural shutdown pass.
+42-47 remain failed and preserved;253 focused Python checks and helper59 pass.
+Next:the separate naturally removed/empty-preview held case,forced-retirement
+group preservation,and broader held-input/render behavior.
 Physical/Internet acceptance is open.
 Prediction eligibility remains
 12/14. Forced-retirement group clearing and physical/Internet

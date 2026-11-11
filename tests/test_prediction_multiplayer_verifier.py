@@ -32,8 +32,9 @@ class PreparationTests(unittest.TestCase):
         helper = b'MZ' + b' '.join((b'BA_RESURRECTION_MOVEMENT_PIPELINE_V1',
             b'BA_RESURRECTION_NATIVE_WORKER_PROXY_V1', b'BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1'))
         hooks = prediction_worker.CALL_HOOKS + prediction_actor_repair.CALL_HOOKS
+        tails = prediction_actor_repair.TAIL_HOOKS
         pointers = prediction_actor_repair.POINTER_HOOKS
-        helper += b' '.join(h['name'].encode() + b'\0' for h in hooks + pointers)
+        helper += b' '.join(h['name'].encode() + b'\0' for h in hooks + tails + pointers)
         helper += '-prediction-movement-observe-position='.encode('utf-16-le')
         (self.game / 'BattleAcesOffline.dll').write_bytes(helper)
         (self.game / 'Battle Aces.exe').write_bytes(b'MZgame')
@@ -44,7 +45,7 @@ class PreparationTests(unittest.TestCase):
         state = self.game / '.battleaces-resurrection'; state.mkdir()
         (state / 'patch-manifest.json').write_text(json.dumps(dict(
             helper_sha256=verifier.sha(self.game / 'BattleAcesOffline.dll'),
-            patched_sha256=verifier.sha(self.game / 'GameAssembly.dll'), call_hooks=hooks,
+            patched_sha256=verifier.sha(self.game / 'GameAssembly.dll'), call_hooks=hooks,tail_hooks=tails,
             pointer_hooks=pointers,patches=prediction_actor_repair.PATCHES)))
         build_receipt = self.root / 'helper-build.json'
         build_receipt.write_text(json.dumps(dict(schema=1, sources_unchanged_during_build=True,
@@ -246,6 +247,55 @@ class PreparationTests(unittest.TestCase):
         value=json.loads((self.args.output/'invocation.json').read_text());value['expired_click']='true'
         (self.args.output/'invocation.json').write_text(json.dumps(value))
         with self.assertRaisesRegex(AssertionError,'Boolean'):verifier.verify_prepared(self.args.output)
+
+    def test_held_click_has_its_own_explicit_flag_scope_and_immutable_plan(self):
+        self.args.scenario='movement';self.args.actor_correction=True;self.args.held_click=True
+        helper=self.game/'BattleAcesOffline.dll'
+        helper.write_bytes(helper.read_bytes()+'-prediction-held-click-smoke'.encode('utf-16-le'))
+        self.args.expected_helper_sha256=verifier.sha(helper)
+        for path in (self.game/'.battleaces-resurrection/patch-manifest.json',self.args.helper_build_receipt):
+            value=json.loads(path.read_text());value['helper_sha256']=self.args.expected_helper_sha256
+            path.write_text(json.dumps(value))
+        plan=verifier.prepare(self.args)
+        self.assertIs(plan['held_click'],True);self.assertNotIn('expired_click',plan)
+        self.assertEqual((plan['frames'],plan['expected_matches']),(650,2))
+        self.assertEqual(verifier.verify_prepared(self.args.output),plan)
+        for index in (0,1):
+            flags=verifier.command_extra(plan,index,self.args.output/'run')
+            self.assertIn('-prediction-held-click-smoke',flags)
+            self.assertIn('-prediction-actor-correction-smoke',flags)
+            self.assertNotIn('-prediction-expired-click-smoke',flags)
+        value=deepcopy(plan);value['held_click']='true'
+        with self.assertRaisesRegex(AssertionError,'Boolean'):verifier.validate_held_click_plan(value)
+        value=deepcopy(plan);value['expired_click']=True
+        with self.assertRaisesRegex(AssertionError,'mutually exclusive'):verifier.command_extra(value,1,self.args.output/'run')
+
+    def test_held_click_scope_marker_and_tail_export_refuse_before_preparation(self):
+        self.args.scenario='movement';self.args.actor_correction=True;self.args.held_click=True
+        for key,value in (('actor_correction',False),('lifecycle','prefix'),('frames',600),('rtt_ms',(475,130)),
+                          ('mobile_correction',True),('changing_rtt',True),('move_slot',1),('expired_click',True)):
+            existed=hasattr(self.args,key);old=getattr(self.args,key,None);setattr(self.args,key,value)
+            with self.subTest(key=key),self.assertRaisesRegex(AssertionError,'expired click requires|mutually exclusive'):
+                verifier.prepare(self.args)
+            if existed:setattr(self.args,key,old)
+            else:delattr(self.args,key)
+            self.assertFalse(self.args.output.exists())
+        with self.assertRaisesRegex(AssertionError,'helper lacks explicit -prediction-held-click-smoke'):
+            verifier.prepare(self.args)
+        self.assertFalse(self.args.output.exists())
+
+    def test_held_click_cli_is_separate_from_normal_or_expired_without_execution(self):
+        base=[]
+        for name in ('game','assets','output','python','module-root','heap-helper','cooperative','helper-build-receipt'):
+            base+=['--'+name,str(self.root/name)]
+        base+=['--expected-helper-sha256','a'*64,'--expected-gameassembly-sha256','b'*64]
+        with patch.object(verifier,'prepare',return_value=dict(output='owned',scenario='movement')) as prepared,patch('builtins.print'):
+            self.assertEqual(verifier.main(base+['--scenario','movement','--actor-correction','--held-click']),0)
+            self.assertTrue(prepared.call_args[0][0].held_click);self.assertFalse(prepared.call_args[0][0].expired_click)
+            verifier.main(base);self.assertFalse(prepared.call_args[0][0].held_click)
+        plan=verifier.prepare(self.args)
+        self.assertNotIn('held_click',plan)
+        self.assertNotIn('-prediction-held-click-smoke',verifier.command_extra(plan,1,self.args.output/'run'))
 
     def test_expired_click_rejects_wrong_scope_and_missing_marker_before_output(self):
         self.args.scenario='movement';self.args.actor_correction=True;self.args.expired_click=True
@@ -2240,6 +2290,44 @@ class ObservationOrderingTests(unittest.TestCase):
         self.assertTrue(report['changing_rtt_smoothness_passed'])
         self.assertFalse(report['passed']or report['scoped_observation_passed'])
         self.assertEqual(report['feel']['speculative_minus_canonical_frames'],-2)
+
+
+class HeldClickVerifierGateTests(unittest.TestCase):
+    def setUp(self):
+        from tests.test_prediction_held_click_evidence import fixture, render
+        records,self.actors=fixture();self.log=render(records)
+        self.matches=[row['match'] for row in self.actors]
+        self.plan=dict(held_click=True,actor_correction=True,scenario='movement',lifecycle='natural',
+            frames=650,expected_matches=2,move_slot=0,rtt_ms=[130,475])
+        self.contexts=[dict(match=match,log=self.log) for match in self.matches]
+
+    def original_actor(self, **kwargs):
+        return {key:value for key,value in self.actors[self.matches.index(kwargs['match'])].items() if key!='match'}
+
+    def test_both_original_actor_proofs_and_real_held_suffix_are_required(self):
+        report=dict(matches=[dict(match=match) for match in self.matches],actor_correction=dict(passed=True))
+        with patch.object(verifier,'actor_correction_evidence',side_effect=self.original_actor) as original:
+            verifier.finalize_held_click_observation(report,self.plan,contexts=self.contexts,worker_states={})
+        self.assertEqual(original.call_count,2)
+        self.assertTrue(verifier.held_click_final_gate(self.plan,report))
+        for field,value in (('expected_refusal_is_pass',True),('physical_input_exercised',True),
+                            ('inputsystem_update_serial_observed',True),('original_actor_gate_passed',False)):
+            changed=deepcopy(report);changed['held_click'][field]=value
+            self.assertFalse(verifier.held_click_final_gate(self.plan,changed))
+        changed=deepcopy(report);changed['held_click']['episodes'][1]['match']=self.matches[0]
+        self.assertFalse(verifier.held_click_final_gate(self.plan,changed))
+
+    def test_unfinished_or_failed_run_never_passes_from_an_expected_refusal(self):
+        report=dict(matches=[dict(match=match) for match in self.matches],actor_correction=dict(passed=True))
+        broken=[dict(context,log='Prediction actor repair failed: live click intent') for context in self.contexts]
+        with patch.object(verifier,'actor_correction_evidence',side_effect=self.original_actor):
+            with self.assertRaises(AssertionError):
+                verifier.finalize_held_click_observation(report,self.plan,contexts=broken,worker_states={})
+        self.assertIs(report['held_click_witness_passed'],False)
+        self.assertFalse(verifier.held_click_final_gate(self.plan,report))
+        report['error']='original live guard refused'
+        with self.assertRaisesRegex(AssertionError,'unchanged primary gate'):
+            verifier.finalize_held_click_observation(report,self.plan,contexts=self.contexts,worker_states={})
 
 
 if __name__ == '__main__':

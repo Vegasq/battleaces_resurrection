@@ -367,6 +367,11 @@ D7    OPEN        Console shutdown/restart accepted. N10 protected recovery and
                   history.185 passes named same-owner RC identity/key lifecycle.
                   Cross-account/physical/SCM/session0/reboot/clean-host remain.
 D8    OPEN        Bounded two/four-room TLS/native and older soak evidence retained.
+                  Experimental prediction Actual48 qualifies two genuine held-HQ
+                  click corrections and original Up,matching native replay and
+                  natural shutdown. Its unchanged-identity/numeric-set scope does
+                  not close broader held input,groups,rendering or Internet feel.
+                  Details:prediction-actor-correction.txt. N35 remains pending.
                   219named Windows/C-data21-match cadence/resource check PASSES:
                   19.974326-20.005228Hz,max gap124.3548ms,zero worker awaits>50ms.
                   Normal Quits,22workers0,empty jobs/no force,28466audit records

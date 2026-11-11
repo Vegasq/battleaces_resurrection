@@ -745,7 +745,76 @@ authority-wire/native65/rawbridge joins with0 mismatches,each world723 frames
 nonempty native authority records also match. Audit receipt SHA256:
 342fdf0dbfb8193fbc11fdbfc5a7a10e19ae2702d9c3a6269f378d52352ecd6d.
 
-Forced-retirement whole-group clearing,casting/held input and
+Held primary click with preserved numeric sets - Actual48
+Original retained-HQ release does not necessarily emit UnitsDying. Actual43/44
+retain raw current{5}/preview{5},including their exact type3 caches,after original
+ReleaseFromSim marks the HQ dead and clears its component. This observed path
+does not execute the tracked original RemoveSelection episode. Actual42/43's
+empty-set assumption was wrong;both failed reports remain unchanged. Actual44
+then reaches the genuine production live-click guard RED before pooling.
+
+The movement-only original Down observer now captures a rooted selector and
+immutable accepted-input/owner/canonical-identity snapshot. Exact original
+selection/preview mutation and no-scope focus routes invalidate it,including
+no-ops. A separate pure ledger attributes natural removal only to the original
+manager update and exact preview/current/commit sequence;it grants no repair
+permission by itself. Raw set checks enumerate every cached typed set and use
+the original closed key ABI;filtered live views cannot hide stale IDs.
+
+The preservation adapter qualifies one already-released HQ5/type3/army1 with
+the same nonzero logical incarnation,current accepted Single Down,unchanged
+positions/history/owner graph,raw current{5}/preview{5},empty casting scratch,
+no active ability/focus,empty input queue and no affected control groups. It
+revalidates before mutation and after original recreation/admission. The complete
+deferred original RemoveSelection is skipped for that proven intact-set case.
+No selection,preview,click history or button field is rewritten. Every other
+case retains its existing refusal,including the separate tracked-natural-removal
+case. Physical Unit addresses may be reused;logical incarnation must not change.
+
+Actual45 completes W1's fourteen stages and real Up,but fails W2's prepress
+empty-preview assumption. Original ClearSelection only clears current selection;
+the borrowed Mouse may already yield exact preview{5} before Down. The revised
+fixture accepts only empty or exact typed HQ preview before position delivery,
+and still requires HQ preview once position is observed. Actual46 fails the
+interior projection precondition before a position event. Original HQ focus is
+synchronous but does not prevent later pan updates. The fixture now checks the
+original CanUserMoveCamera gate and refocuses immediately before projection.
+Actual47 confirms W2's initial exact preview{5} and production preservation at
+164,but its fixed163 fixture deadline fails before the restored event/real Up.
+No complete W2 click proof is claimed from47. The base actor proof already joins
+actual replay/admission rather than requiring163. The final finite held fixture
+permits restoration/preview through164,queues Up at max(165,restored+2) by166,
+and requires actual Up by167. No original actor/native/lifecycle gate is removed.
+
+Actual48 PASSES143.305s:both worlds hold genuine original Single Down from150,
+observe original release156,restore/admit163 and confirm through original Up165.
+Every fourteen-phase episode has the same token6/current accepted Down(serial6
+and17 respectively);raw current/preview sets stay{5} until Up empties preview.
+Each production prepared/preserved pair reports no preview/current writes and
+post-recreation admission. Both complete original actor replay proofs pass.
+Two clients and two authority workers exit0,naturally reaped with inactive Jobs,
+no forced cleanup and no cleanup errors;source/input hashes stay unchanged.
+A separate pre-resume reused-PID refusal is retained and safely reaped92 before
+resume;it is not a resumed match failure or natural-exit claim.
+253 focused Python checks pass;helper59 builds195 unchanged C++ source bindings.
+The raw reader has67 actual-header cases,provenance8 authored groups and held
+eligibility15 groups/110queries/282checks. These authored results do not replace
+the actual input/replay proof. Failed helper58(max macro) and Native42-47 remain
+preserved. Full held/group/render/physical/Internet acceptance is still OPEN.
+
+Actual48 report SHA256:
+099019444a25f70e2b4a46ccc2e817315bb9c95d9d009911a62968afb7d9b79e.
+Helper59 SHA256:
+3d5d4d4098273bee5faa1e5b1bb0159c340ef690576f962babd503d003f2c434.
+Owned experimental GameAssembly SHA256:
+a0c7343b6740c98c88dfe1cc85560f8d877ea7c73c06b34950c7b73f1d6d5d04.
+Preservation receipt SHA256:
+fd36a13b3b0bd5e2705875078606dafb24ab68dec72e44ca9636fb4803fee055.
+It retains968 sources,195 C++ bindings,11 inputs,55 assets,213 run captures and
+two separately labelled preexisting PID-refusal files.
+Private evidence:local/prediction-runtime/movement48-held-selection-balanced/.
+
+Forced-retirement whole-group clearing,broader casting/held input and
 physical/Internet acceptance remain OPEN. This does not close all mobile
 controls or full_feature_accepted;N35's human kit is unchanged.
 

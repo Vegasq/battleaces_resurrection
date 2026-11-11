@@ -30,6 +30,7 @@ static const char* methodName(void*){return "Remove";}
 static uint32_t paramCount(void*){return 1;}
 static uint32_t token(void*){return 0x060000ad;}
 namespace ba {
+static int lanSlot(){return 1;}
 using Obj=void*;static DWORD initialThread=1;static Obj owner=nullptr;
 template<class T>T api(const char* name){
     if(!strcmp(name,"il2cpp_class_get_methods"))return reinterpret_cast<T>(&classMethods);

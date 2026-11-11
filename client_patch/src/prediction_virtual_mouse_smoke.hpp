@@ -156,7 +156,8 @@ static Obj referenceField(Obj object,const char* name,size_t offset,Obj type) {
         "virtual mouse original owner field ABI differs");return ba::read<Obj>(object,offset);
 }
 static Obj ownerGraph(actors::State& owner,Obj selector) {
-    require(ba::flag(L"-prediction-expired-click-smoke")&&ba::initialThread&&GetCurrentThreadId()==ba::initialThread&&
+    const bool expired=ba::flag(L"-prediction-expired-click-smoke"),held=ba::flag(L"-prediction-held-click-smoke");
+    require((expired!=held)&&ba::initialThread&&GetCurrentThreadId()==ba::initialThread&&
         GetCurrentThreadId()==ba_local::updateThread&&owner.thread==GetCurrentThreadId()&&!owner.failed&&owner.world&&
         owner.world==ba_prediction_worker::movementWorldId()&&owner.match==ba_prediction_worker::movementMatchId()&&
         owner.match.size()==32&&owner.manager&&owner.simulation&&ba_prediction_movement::ownsPresentation(owner.simulation->get())&&ba::lanSlot()==1,

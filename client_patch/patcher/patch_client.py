@@ -203,6 +203,7 @@ def build_patch(original, *, include_telemetry=True, community=False, cosmetics=
         call_hooks += prediction_worker_patch.CALL_HOOKS
     if prediction_movement:
         call_hooks += prediction_actor_repair.CALL_HOOKS
+        tail_hooks += prediction_actor_repair.TAIL_HOOKS
         pointer_hooks += prediction_actor_repair.POINTER_HOOKS
     sites = sorted(patches + HOOKS + tail_hooks + call_hooks + pointer_hooks, key=lambda site: site['offset'])
     for left, right in zip(sites, sites[1:]):

@@ -133,6 +133,7 @@ static void escape(actors::State& owner,Obj selector,int frame) {
     ba::log("ACTOR ORDER {\"schema\":1,\"event\":\"original_escape_move\",\"world\":%llu,\"match\":\"%s\",\"army\":0,\"entity\":10,\"unit_type\":1,\"ability\":12,\"frame\":%d,\"tick_ms\":%llu,\"action_sha256\":\"%s\",\"originalCtor\":true,\"physicalUI\":false}",
         static_cast<unsigned long long>(s.world),s.match.c_str(),frame,static_cast<unsigned long long>(GetTickCount64()),hash.c_str());
 }
+#include "prediction_held_click_smoke.hpp"
 // Separate first-slice mobile fixture. Empty casting scratch/no active caster is
 // an explicit diagnostic precondition, not a production input policy.
 namespace mobile {
@@ -966,6 +967,20 @@ static void tick() {
 }
 }
 static void tick() {
+    if(held_click::enabled()) {
+        try {
+            require(!expired_click::enabled()&&!ba::flag(L"-prediction-mobile-correction-smoke")&&
+                ba::flag(L"-prediction-actor-correction-smoke"),"held click fixture flags are mutually exclusive");
+            held_click::frontendUpdate();held_click::tick();
+        } catch(const std::exception& error) {
+            held_click::markFailed();state().failed=true;
+            ba::log("Held click smoke failed: reason=%s physicalUI=0",error.what());worker::movementFail(error.what());
+        } catch(...) {
+            held_click::markFailed();state().failed=true;
+            ba::log("Held click smoke failed: reason=unknown fixture exception physicalUI=0");worker::movementFail("unknown held click fixture exception");
+        }
+        return;
+    }
     if(expired_click::enabled())expired_click::frontendUpdate();
     if(ba::flag(L"-prediction-mobile-correction-smoke")){mobile::tick();return;}
     if(!ba::flag(L"-prediction-actor-correction-smoke"))return;

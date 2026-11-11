@@ -86,6 +86,7 @@ class PredictionSelectionPatchTests(unittest.TestCase):
         stack.enter_context(patch.object(actor, 'SUPPORTED_ORIGINAL_SHA256', self.sha))
         stack.enter_context(patch.object(actor, 'BODY_GUARDS', []))
         stack.enter_context(patch.object(actor, 'CALL_HOOKS', self.hooks))
+        stack.enter_context(patch.object(actor, 'TAIL_HOOKS', []))
         stack.enter_context(patch.object(actor, 'POINTER_HOOKS', self.pointers))
         stack.enter_context(patch.object(actor, 'PATCHES', []))
         for name in ('PATCHES', 'HOOKS', 'TAIL_HOOKS', 'CALL_HOOKS',

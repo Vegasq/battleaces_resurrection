@@ -163,6 +163,9 @@ static std::pair<float,float> project(actors::State& owner,Obj selector,Obj core
     struct Point {float x,y,z;};const auto point=actors::unbox<Point>(projected.get());
     const auto width=screenDimension("get_width",0x06000479,0x5038860,"\x48\x83\xec\x28\x48\x8b\x05\x45\xa1\xe2\x01\x48\x85\xc0\x75\x18");
     const auto height=screenDimension("get_height",0x0600047a,0x50388b0,"\x48\x83\xec\x28\x48\x8b\x05\xfd\xa0\xe2\x01\x48\x85\xc0\x75\x18");
+    ba::log("Click target projection: world=%llu frame=%d x=%.9g y=%.9g z=%.9g width=%d height=%d",
+        static_cast<unsigned long long>(owner.world),ba::read<int>(owner.simulation->get(),0xac),
+        static_cast<double>(point.x),static_cast<double>(point.y),static_cast<double>(point.z),width,height);
     require(width>0&&height>0&&std::isfinite(point.x)&&std::isfinite(point.y)&&std::isfinite(point.z)&&point.z>0&&
         point.x>=width*.15f&&point.x<=width*.85f&&point.y>=height*.2f&&point.y<=height*.85f,
         "expired click fixture HQ projection is outside the interior view");return {point.x,point.y};

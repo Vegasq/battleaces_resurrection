@@ -158,6 +158,10 @@ static void clickField(Obj value,const char* name,size_t offset,Obj klass,size_t
     require(actual.type==klass && actual.size==size,"authored input click field ABI differs");
 }
 static void clickMode(Obj value) {field(value,"_deferredClickMode",0x170);}
+static void clickCapture(State&,Obj,const ba_prediction_input_observer::Ticket&) {
+    // Full capture/typed-cache adapter has its own source tests. This host
+    // qualifies unchanged callback routing and forwarding only.
+}
 }
 namespace ba_prediction_selection {
 static bool active(){return host::active && !host::stopped;}
