@@ -4,11 +4,22 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+2026-11-11 close-formation progress:Actual71's separate file-only qualification
+PASSES all four ordinary Gunbots' original Move in two Custom rounds. Responses
+58.634..60.698ms precede raw authority by437..438ms;fresh phases301/301. Same
+actors/groups/typed caches survive real ten-frame remote replay+20continuations,
+with zero guest same-head displacement. All2890 native hashes/wire triples and
+natural lifecycle pass. Original failed report is preserved;the parser's Single
+operand reconstruction is fixed with exact bits still enforced.521 combined
+Python checks,10 post-fix evidence tests and helper98/38 C++ executables pass.
+N35/live/manual copies unchanged;forced group/type,physical/Internet and full
+N33 remain open. Details:prediction-multi-unit-move.txt.
+
 2026-11-11 close-formation baseline:ordinary definitions/globals and four initial
 Gunbots pass361 original-native frames. All four settle into a close group,
 respond to the fresh301 Move at301,and remain moving through321..335;natural
 exit0/Job2/0/0,source/assets unchanged. Ten pure fixture tests pass. This only
-qualifies the new scenario;actual client/server prediction/rendering is next.
+qualifies the new scenario;Actual71 above adds client/server prediction/rendering.
 No helper,installer or live change;details:prediction-multi-unit-move.txt.
 
 2026-11-11 partial-group progress:Actual70's separate file-only qualification

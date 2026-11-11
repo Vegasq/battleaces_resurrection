@@ -1,7 +1,60 @@
 BATTLE ACES - MULTI-UNIT MOVEMENT PREDICTION
 Reviewed:2026-11-11. N33 remains ACTIVE;full feature/Internet acceptance OPEN.
 
-FOUR-UNIT CLOSE-FORMATION NATIVE BASELINE - PASS; UNITY PREDICTION OPEN
+FOUR-UNIT CLOSE-FORMATION - ACTUAL71 FILE-ONLY QUALIFICATION PASS
+Two actual Custom rounds now qualify the ordinary four-Gunbot group through
+original selection,manual Assign4,approach and fresh shared Move,with130/475ms
+configured RTT. All four rendered responses arrive in58.634..60.698ms,437..438ms
+before raw authority and437..453ms before accepted65. Independent native motion
+starts at301 before both receipts;fresh command phases are301/301 in both rounds.
+The group keeps the same actors,tokens,typed caches,Count4 and owners throughout
+130..360,with one selection/assignment and no repair reselection.
+
+The separate host Move causes real ten-frame replay at321/322 through330/331,
+followed by20 matching continuations within the observed group window. Each
+guest's same-head position delta is zero:the remote-only correction qualifies
+continuity through replay,not a nonzero guest pose correction. All four remain
+targetward through the actual correction and form a connected distance graph
+with edges<=3r through280..335. Geometric convergence/near-contact is recorded
+separately;this does not prove collision-kernel behavior or nonpenetration.
+
+All2890 full closed native hashes and2890 native/wire triples match authority.
+Both matches,Continue/rematch/Leave and normal Quit finish naturally;games0,
+retained handles closed/Jobs3/0/0,authorities0/Jobs2/0/0,workers natural shutdown.
+Elapsed182.938s;no forced cleanup,source/runtime change or cleanup errors.
+Only the owned automation copy received helper98. N35 installers,manual games
+and the deployed server remain unchanged;human Internet/physical feel stays OPEN.
+
+The original report remains FAILED because its checker added nine-digit JSON
+coordinates as Python doubles before rounding each sum. The original game uses
+Single operands. Reconstructing every input as float32 first yields exact target
+bits1116555026 instead of the incorrect1116555025;no tolerance is relaxed.
+The actual-operand regression fails against the old checker,then10 focused
+tests pass,including a body-consistent one-ULP wrong-target refusal. Separate
+reanalysis01 checks1028 frozen source bindings,66 runtime files,native route,
+Quit,timing,full scenario finalization and the literal frozen outer pass gate.
+All consumed evidence and the original failed report remain byte-identical.
+
+Before execution521 combined Python checks and all38 C++ test executables pass.
+Helper98 binds219 unchanged sources;its diagnostic flag is opt-in. Five pure
+controller helpers were extracted to prediction_scenario_plan.py with exact
+pre-hook AST equivalence;the controller remains258421 LF bytes within the limit.
+Raw cache order,pending enqueue-to-serializer intervals and same-millisecond
+render/authority ordering retain explicit positive/refusal checks.
+
+Original report:local/prediction-runtime/movement71-close-formation/run/verification.json
+SHA25627ed8f6c6a4fe82adf1cb14fe20cdcf4712a0165d66ada219ee3dc5a85f420aa
+Qualified report:local/prediction-runtime/movement71-close-formation/parser-reanalysis01/qualified-report.json
+SHA256cc83b1c529443b4afc4dda8d37d2f50e27d8b26903d73aa490c5f77f217fb98c
+Reanalysis receipt:local/prediction-runtime/movement71-close-formation/parser-reanalysis01/receipt.json
+SHA256031365534635708d98b4d256ccabe9d168b8f2236d51927bc99d4232a9a68b21
+Parser repair:local/close-formation-route01/float32-parser-fix01/receipt.json
+SHA256b8cd2a2a70748d42b2aa54d3103cf637c0d3a9818c4a05c0c07df67785f228d7
+Helper98 SHA256da0f9619a4d741e766164f8c4050861455c810633dddf3a592bb3ec2cef85dd3
+Remaining:forced group/type retirement,broader input/gameplay correction and
+physical/Internet acceptance. Reuse this named close-group result.
+
+FOUR-UNIT CLOSE-FORMATION NATIVE BASELINE - PASS; REUSED BY ACTUAL71
 The new explicit fixture keeps the ordinary GameConfig and global bytes intact,
 including Gunbot health600, speed6.3 and radius0.8000000119. It appends initial
 host10 at(60,0,60) and guest11..14 in a2m square around(-80,0,-60). The original
@@ -35,9 +88,8 @@ Child exits0 naturally,reaped/handleclosed,Job2/0/0,no force or cleanup errors.
 Review caught and fixed a parent timeout/exit race before execution:parent wait
 errors now remain failures even if the child subsequently exits0 naturally.
 Helper97,all installed/manual games,the N35 kit and live server are unchanged.
-Next:actual original four-unit selection/group and Move,per-member render/native
-response before authority,real remote replay+20,full wire/state parity and two
-natural rounds. The close-formation prediction gate remains OPEN.
+The then-pending two-client prediction check is now qualified by Actual71 above.
+This native baseline remains independently scoped and was not rerun unchanged.
 
 PARTIAL CANONICAL-DEATH GROUP PURGE - ACTUAL70 FILE-ONLY QUALIFICATION PASS
 The same initial11/12 fixture now omits the attacker's escape. Original native

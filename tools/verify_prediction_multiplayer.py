@@ -40,6 +40,7 @@ from client_patch.prediction_worker.native import helper_receipt
 from server.protocol import SIM_SHA as SUPPORTED_SIM_SHA256
 from tools.verify_prediction_client_worker import (
     CREATE_SUSPENDED, RetainedJob, SHIPPING_EXPORTS, quit_trace_evidence)
+from tools import prediction_close_formation_evidence as close_formation_evidence
 
 MAX_LOG = 64 * 1024 * 1024
 HEX64 = re.compile(r'[0-9a-f]{64}')
@@ -191,7 +192,7 @@ def prepare(args):
         require(changing_rtt and transition_orders and position_spec.army == args.move_slot,
                 'native position trace requires subject-owned changing RTT and transition orders')
     require(not transition_orders or changing_rtt, 'transition orders require explicit changing RTT')
-    require(args.scenario in ('startup', 'movement', 'mobile'), 'unknown prepared scenario')
+    require(args.scenario in ('startup', 'movement', 'mobile', 'close-formation'), 'unknown prepared scenario')
     expired_click = getattr(args, 'expired_click', False)
     require(type(expired_click) is bool, 'expired click option must be Boolean')
     held_click = getattr(args, 'held_click', False)
@@ -202,7 +203,8 @@ def prepare(args):
     require(type(terminal_timeline) is bool, 'terminal timeline option must be Boolean')
     require(not actor_mirror or held_click, 'actor mirror requires explicit held click')
     require(not (held_click and expired_click), 'held and expired click fixtures are mutually exclusive')
-    frames = args.frames if args.frames is not None else (650 if changing_rtt or expired_click or held_click or args.scenario == 'mobile' else 200 if args.scenario == 'startup' else 600)
+    frames = args.frames if args.frames is not None else (650 if changing_rtt or expired_click or held_click or args.scenario in ('mobile','close-formation') else 200 if args.scenario == 'startup' else 600)
+    close_formation = close_formation_evidence.option(args,frames,position_trace)
     actor_correction = bool(getattr(args, 'actor_correction', False))
     mobile_correction = bool(getattr(args, 'mobile_correction', False))
     mobile_group_intent = bool(getattr(args, 'mobile_group_intent', False))
@@ -333,13 +335,13 @@ def prepare(args):
     if position_trace is not None:
         require('-prediction-movement-observe-position='.encode('utf-16-le') in helper,
                 'helper lacks selected native position option')
-    if multi_unit_move or cohort_survivor:
+    if multi_unit_move or cohort_survivor or close_formation:
         require('-prediction-movement-observe-cohort='.encode('utf-16-le') in helper,
                 'helper lacks explicit native cohort observer forwarding')
     if mobile_correction:
         require('-prediction-mobile-correction-smoke'.encode('utf-16-le') in helper,
                 'helper lacks the explicit mobile correction fixture')
-    for enabled,flag in ((getattr(args,'cohort_canonical_death',False),'-prediction-cohort-canonical-death-smoke'),(cohort_survivor,'-prediction-cohort-survivor-smoke'),(multi_unit_move,'-prediction-cohort-smoke'),
+    for enabled,flag in ((close_formation,'-prediction-close-formation-smoke'),(getattr(args,'cohort_canonical_death',False),'-prediction-cohort-canonical-death-smoke'),(cohort_survivor,'-prediction-cohort-survivor-smoke'),(multi_unit_move,'-prediction-cohort-smoke'),
                          (mobile_group_intent,'-prediction-mobile-group-intent-smoke'),
                          (mobile_group_user_edits,'-prediction-mobile-group-user-edits-smoke'),
                          (mobile_recovery_stall,'-prediction-mobile-recovery-stall-smoke'),
@@ -495,6 +497,12 @@ def prepare(args):
             invocation.update(mobile_original_hold=True,
                 mobile_scope='Existing scripted original selection/Move180 then original slot5 instant Hold14/stop before authority, normal serialization and mobile correction; combined context/Hold, physical keyboard/UI and full controls remain open')
         validate_mobile_plan(invocation)
+    if close_formation:
+        from tools.prediction_close_formation_fixture import metadata as close_metadata
+        invocation.update(close_formation=True,close_formation_fixture=close_metadata(),
+            native_cohort_spec='1:1:130:360:8',generic_movement_not_exercised=True)
+        invocation['close_formation_scope']=close_formation_evidence.scope(invocation)
+        close_formation_evidence.validate_plan(invocation)
     output.mkdir(parents=True, exist_ok=False)
     for name in sources:
         target = output / 'source-at-prepare' / name
@@ -522,54 +530,14 @@ from tools.prediction_mobile_plan import (
 )
 
 
-def validate_expired_click_plan(plan):
-    require('expired_click' not in plan or type(plan['expired_click']) is bool,
-            'prepared expired click option must be Boolean')
-    if not plan.get('expired_click'):
-        return
-    require(plan.get('actor_correction') is True and plan.get('scenario') == 'movement' and
-            plan.get('lifecycle') == 'natural' and type(plan.get('frames')) is int and plan['frames'] == 650 and
-            type(plan.get('expected_matches')) is int and plan['expected_matches'] == 2 and
-            type(plan.get('move_slot')) is int and plan['move_slot'] == 0 and plan.get('rtt_ms') == [130,475] and
-            all(type(plan.get(key, False)) is bool and not plan.get(key, False) for key in
-                (*EXPIRED_CLICK_MOBILE_FLAGS, 'changing_rtt', 'transition_orders')) and
-            plan.get('native_position_trace') is None,
-            'expired click requires explicit HQ actor correction, natural movement650, slot0,130/475ms and no other fixture')
+from tools.prediction_scenario_plan import (
+    validate_expired_click_plan, validate_held_click_plan,
+    validate_terminal_timeline_plan, command_extra, actor_fixture_metadata,
+)
 
 
-def validate_held_click_plan(plan):
-    require('actor_mirror' not in plan or type(plan['actor_mirror']) is bool,
-            'prepared actor mirror option must be Boolean')
-    require(not plan.get('actor_mirror') or plan.get('held_click') is True,
-            'actor mirror requires explicit held click')
-    require('held_click' not in plan or type(plan['held_click']) is bool,
-            'prepared held click option must be Boolean')
-    if not plan.get('held_click'):
-        return
-    require(not plan.get('expired_click'), 'held and expired click fixtures are mutually exclusive')
-    if plan.get('actor_mirror'):
-        require(plan.get('actor_correction') is True and plan.get('scenario') == 'movement' and
-            plan.get('lifecycle') == 'natural' and type(plan.get('frames')) is int and plan['frames'] == 650 and
-            type(plan.get('expected_matches')) is int and plan['expected_matches'] == 2 and
-            type(plan.get('move_slot')) is int and plan['move_slot'] == 0 and plan.get('rtt_ms') == [475,130] and
-            all(type(plan.get(key, False)) is bool and not plan.get(key, False) for key in
-                (*EXPIRED_CLICK_MOBILE_FLAGS, 'changing_rtt', 'transition_orders')) and
-            plan.get('native_position_trace') is None,
-            'actor mirror requires held HQ natural movement650, slot0,475/130ms and no other fixture')
-        require('actor_fixture' not in plan or plan['actor_fixture'] == actor_fixture_metadata(True),
-                'prepared actor mirror metadata changed')
-    else:
-        validate_expired_click_plan(dict(plan, expired_click=True))
 
 
-def validate_terminal_timeline_plan(plan):
-    require('terminal_timeline' not in plan or type(plan['terminal_timeline']) is bool,
-            'prepared terminal timeline option must be Boolean')
-    if not plan.get('terminal_timeline'):
-        return
-    require(plan.get('actor_mirror') is True and plan.get('held_click') is True,
-            'terminal timeline requires explicit mirror held click')
-    validate_held_click_plan(plan)
 
 
 def verify_prepared(output):
@@ -579,6 +547,7 @@ def verify_prepared(output):
     require(plan.get('schema') == 1 and plan.get('native_executed') is False and
             Path(plan['output']).resolve() == output and Path(plan['module_root']).resolve() == ROOT,
             'prepared invocation identity differs')
+    close_formation_evidence.validate_plan(plan)
     if plan.get('scenario') == 'mobile':
         validate_mobile_plan(plan)
     validate_expired_click_plan(plan)
@@ -599,92 +568,6 @@ def verify_prepared(output):
     return plan
 
 
-def command_extra(plan, index, run):
-    validate_cohort_survivor_plan(plan)
-    validate_expired_click_plan(plan)
-    validate_held_click_plan(plan)
-    validate_terminal_timeline_plan(plan)
-    validate_mobile_held_click_plan(plan)
-    validate_mobile_context_move_plan(plan)
-    validate_mobile_context_hold_plan(plan)
-    validate_mobile_original_hold_plan(plan)
-    from tools.prediction_multi_unit_evidence import validate_plan as validate_cohort_plan
-    validate_cohort_plan(plan)
-    role = ('host', 'guest')[index]
-    result = [f'-community-match-{role}-smoke', '-lan-smoke', '-dedicated-surrender-smoke',
-        '-dedicated-surrender-frame=' + str(plan['surrender_frame']),
-        '-prediction-movement-experimental', '-frame-timing',
-        '-frame-timing-frames=' + str(plan['frames']), '-lan-audit',
-        '-prediction-worker-python=' + plan['files']['python']['path'],
-        '-prediction-worker-module-root=' + plan.get('worker_module_root', plan['module_root']),
-        '-prediction-worker-heap-helper=' + plan['files']['heap_helper']['path'],
-        '-prediction-worker-cooperative=' + plan['files']['cooperative']['path'],
-        '-prediction-worker-data-dir=' + str(run / f'worker-data-{index}')]
-    if plan['scenario'] == 'movement':
-        result += ['-prediction-movement-smoke','-prediction-movement-smoke-slot='+str(index),
-            '-prediction-movement-smoke-start-frame='+str(440 if index==plan['move_slot']else 460)]
-    if plan.get('actor_correction'):
-        result.append('-prediction-actor-correction-smoke')
-    if plan.get('actor_mirror'):
-        result.append('-prediction-actor-mirror-smoke')
-    if plan.get('terminal_timeline'):
-        result.append('-prediction-terminal-timeline-smoke')
-    if plan.get('expired_click'):
-        result.append('-prediction-expired-click-smoke')
-    if plan.get('held_click'):
-        result.append('-prediction-held-click-smoke')
-    if plan.get('mobile_correction'):
-        result.append('-prediction-mobile-correction-smoke')
-    if plan.get('cohort_survivor'):
-        require(plan.get('native_cohort_spec')=='1:1:130:220:8','survivor cohort spec missing/different')
-        result.append('-prediction-cohort-survivor-smoke')
-        if plan.get('cohort_canonical_death'):result.append('-prediction-cohort-canonical-death-smoke')
-        if index==1:result.append('-prediction-movement-observe-cohort='+plan['native_cohort_spec'])
-    if plan.get('multi_unit_move'):
-        require(plan.get('native_cohort_spec')=='1:1:420:520:8','prepared native cohort observer specification missing/different')
-        result.append('-prediction-cohort-smoke')
-        if index==1:
-            result.append('-prediction-movement-observe-cohort='+plan['native_cohort_spec'])
-    if plan.get('mobile_group_intent'):
-        result.append('-prediction-mobile-group-intent-smoke')
-    if plan.get('mobile_group_user_edits'):
-        result.append('-prediction-mobile-group-user-edits-smoke')
-    if plan.get('mobile_recovery_stall'):
-        result.append('-prediction-mobile-recovery-stall-smoke')
-    if plan.get('mobile_recall'):
-        result.append('-prediction-mobile-recall-smoke')
-    if plan.get('mobile_focus'):
-        result.append('-prediction-mobile-focus-smoke')
-    if plan.get('mobile_focus_no_start'):
-        result.append('-prediction-mobile-focus-no-start-smoke')
-    if plan.get('mobile_focus_restart'):
-        result.append('-prediction-mobile-focus-restart-smoke')
-    if plan.get('mobile_caster_survey'):
-        result.append('-prediction-mobile-caster-survey-smoke')
-    if plan.get('mobile_caster_lifetime'):
-        result.append('-prediction-mobile-caster-lifetime-smoke')
-    if plan.get('mobile_ui_cast'):
-        result.append('-prediction-mobile-ui-cast-smoke')
-    if plan.get('mobile_held_click'):
-        result.append('-prediction-mobile-held-click-smoke')
-    if plan.get('mobile_context_move'):
-        result.append('-prediction-mobile-context-move-smoke')
-    if plan.get('mobile_context_hold'):
-        result.append('-prediction-mobile-context-hold-smoke')
-    if plan.get('mobile_original_hold'):
-        result.append('-prediction-mobile-original-hold-smoke')
-    if plan.get('changing_rtt') and index == plan['move_slot']:
-        result.append('-prediction-movement-smoke-distance=48')
-    if plan.get('transition_orders') and index == plan['move_slot']:
-        result.append('-prediction-movement-smoke-transition-gates='+str(run/'transition-gates'))
-    if plan.get('native_position_trace') is not None and index == plan['move_slot']:
-        result.append('-prediction-movement-observe-position='+plan['native_position_trace'])
-    if plan.get('publication_source')=='post-original-qpc' or plan.get('mobile_recovery_stall') or plan.get('multi_unit_move') or plan.get('cohort_survivor'):
-        result.append('-frame-timing-worlds=2')
-    if plan['lifecycle'] == 'natural':
-        result += ['-native-quit-smoke', '-native-quit-mode=confirm', '-native-quit-gate-smoke',
-                   '-community-match-leave-quit-smoke']
-    return result
 
 
 def refresh_round_trips(log):
@@ -1678,9 +1561,6 @@ def timing_prefix_counts(prefix, frames, *, prediction, complete_delivery_proven
                 complete_delivery_proven=True, synthetic_timing_rows=0)
 
 
-def actor_fixture_metadata(mirror=False):
-    from tools.prediction_actor_fixture import metadata
-    return metadata(mirror)
 
 
 def mobile_fixture_metadata(survivor=False):
@@ -1688,8 +1568,14 @@ def mobile_fixture_metadata(survivor=False):
     return mobile_survivor_metadata()if survivor else mobile_metadata()
 
 
-def match_template(base, assets, *, actor_correction, mobile_correction=False, actor_mirror=False,cohort_survivor=False):
+def match_template(base, assets, *, actor_correction, mobile_correction=False, actor_mirror=False,cohort_survivor=False,close_formation=False):
     """Transform before DedicatedServer/ProfileStore build any MatchData."""
+    require(type(close_formation)is bool,'close-formation template option must be Boolean')
+    if close_formation:
+        require(not any((actor_correction,mobile_correction,actor_mirror,cohort_survivor)),
+                'close-formation requires its exclusive ordinary template')
+        from tools.prediction_close_formation_fixture import make_template as make_close_template
+        return make_close_template(base,assets)
     require(not (actor_correction and mobile_correction), 'HQ and mobile fixtures are mutually exclusive')
     require(type(actor_mirror) is bool and (not actor_mirror or actor_correction),
             'actor mirror requires explicit HQ fixture')
@@ -2587,7 +2473,7 @@ def native_evidence(log, *, matches, slot, profile, natural):
     forbidden = ('Movement prediction stopped;', 'Native worker request failed:', 'Native worker startup refused:',
         'Native worker shutdown failed:', 'Offline loop stopped in ', 'Original command scheduling failed:',
         'Prediction actor repair failed:', 'Prediction actors blocked:', 'Client lifecycle invariant failed:',
-        'Native Quit probe failed:', 'Frame timing capture stopped:', 'LAN audit disabled:', 'Mobile correction smoke failed:')
+        'Native Quit probe failed:', 'Frame timing capture stopped:', 'LAN audit disabled:', 'Mobile correction smoke failed:', 'Close formation smoke failed:')
     require(not any(x in log for x in forbidden), 'native movement/lifecycle failure in helper log')
     routes = re.findall(r'Native worker movement route active: pid=(\d+) assignedBeforeResume=1 .*movementRequested=1', log)
     require(len(routes) == 1, 'one actual Job-owned movement worker route required')
@@ -2649,14 +2535,17 @@ async def run_prepared(output):
     require(os.name == 'nt', 'actual Unity run requires Windows')
     plan = verify_prepared(output)
     fixture_active = bool(plan.get('actor_correction') or plan.get('mobile_correction'))
+    close_active = plan.get('close_formation',False)
     output, game, assets = Path(plan['output']), Path(plan['game']), Path(plan['assets'])
     run = output / 'run'; run.mkdir(exist_ok=False)
     pki_folder = run / 'ephemeral-pki'
     clients, workers, shapers, events, raw_bodies = [], [], [], [], {}
     states = defaultdict(dict)
     actor_states = defaultdict(list)
+    close_native_states = defaultdict(list)
     feel_context = remote_context = actor_context = None
     mobile_contexts = []
+    close_contexts = []
     click_actor_contexts = []
     turn_contexts=[];native_receipt_rows={}
     server = audit = pki = None
@@ -2682,6 +2571,9 @@ async def run_prepared(output):
         report['mobile_original_hold_witness_passed'] = False
     if plan.get('multi_unit_move'):
         report['multi_unit_witness_passed'] = False
+    if close_active:
+        report.update(close_formation_witness_passed=False,generic_movement_not_exercised=True,
+            close_formation_scope=plan['close_formation_scope'])
     if plan['scenario'] == 'mobile':
         report.update(mobile_input_witness_passed=False,generic_movement_not_exercised=True,
             full_mobile_controls_accepted=False,mobile_scope=plan['mobile_scope'])
@@ -2707,6 +2599,9 @@ async def run_prepared(output):
                 actual = actor_native_observation(room.sim.last_state, row['parsed_state_sha256'],fixture=plan['actor_fixture'])
                 if actual is not None:
                     actor_states[fields['match']].append(actual)
+            if close_active:
+                actual = close_formation_evidence.native_observation(room.sim.last_state,row['parsed_state_sha256'])
+                if actual is not None:close_native_states[fields['match']].append(actual)
         elif event == 'match_created' and fixture_active:
             room = server.rooms[fields['room']]
             require(fields['seed'] == plan['actor_fixture']['seed'] and
@@ -2716,6 +2611,15 @@ async def run_prepared(output):
                 bootstrap_sha256=fields['bootstrap_sha256'], raw_game_data_sha256=digest(room.match.raw_game_data),
                 raw_path=workers[-1]['bootstrap_path'], authority_worker_pid=room.sim.pid,
                 delivery_scope='one frozen MatchData BOOTSTRAP broadcast to both clients; native worker CREATE uses same raw bytes'))
+        elif event == 'match_created' and close_active:
+            room=server.rooms[fields['room']]
+            require(fields['seed']==plan['close_formation_fixture']['seed'] and
+                room.match.raw_game_data==workers[-1]['bootstrap'],'close-formation actual bootstrap/seed differs')
+            report.setdefault('close_formation_bootstraps',[]).append(dict(match=fields['match'],
+                fixture=plan['close_formation_fixture'],seed=fields['seed'],bootstrap_sha256=fields['bootstrap_sha256'],
+                raw_game_data_sha256=digest(room.match.raw_game_data),raw_path=workers[-1]['bootstrap_path'],
+                authority_worker_pid=room.sim.pid,
+                delivery_scope='same frozen MatchData broadcast to both clients and original authority CREATE'))
         events.append(row)
         require(len(events) <= 30000, 'authority event count exceeds bound')
         audit(event, **{k: v for k, v in row.items() if k != 'event'})
@@ -2724,8 +2628,8 @@ async def run_prepared(output):
         # Use the existing original worker protocol/class, replacing ONLY its
         # unsafe PID-relookup launch with this retained suspended ownership.
         folder = run / ('authority-' + str(len(workers))); folder.mkdir()
-        if fixture_active:
-            bootstrap_path = folder / 'actor-bootstrap.pb'
+        if fixture_active or close_active:
+            bootstrap_path = folder / ('close-formation-bootstrap.pb' if close_active else 'actor-bootstrap.pb')
             bootstrap_path.write_bytes(data)
         bootstrap = "import runpy,sys;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('server.simulation_worker',run_name='__main__')"
         argv = [plan['files']['python']['path'], '-I', '-S', '-B', '-u', '-c', bootstrap, str(ROOT), '--stdio']
@@ -2733,7 +2637,7 @@ async def run_prepared(output):
         process, job = spawn_owned(argv, cwd=folder, env=environment, stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0, close_fds=True)
         row = dict(process=process, job=job, assigned_before_resume=True, worker=None)
-        if fixture_active:
+        if fixture_active or close_active:
             row.update(bootstrap=data, bootstrap_path=str(bootstrap_path.relative_to(run)))
         workers.append(row)
         worker = SimulationWorker(process, request_timeout=10, close_timeout=5, test_backend=False)
@@ -2748,7 +2652,7 @@ async def run_prepared(output):
                     response.get('synthetic_test_backend') is False and response.get('ai') is None,
                     'original authority worker CREATE provenance differs')
                 worker.game_data_sha256, worker.dll_sha256 = digest(data), response['dll_sha256']
-            if plan['scenario'] in ('movement','mobile'):
+            if plan['scenario'] in ('movement','mobile','close-formation'):
                 original_frame = worker.process_frame
                 async def diagnostic_frame(actions, dt_ms=None, w=worker, original=original_frame):
                     return await full_authority_frame(w, original, actions, dt_ms)
@@ -2779,11 +2683,16 @@ async def run_prepared(output):
         template = match_template(template, assets, actor_correction=plan.get('actor_correction', False),
                                   mobile_correction=plan.get('mobile_correction',False),
                                   **({'actor_mirror':True} if plan.get('actor_mirror') else {}),
-                                  **({'cohort_survivor':True}if plan.get('cohort_survivor')else{}))
+                                  **({'cohort_survivor':True}if plan.get('cohort_survivor')else{}),
+                                  **({'close_formation':True}if close_active else{}))
         if fixture_active:
             expected_fixture = mobile_fixture_metadata(True)if plan.get('cohort_survivor')else mobile_fixture_metadata() if plan.get('mobile_correction') else actor_fixture_metadata(plan.get('actor_mirror',False))
             require(plan.get('actor_fixture') == expected_fixture, 'prepared actor fixture metadata changed')
             write(run / 'actor-fixture.json', plan['actor_fixture'])
+        if close_active:
+            from tools.prediction_close_formation_fixture import metadata as close_metadata
+            require(plan['close_formation_fixture']==close_metadata(),'prepared close-formation fixture metadata changed')
+            write(run/'close-formation-fixture.json',plan['close_formation_fixture'])
         server = DedicatedServer(template, ProfileStore(run / 'profiles', template, catalog=CosmeticCatalog(assets)),
             templates={1: template}, sim_factory=factory, audit=observe, data_dir=run,
             input_timeout=30, experimental_command_scheduling=True,
@@ -2849,6 +2758,7 @@ async def run_prepared(output):
                         'Actor correction smoke failed:',
                         'Expired click smoke failed:',
                         'Mobile correction smoke failed:',
+                        'Close formation smoke failed:',
                         'Offline loop stopped in ', 'Native Quit probe failed:')),
                         'actual movement client reported failure')
                 if changing is not None:
@@ -2902,7 +2812,7 @@ async def run_prepared(output):
                 trace = frame_timing.matches(frame_timing.read_trace(row['trace']))[0]
                 prefix = prefix_trace(trace, plan['frames'])
                 evidence['timing_capture'] = timing_prefix_counts(prefix, plan['frames'],
-                    prediction=plan['scenario'] in ('movement','mobile'),
+                    prediction=plan['scenario'] in ('movement','mobile','close-formation'),
                     complete_delivery_proven=len(report['matches']) == plan['expected_matches'] and all(
                         m['exact_bridge_and_native_authority_receipts'] for m in report['matches']))
                 require(any(r['event'] == 'publication' and r['presented'] >= plan['frames'] - 1 for r in prefix),
@@ -2944,7 +2854,15 @@ async def run_prepared(output):
                         bridge_frames=clients[1]['wire'],canonical_payloads={row['frame']:row['frame_payload_sha256']
                             for row in events if row['event']=='frame_queued' and row.get('match')==match},
                         canonical_states=states[match],native_states=actor_states[match]))
-            if plan['scenario'] != 'mobile':
+            if close_active:
+                for match in created:
+                    count=sum(r['event']=='frame_queued' and r.get('match')==match for r in events)
+                    close_contexts.append(dict(log=clients[1]['log'],attacker_log=clients[0]['log'],match=match,
+                        commits=events,raw_bodies=raw_bodies,journal=read_journal(run,match,count),
+                        bridge_frames=clients[1]['wire'],canonical_payloads={r['frame']:r['frame_payload_sha256']
+                            for r in events if r['event']=='frame_queued' and r.get('match')==match},
+                        canonical_states=states[match],native_states=close_native_states[match]))
+            if plan['scenario'] in ('startup','movement'):
                 feel_context = dict(rows=feel_rows(clients[slot]['log']), match=first, slot=slot,
                     commits=events, raw_bodies=raw_bodies, journal=read_journal(run, first, plan['frames']),
                     canonical_states=states[first], bridge_frames=clients[slot]['wire'],
@@ -2961,7 +2879,7 @@ async def run_prepared(output):
                     canonical_states=states[first],commits=events,raw_bodies=raw_bodies,journal=feel_context['journal'],
                     catalog_units=template.catalog,entity_abilities=template.entity_abilities,
                     built_units=planned_normal_build_units(clients[other]['log'],other,plan))
-            if plan['scenario'] not in ('movement','mobile'):
+            if plan['scenario'] == 'startup':
                 report['feel'] = evaluate_feel(**feel_context)
                 report['movement_feel_witness_passed'] = report['feel']['passed']
                 report['scoped_observation_passed'] = True
@@ -3030,7 +2948,7 @@ async def run_prepared(output):
                 if row.get('native_path') and row['native_path'].exists():
                     await cleanup_step(errors, 'retain native log', lambda row=row:
                         (run / f'native-{row["index"]}.log').write_bytes(read(row['native_path'])))
-                    if plan['scenario'] in ('movement','mobile'):
+                    if plan['scenario'] in ('movement','mobile','close-formation'):
                         await cleanup_step(errors,'retain native authority diagnostics',lambda row=row:
                             write(run/f'movement-authorities-{row["index"]}.json',authority_rows(read_fresh_native_log(row['native_path']))))
                         await cleanup_step(errors,'retain original Move diagnostics',lambda row=row:
@@ -3058,7 +2976,7 @@ async def run_prepared(output):
                     retained_handle_closed=row.get('retained_handle_closed', False),
                     natural_game_exit=process.poll() == 0 and not (job and job.forced),
                     job=job.final_accounting if job else None))
-            if plan['scenario'] in ('movement','mobile'):
+            if plan['scenario'] in ('movement','mobile','close-formation'):
                 def retain_worker_states(row=row):
                     source = run / f'worker-data-{row["index"]}' / 'canonical-state.jsonl'
                     raw = read(source, 4 * 1024 * 1024)
@@ -3071,13 +2989,25 @@ async def run_prepared(output):
                     actual = read_worker_states(target)
                     record.update(rows=len(actual), worlds=list(dict.fromkeys(r['world'] for r in actual)))
                     worker_state_rows[row['index']] = actual
-                    if (plan.get('multi_unit_move')or plan.get('cohort_survivor'))and row['index']==1:
+                    if (plan.get('multi_unit_move')or plan.get('cohort_survivor')or close_active)and row['index']==1:
                         from tools.prediction_multi_unit_evidence import read_cohort_trace
                         source=run/'worker-data-1/native-cohort-positions.jsonl'
                         payload=read(source,16*1024*1024);target=run/'native-cohort-positions-1.jsonl';target.write_bytes(payload)
                         report['cohort_trace_file']=dict(source=str(source),copy=str(target),sha256=digest(payload),bytes=len(payload))
                         report['_cohort_trace_rows']=read_cohort_trace(target)
                 await cleanup_step(errors, 'retain closed worker native states', retain_worker_states)
+        if close_active:
+            try:
+                report['close_formation']=close_formation_evidence.evaluate(contexts=close_contexts,
+                    cohort_trace=report.pop('_cohort_trace_rows',[]),worker_states=worker_state_rows,
+                    native_receipts=native_receipt_rows,peer_bridge_frames=clients[0]['wire'],
+                    authority_rows=authority_rows,join_check=joined_worker_evidence)
+                close_formation_evidence.finalize(report,plan)
+            except BaseException as error:
+                report.pop('_cohort_trace_rows',None)
+                report.setdefault('error',repr(error))
+                report['close_formation']=dict(passed=False,error=repr(error))
+                report['close_formation_witness_passed']=report['scoped_observation_passed']=False
         if plan.get('mobile_correction'):
             try:
                 from tools.prediction_mobile_evidence import evaluate, evaluate_ui_cast
@@ -3319,6 +3249,7 @@ async def run_prepared(output):
         report['passed'] = bool(report['scoped_observation_passed'] and report['source_unchanged'] and
             expired_click_final_gate(plan, report) and
             held_click_final_gate(plan, report) and
+            (not close_active or close_formation_evidence.gate(plan,report)) and
             (plan['scenario'] != 'mobile' or mobile_final_gate(plan,report)) and
             (changing is None or (report.get('changing_rtt_smoothness_passed') is True and
              report.get('changing_rtt_other_client_feel',{}).get('passed') is True)) and
@@ -3335,6 +3266,7 @@ async def run_prepared(output):
         write(run / 'server-states.json', dict(states))
         if fixture_active:
             write(run / 'actor-native-authority.json', dict(actor_states))
+        if close_active:write(run/'close-formation-native-authority.json',dict(close_native_states))
         body_dir = run / 'submitted-batches'; body_dir.mkdir()
         for (match, slot, sequence), body in raw_bodies.items():
             (body_dir / f'{match}-{slot}-{sequence}.pb').write_bytes(body)
@@ -3548,7 +3480,7 @@ def main(argv=None):
     parser.add_argument('--worker-package', type=Path,
                         help='Owned frozen private package; bind all files and use its actual worker imports/runtime')
     parser.add_argument('--expected-helper-sha256'); parser.add_argument('--expected-gameassembly-sha256')
-    parser.add_argument('--scenario', choices=('startup', 'movement', 'mobile'), default='startup')
+    parser.add_argument('--scenario', choices=('startup', 'movement', 'mobile', 'close-formation'), default='startup')
     parser.add_argument('--lifecycle', choices=('natural', 'prefix'), default='natural')
     parser.add_argument('--frames', type=int); parser.add_argument('--timeout', type=float, default=180)
     parser.add_argument('--rtt-ms', type=float, nargs=2, default=(130, 475))
@@ -3615,6 +3547,7 @@ def main(argv=None):
     if args.run_prepared:
         report = asyncio.run(run_prepared(args.run_prepared))
         print(json.dumps({k: report[k] for k in ('passed', 'scoped_observation_passed', 'movement_feel_witness_passed',
+            'close_formation_witness_passed',
             'survivor_witness_passed','multi_unit_witness_passed','mobile_input_witness_passed','group_intent_witness_passed','recovery_stall_witness_passed','recall_witness_passed','focus_witness_passed','focus_no_start_witness_passed','focus_restart_witness_passed','caster_survey_witness_passed','caster_lifetime_witness_passed','ui_command_witness_passed','generic_movement_not_exercised',
             'expired_click_witness_passed', 'held_click_witness_passed', 'mobile_held_click_witness_passed', 'mobile_context_move_witness_passed', 'mobile_context_hold_witness_passed', 'mobile_original_hold_witness_passed', 'full_feature_accepted', 'forced_cleanup', 'error') if k in report}))
         return 0 if report['passed'] else 1

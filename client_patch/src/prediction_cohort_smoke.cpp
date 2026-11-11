@@ -26,7 +26,7 @@ void requireFlags() {
     require(worker::movementEnabled()&&ba::flag(L"-prediction-mobile-correction-smoke")&&
         ba::flag(L"-lan-smoke")&&ba::flag(L"-original-command-scheduling-experimental"),
         "cohort diagnostic requires its explicit mobile/arrival/build fixture");
-    for(const auto* flag:{L"-prediction-cohort-survivor-smoke",L"-prediction-movement-smoke",L"-prediction-actor-correction-smoke",L"-prediction-actor-mirror-smoke",
+    for(const auto* flag:{L"-prediction-close-formation-smoke",L"-prediction-cohort-survivor-smoke",L"-prediction-movement-smoke",L"-prediction-actor-correction-smoke",L"-prediction-actor-mirror-smoke",
         L"-prediction-expired-click-smoke",L"-prediction-held-click-smoke",L"-prediction-terminal-timeline-smoke",
         L"-prediction-mobile-group-intent-smoke",L"-prediction-mobile-group-user-edits-smoke",L"-prediction-mobile-recovery-stall-smoke",
         L"-prediction-mobile-recall-smoke",L"-prediction-mobile-focus-smoke",L"-prediction-mobile-focus-no-start-smoke",

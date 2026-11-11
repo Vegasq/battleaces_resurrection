@@ -20,6 +20,11 @@ static uint32_t unitAt(Obj list,int index) {
 static void prepare(Obj gameData,int slot) {
     plan=Plan{};
     if((!ba::lan() && !ba::offlinePractice()) || !wcsstr(GetCommandLineW(),L"-lan-smoke"))return;
+    if(ba_prediction_close_formation::enabled()) {
+        ba_prediction_close_formation::requireFlags();
+        ba::log("LAN normal-build smoke skipped: closeFormation=1 originalConcedeUntouched=1");
+        return;
+    }
     try {
         const bool publicTeam=ba::unified() && ba::flag(L"-public-queue-experimental");
         if(slot<0 || slot>(publicTeam?3:1))throw std::runtime_error("smoke army slot outside supported roster");

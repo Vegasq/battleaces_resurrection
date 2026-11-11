@@ -27,11 +27,15 @@ wire comparisons and natural lifecycle pass;the original failed parser report
 is preserved. This closes the named partial-purge case,not forced retirement.
 The0.4.0 deployment/reopening paragraph below records the earlier completed delivery.
 
-Next concrete N33 check:four close Gunbots moving through real client/server
-correction. Its new ordinary-stat native baseline PASSES361 frames:all four
-respond at301,remain a close connected group,and move through321..335. No
-prediction/renderer acceptance follows yet;do not repeat this unchanged native
-baseline. Actual two-client qualification is next;prediction-multi-unit-move.txt.
+Actual71's separate file-only qualification now PASSES four close Gunbots moving
+through real client/server correction:responses58.634..60.698ms,437..438ms before
+raw authority,fresh phase301/301,continuous actors/groups/typed caches,real
+remote replay10+20,all2890 native/wire matches and two natural rounds. Original
+failed report stays preserved;the exact Single operand parser correction is
+documented. Reuse this close-group case and its361-frame native baseline.
+Next N33 work:remaining forced group/type retirement and broader combined input
+paths,alongside existing N35 Internet feedback. No collision-kernel or human
+feel acceptance follows from this scripted case;prediction-multi-unit-move.txt.
 
 Nick's requested0.4.0 client/server release is PUBLISHED;matching host deployed
 at134.209.176.39 and game TCP47623 reopened publicly,durable across restart.
@@ -263,10 +267,14 @@ These grouped rows summarize the detailed matrices;they are not a percentage or
 an exact count of every remaining test. DEV.txt remains the owner of user answers.
 
 COMPLETED
+[x] Four-unit close-formation prediction (Actual71,separate file-only reanalysis01):
+    every member moves before authority,original group/typed caches continuous
+    through real remote replay+20,all2890 native/wire matches,two natural rounds.
+    No collision-kernel/physical/Internet acceptance;prediction-multi-unit-move.txt.
 [x] Ordinary-stat four-unit close-formation native baseline:361 original frames,
     settled group,all-member fresh Move response and motion through the planned
-    late-update window,natural shutdown. Actual close-group prediction remains
-    OPEN;prediction-multi-unit-move.txt.
+    late-update window,natural shutdown. Reused by Actual71 above;
+    prediction-multi-unit-move.txt.
 [x] Partial canonical-death group purge preserves the survivor (Actual70,
     separate file-only reanalysis01):original group11+12 becomes12,Count1,
     no repair reselection,original survivor Move before authority,all2892 state/
