@@ -371,6 +371,11 @@ D8    OPEN        Bounded two/four-room TLS/native and older soak evidence retai
                   click corrections and original Up,matching native replay and
                   natural shutdown. Its unchanged-identity/numeric-set scope does
                   not close broader held input,groups,rendering or Internet feel.
+                  Actual49 passes the changed helper61's existing regression,
+                  2892 native hashes/wire joins and natural shutdown;all260
+                  retirement records have affectedGroups0. Later authored
+                  group/identity repairs pass122+44 cases;forced-group native
+                  coverage/canonical-loss typed-cache repair remain OPEN.
                   Details:prediction-actor-correction.txt. N35 remains pending.
                   219named Windows/C-data21-match cadence/resource check PASSES:
                   19.974326-20.005228Hz,max gap124.3548ms,zero worker awaits>50ms.

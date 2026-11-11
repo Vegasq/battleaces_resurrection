@@ -23,6 +23,8 @@ TAIL_HOOKS = list(prediction_click_provenance.TAIL_HOOKS)
 POINTER_HOOKS = list(prediction_selection.POINTER_HOOKS)
 PATCHES = list(prediction_selection.PATCHES)
 BODY_GUARDS = [
+    dict(rva=0x3c699b0, before='48895c2408574883ec20488bd98bfa48'),
+    dict(rva=0x3c63de0, before='c74154ffffffffc3'),
     dict(rva=0x3c08010, before='488bc44889501048894808535657415441'),
     dict(rva=0x3c0913c, before='e8afe8ffff'),
     dict(rva=0x3c08655, before='e8f68650ff'),

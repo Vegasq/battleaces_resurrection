@@ -825,9 +825,77 @@ Only the evaluator's descriptive scope string is clarified after the run;
 its predicates and the qualified C++ sources are unchanged.22 parser groups
 pass again;the exact runtime parser remains retained in the source snapshot.
 
-Forced-retirement whole-group clearing,broader casting/held input and
-physical/Internet acceptance remain OPEN. This does not close all mobile
-controls or full_feature_accepted;N35's human kit is unchanged.
+Broader casting/held input and physical/Internet acceptance remain OPEN.
+This does not close all mobile controls or full_feature_accepted;N35's human
+kit is unchanged.
+
+Forced-retirement group repair candidate
+An actual-source authored RED reproduced whole ControlGroup.Clear dropping
+unrelated pending99 when only7 retired. The candidate instead invokes original
+LedUnitSet.Remove on each raw all/type bucket,then original MarkCountAsDirty
+and group notification. It preserves raw pending members,leaders,automatic
+rules and original scope ownership;no whole Clear,live-only rebuild or Add.
+Original UnitsInitialized explicitly rejects an active group suspension,so
+prune/Dispose complete BEFORE pooling and original recreation/auto-assignment.
+Every begun scope is disposed once,including partial failures/owner loss;
+later groups are not mutated after the first failure.
+
+Helper60's authored host crashed on a missing frame collection before mutation.
+The failed build and source bytes remain retained. A strict null/current-class
+guard fixes that path;helper61 passes58 prior adapter cases,70 purge cases and
+25 scope cases,with198 unchanged C++/build source bindings.
+Actual49 then passes the prior held/movement regression in141.896seconds:
+two actual Custom rounds130/475ms RTT,all2892 closed native hashes and matching
+rawbridge/native65 joins against1446 authority frames,eight ordered batches
+per world,and natural shutdown/no forced cleanup. Restoration164/163 and real
+Up166/165 pass the existing bounded held episode. ALL260 retirement records
+have affectedGroups0,so this is regression evidence,NOT engine qualification
+of the new group path. Report SHA256:
+8828063fcb099e16de181073ace17768e3ba95cdd14a5c2b13c63bafdb1f503a.
+Independent frozen-source proof/final audit SHA256:
+c5f3ab33dd0c8a4c0a928abf0167e66fc95b6a7d68aa012cc68405869ab8ebec /
+f94a3ba6bfb736da1cb3074dbbee03c2d1c41d90085c62696b113fa6e24a950c.
+
+A second actual-source RED exposed a physical-ID ownership error:canonical
+75/army0/token900 membership at7 was deleted while retiring speculative
+physical76/token0. The current candidate protects membership only when the
+logical ledger and ACTIVE canonical type/army/token agree AND raw all/type
+membership proves the exact closed dictionary key. Original user removal wins;
+wrong/missing/multiple typed ownership refuses before mutation. Selected and
+tracked members share the same invalidated-ID classification;derived count
+is invalidated once even for a protected-only same-index correction.
+122 actual-header and44 actual-source scope cases now pass /W4 /WX,including
+the retained ownership RED,unrelated pending99,mixed identities,user removal,
+token/army/type changes,callback drift and once-only cleanup. These authored
+results are later than helper61/Actual49 and are not a new client run.
+Full helper63 now passes the integrated build and all included tests,with198
+unchanged source bindings. Helper SHA256:
+15c7998e1159489438694fff4e29686d0c813a26a17c1cd34d4482e9df113161.
+Build receipt SHA256:
+61810b181f2bc09cfa27c39cc0ae5b78f8234485fd2c53efc009864433a25ffe.
+It rebuilds passing helper62 after removing trailing blank lines in the three
+new files;all122/44 cases pass again on the final source bytes.
+122/44-case source/evidence receipt SHA256:
+29bf74026a48b8e15ebf4e80fe9d8c48b510128276d3b1bcc52a045eae92d97e.
+
+One finite original-native control pair tests a proposed allocator trigger:
+the SAME ordinary Build35 at145/155,baseline versus Move151,on the retained
+mobile bootstrap. Both builds create their entities immediately at145/155;
+no common full-ID type/army conflict exists through175. First new unit is76
+in both branches;the second is1048587 baseline/1048586 moved. This does not
+establish a native allocator contract or qualify a speculative Build command.
+It rules out delayed creation for this proposed trigger. Exact retained deck
+slot1 is type74,not the actual-client test's Missilebot6. The first probe
+failed at its wrong deck assertion before issuing a build and stays failed.
+The corrected pair exits0,Job2/0/0,no force,source/assets unchanged.
+Original-native pair receipt SHA256:
+b37bfb3c09d8a450263defcce854b2a5484152a46b398d59e8a610d14da48cb9.
+Original native type/army collision and forced-group lifecycle remain OPEN.
+The separate reconcileGroupIntent canonical-loss path still uses original
+UnitSelectionSet.Remove and can refuse on a stale typed cache;it needs separate
+repair/qualification. Prior failed evidence is preserved under ignored
+local/prediction-checkpoint-20261110/forced-retirement-groups01/;
+Actual49 is local/prediction-runtime/movement49-group-frame-regression/.
 
 Changing latency
 Owned actual-source tests qualify bounded existing REFRESH/ACK sampling and

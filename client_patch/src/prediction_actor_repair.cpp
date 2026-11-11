@@ -93,6 +93,8 @@ static void guards() {
     guard(0x3b02160,"\x33\xd2\xe9\x79\x01\x00\x00",7);
     guard(0x3ea6236,"\x8b\x97\x4c\x01\x00\x00\x45\x33\xc0\xe8\x2c\xc3\x8d\xff\x49\x8b\x4d\x20\x48\x85\xc9\x0f\x84\xf4\x00\x00\x00\x8b\x97\x4c\x01\x00\x00\x45\x33\xc0",36);
     guard(0x3c66610,"\x48\x89\x5c\x24\x18\x89\x54\x24\x10\x48\x89\x4c\x24\x08\x56\x57\x41\x57\x48\x81\xec\x80\x00\x00\x00\x8b\xf2\x48\x8b\xf9",30);
+    guard(0x3c699b0,"\x48\x89\x5c\x24\x08\x57\x48\x83\xec\x20\x48\x8b\xd9\x8b\xfa\x48",16);
+    guard(0x3c63de0,"\xc7\x41\x54\xff\xff\xff\xff\xc3",8);
     guard(0x3b02170,"\x80\x79\x10\x00\x75\x11\x48\x8b\x01\x48\x8b\x90\x90\x01\x00\x00\x48\xff\xa0\x88\x01\x00\x00\xc6\x41\x12\x01\xc3",28);
 }
 static void field(Obj object,const char* name,size_t offset) {
@@ -226,7 +228,13 @@ static bool tryValue(Obj buffer,uint32_t id,uint32_t& value) {
 }
 struct Current {
     Root frame,position,type,army;
-    explicit Current(Obj frames):frame(ba::call(frames,"get_Current")),
+    static Obj resolveFrame(Obj frames) {
+        require(frames,"actor repair simulation frame collection missing");
+        Obj value=ba::call(frames,"get_Current");
+        classIs(value,"Uncapped.Collections.ComponentBuffers","SimFrameComponentBuffers");
+        return value;
+    }
+    explicit Current(Obj frames):frame(resolveFrame(frames)),
         position(ba::call(frame.get(),"get_PositionBuffer")),
         type(ba::call(frame.get(),"get_TypeBuffer")),army(ba::call(frame.get(),"get_ArmyBuffer")) {
         classIs(frame.get(),"Uncapped.Collections.ComponentBuffers","SimFrameComponentBuffers");
@@ -346,6 +354,8 @@ static std::vector<Obj> affectedGroups(Obj selector,Obj simulation,const std::ve
     std::vector<Obj> result;
     for(uintptr_t i=0;i<count;++i) {
         Obj group=ba::read<Obj>(array,0x20+i*sizeof(Obj));classIs(group,"Uncapped","ControlGroup");
+        field(group,"<ID>k__BackingField",0x38);
+        require(ba::read<uint32_t>(group,0x38)==i,"actor repair group index and ID differ");
         field(group,"_unitIDs",0x20);field(group,"_trackedReleasedUnits",0x10);
         field(group,"_autoAssignments",0x30);
         Obj selected=ba::read<Obj>(group,0x20);require(selected,"actor repair group unit set missing");
@@ -368,72 +378,6 @@ static std::vector<Obj> affectedGroups(Obj selector,Obj simulation,const std::ve
     }
     return result;
 }
-// Original Begin returns its SAME SuspendedEventHelper as IDisposable. Hold it
-// through original recreation, clear only affected groups, then dispose once.
-// No automatic rule is removed, rewritten or replaced. This is a source-backed
-// candidate; original positive UI/group/HQ runtime qualification remains needed.
-struct GroupChanges {
-    struct Change {
-        Root group,helper;
-        Obj begin=nullptr,dispose=nullptr,clear=nullptr;
-        bool begun=false,disposed=false;
-        Change(Obj value):group(value),helper(ba::read<Obj>(value,0x40)){}
-    };
-    std::vector<std::unique_ptr<Change>> values;
-    std::vector<uint32_t> retiredIds;
-    bool mutated=false,closed=false;
-    void prepare(const std::vector<Obj>& groups,const std::vector<Retire>& retire) {
-        require(values.empty(),"actor group scopes prepared twice");
-        for(const auto& actor:retire)retiredIds.push_back(actor.resident.entityId);
-        values.reserve(groups.size());
-        for(Obj group:groups) {
-            field(group,"_controlGroupChangeHelper",0x40);
-            auto value=std::make_unique<Change>(group);require(value->helper.get(),"original group change helper missing");
-            field(value->helper.get(),"<IsSuspended>k__BackingField",0x10);
-            Root suspended(invoke(method(value->helper.get(),"get_IsSuspended",0,0x060000c7,0x90fd60),value->helper.get()));
-            require(!unbox<bool>(suspended.get()),"original group change already suspended");
-            value->begin=method(group,"BeginControlGroupChange",1,0x06001645,0x3ea5790);
-            value->dispose=method(value->helper.get(),"Dispose",0,0x060000cd,0x3b02160);
-            value->clear=method(group,"Clear",0,0x06001644,0x3ea5740);
-            values.push_back(std::move(value));
-        }
-    }
-    void begin() {
-        for(auto& value:values) {
-            bool playerInitiated=false;void* args[]={&playerInitiated};
-            Obj scope=nullptr;
-            try{scope=invoke(value->begin,value->group.get(),args);}
-            catch(...) {
-                // Original BeginSuspend sets IsSuspended in its finally even
-                // if OnBeginSuspension throws. Its rooted helper still needs
-                // exactly one Dispose; a pre-entry reflection failure does not.
-                value->begun=ba::read<bool>(value->helper.get(),0x10);throw;
-            }
-            // Mark ownership before validating the result; a failed check must
-            // still Dispose the already-started original suspension exactly once.
-            value->begun=true;
-            require(scope==value->helper.get(),"original group suspension did not return its rooted helper");
-        }
-    }
-    void close() {
-        if(closed)return;
-        std::exception_ptr error;
-        for(auto& value:values)if(value->begun && !value->disposed) {
-            if(mutated)try {
-                Obj tracked=ba::read<Obj>(value->group.get(),0x10);
-                for(auto id:retiredIds)removeId(tracked,id);
-                invoke(value->clear,value->group.get());
-                ba::log("Prediction actor control group cleared: group=%u changedIds=%zu originalScopeAcrossRecreation=1 automaticRulesPreserved=1 unaffectedGroupsRetained=1",
-                    ba::read<uint32_t>(value->group.get(),0x38),retiredIds.size());
-            }catch(...){if(!error)error=std::current_exception();}
-            value->disposed=true;
-            try{invoke(value->dispose,value->helper.get());}
-            catch(...){if(!error)error=std::current_exception();}
-        }
-        closed=true;if(error)std::rethrow_exception(error);
-    }
-    ~GroupChanges(){try{close();}catch(...){ba::log("Prediction actor group scope cleanup failed: retry=0");}}
-};
 static bool selectionReferences(Obj selection,const std::set<uint32_t>& retired) {
     classIs(selection,"Uncapped.Collections","UnitSelectionSet");
     field(selection,"_allUnits",0x18);field(selection,"_subsetsByType",0x20);
@@ -772,6 +716,7 @@ static bool affectedLiveClick(Obj selector,const std::set<uint32_t>& affected) {
 #include "prediction_click_selection.hpp"
 #include "prediction_click_provenance_actor.hpp"
 #include "prediction_held_selection_actor.hpp"
+#include "prediction_group_retirement.hpp"
 static void guardRetiringInteractions(Obj selector,const std::vector<Retire>& retire,bool clearingCasting=false,
         const HeldSelection* held=nullptr) {
     std::set<uint32_t> retired;for(const auto& actor:retire)retired.insert(actor.resident.entityId);
@@ -893,6 +838,184 @@ struct FocusCancellation {
         ba::log("Prediction actor focus cancelled: group=%d affectedActorOnly=1 originalAPI=1",group);
     }
 };
+// Prune only retired IDs from raw numeric caches while original notifications
+// are suspended. Close BEFORE pooling/recreation: original UnitsInitialized
+// explicitly requires an unsuspended helper and owns new automatic assignments.
+// Pending/unaffected membership is never rebuilt from a live-only view.
+struct GroupChanges {
+    struct Change {
+        Root group,helper;
+        std::unique_ptr<Root> selected,tracked,rules;
+        std::unique_ptr<IntentGroup> owner;
+        std::unique_ptr<GroupSelectionPurge> purge;
+        std::vector<std::pair<uint32_t,ba_prediction_group_intent::Identity>> retainedIntents;
+        Obj begin=nullptr,dispose=nullptr,mark=nullptr,removeTracked=nullptr;
+        bool prepared=false,begun=false,disposed=false;
+        Change(Obj value):group(value),helper(ba::read<Obj>(value,0x40)){}
+    };
+    std::vector<std::unique_ptr<Change>> values;
+    std::vector<uint32_t> retiredIds;
+    State* owner=nullptr;
+    std::unique_ptr<Root> frames;
+    uint64_t world=0,generation=0;
+    std::string match;
+    int frame=-1;
+    bool prepared=false,mutated=false,pruneAttempted=false,pruned=false,closed=false;
+    void owned()const {
+        if(!owner)return;
+        groupOwner(*owner);
+        require(owner->world==world && owner->groupGeneration==generation && owner->match==match &&
+            frames && frames->get() && ba::read<Obj>(owner->simulation->get(),0x148)==frames->get(),
+            "actor group retirement owner changed during callback");
+        Current current(frames->get());
+        require(ba::read<int>(current.frame.get(),0x40)==frame,
+            "actor group retirement presentation frame changed during callback");
+    }
+    void validate(const Change& value,bool suspended)const {
+        owned();if(!value.prepared)return; // Isolated preflight-only scope controls.
+        require(value.group.get() && value.helper.get() && value.selected && value.tracked && value.rules &&
+            ba::read<Obj>(value.group.get(),0x40)==value.helper.get() &&
+            ba::read<Obj>(value.group.get(),0x20)==value.selected->get() &&
+            ba::read<Obj>(value.group.get(),0x10)==value.tracked->get() &&
+            ba::read<Obj>(value.group.get(),0x30)==value.rules->get() &&
+            ba::read<Obj>(value.helper.get(),0x18)==value.group.get() &&
+            ba::read<bool>(value.helper.get(),0x10)==suspended,
+            "actor group retirement receiver or suspension changed");
+        if(value.owner)value.owner->validate(*owner);
+        for(const auto& retained:value.retainedIntents) {
+            const auto intent=owner->groupIntent.entries().find({value.owner->id,retained.first});
+            const auto canonical=owner->admission.entities.find(retained.first);
+            require(intent!=owner->groupIntent.entries().end() && intent->second==retained.second &&
+                canonical!=owner->admission.entities.end() &&
+                ba_prediction_group_intent::Identity{canonical->second.type,canonical->second.army,
+                    canonical->second.incarnation}==retained.second,
+                "actor group retained canonical intent changed during callback");
+        }
+        value.purge->validate();
+    }
+    void prepare(const std::vector<Obj>& groups,const std::vector<Retire>& retire,State* state=nullptr) {
+        require(!prepared && values.empty() && retiredIds.empty() && !closed,"actor group scopes prepared twice");
+        prepared=true;
+        for(const auto& actor:retire)retiredIds.push_back(actor.resident.entityId);
+        if(state && !groups.empty()) {
+            owner=state;world=state->world;generation=state->groupGeneration;match=state->match;
+            groupOwner(*state);
+            frames=std::make_unique<Root>(ba::read<Obj>(state->simulation->get(),0x148));
+            Current current(frames->get());frame=ba::read<int>(current.frame.get(),0x40);owned();
+        }
+        values.reserve(groups.size());std::set<Obj> distinct;
+        for(Obj group:groups) {
+            classIs(group,"Uncapped","ControlGroup");field(group,"_controlGroupChangeHelper",0x40);
+            auto value=std::make_unique<Change>(group);require(value->helper.get(),"original group change helper missing");
+            field(value->helper.get(),"<IsSuspended>k__BackingField",0x10);
+            Root suspended(invoke(method(value->helper.get(),"get_IsSuspended",0,0x060000c7,0x90fd60),value->helper.get()));
+            require(!unbox<bool>(suspended.get()),"original group change already suspended");
+            field(group,"_unitIDs",0x20);field(group,"_trackedReleasedUnits",0x10);field(group,"_autoAssignments",0x30);
+            field(value->helper.get(),"_controlGroup",0x18);
+            value->selected=std::make_unique<Root>(ba::read<Obj>(group,0x20));
+            value->tracked=std::make_unique<Root>(ba::read<Obj>(group,0x10));
+            value->rules=std::make_unique<Root>(ba::read<Obj>(group,0x30));
+            require(distinct.insert(value->selected->get()).second,"actor retirement groups share a selection set");
+            classIs(value->tracked->get(),"Uncapped.Collections","EntityIdSet");
+            value->begin=method(group,"BeginControlGroupChange",1,0x06001645,0x3ea5790);
+            value->dispose=method(value->helper.get(),"Dispose",0,0x060000cd,0x3b02160);
+            value->mark=method(value->helper.get(),"MarkForFire",0,0x060000ce,0x3b02170);
+            value->removeTracked=method(value->tracked->get(),"Remove",1,0x060000ad,0x3782570);
+            instanceSignature(value->begin,"IDisposable","Boolean");instanceSignature(value->dispose,"Void");
+            instanceSignature(value->mark,"Void");instanceSignature(value->removeTracked,"Boolean","UInt32");
+            value->purge=std::make_unique<GroupSelectionPurge>(value->selected->get());
+            if(owner)value->owner=std::make_unique<IntentGroup>(*owner,group,ba::read<uint32_t>(group,0x38));
+            value->prepared=true;validate(*value,false);values.push_back(std::move(value));
+        }
+    }
+    void begin() {
+        for(auto& value:values) {
+            require(!value->begun && !value->disposed,"actor group suspension attempted twice");
+            validate(*value,false);
+            bool playerInitiated=false;void* args[]={&playerInitiated};Obj scope=nullptr;
+            try{scope=invoke(value->begin,value->group.get(),args);}
+            catch(...) {
+                // Original Begin owns cleanup even when its callback throws
+                // after setting IsSuspended; never retry that original call.
+                value->begun=ba::read<bool>(value->helper.get(),0x10);throw;
+            }
+            value->begun=true;
+            require(scope==value->helper.get(),"original group suspension did not return its rooted helper");
+            validate(*value,true);
+        }
+    }
+    void prune() {
+        require(mutated && !closed && !pruneAttempted,"actor group prune stage attempted out of order");
+        pruneAttempted=true;
+        // Original UnitsInitialized may legitimately assign the recreated ID
+        // again (notably in Select All). Remove the old lease BEFORE pooling,
+        // never after those original initialization callbacks have run.
+        for(auto& value:values) {
+            require(value->prepared && value->begun && !value->disposed,
+                "actor group prune lacks its original owned suspension");
+            validate(*value,true);
+            // The helper enumerates/disposes a fresh raw-cache snapshot
+            // before mutation, without an iterator spanning original calls.
+            std::vector<uint32_t> invalidated;
+            for(auto id:retiredIds) {
+                bool retain=false;
+                if(owner) {
+                    const auto intent=owner->groupIntent.entries().find({value->owner->id,id});
+                    const auto canonical=owner->admission.entities.find(id);
+                    if(intent!=owner->groupIntent.entries().end() && canonical!=owner->admission.entities.end() &&
+                        intent->second.token && intent->second==ba_prediction_group_intent::Identity{
+                            canonical->second.type,canonical->second.army,canonical->second.incarnation}) {
+                        // This raw membership belongs to the confirmed logical
+                        // lease, even when the physical retiring actor has a
+                        // speculative type/token. Never re-add a removed ID.
+                        const auto identity=intent->second;
+                        retain=value->purge->hasTypedMember(id,identity.type);
+                        value->retainedIntents.emplace_back(id,identity);validate(*value,true);
+                        if(!retain)value->retainedIntents.pop_back();
+                    }
+                }
+                if(!retain)invalidated.push_back(id);
+            }
+            const auto before=ids(value->tracked->get());
+            // Same-index corrections can change resolvability even when all
+            // memberships are protected or the target was already removed.
+            if(!value->purge->erase(invalidated))value->purge->invalidateCount();
+            validate(*value,true);
+            for(auto id:invalidated) {
+                void* args[]={&id};Root removed(invoke(value->removeTracked,value->tracked->get(),args));
+                classIs(removed.get(),"System","Boolean");
+                require(unbox<uint8_t>(removed.get())<=1,"group tracked removal Boolean representation differs");
+                validate(*value,true);
+            }
+            auto expected=before;
+            expected.erase(std::remove_if(expected.begin(),expected.end(),[&](uint32_t id){
+                return std::find(invalidated.begin(),invalidated.end(),id)!=invalidated.end();}),expected.end());
+            auto actual=ids(value->tracked->get());
+            std::sort(expected.begin(),expected.end());std::sort(actual.begin(),actual.end());
+            require(actual==expected,"group retirement changed unrelated tracked membership");
+            invoke(value->mark,value->helper.get());validate(*value,true);
+            ba::log("Prediction actor control group pruned: group=%u changedIds=%zu retainedCanonicalIntents=%zu originalScopeHeld=1 beforePool=1 automaticRulesPreserved=1 unrelatedRawMembersPreserved=1 wholeClear=0 readd=0",
+                ba::read<uint32_t>(value->group.get(),0x38),invalidated.size(),value->retainedIntents.size());
+        }
+        pruned=true;
+    }
+    void close(bool cancelled=false) {
+        if(closed)return;
+        std::exception_ptr error;
+        if(mutated && !values.empty() && !pruned && !cancelled)
+            error=std::make_exception_ptr(std::runtime_error("actor group retirement skipped or failed its pre-recreation prune"));
+        for(auto& value:values)if(value->begun && !value->disposed) {
+            // Cleanup remains mandatory even after owner loss or a failed
+            // prior group. No adaptation mutation is ever retried at close,
+            // so original new assignments and later manual edits survive.
+            value->disposed=true;
+            try{invoke(value->dispose,value->helper.get());if(!error)validate(*value,false);}
+            catch(...){if(!error)error=std::current_exception();}
+        }
+        closed=true;if(error)std::rethrow_exception(error);
+    }
+    ~GroupChanges(){try{close(true);}catch(...){ba::log("Prediction actor group scope cleanup failed: retry=0");}}
+};
 static void beginRetirement(GroupChanges& changes,FocusCancellation& focus) {
     // A throwing original Begin still owns its ordinary Dispose, but neither
     // focus nor actor ownership is changed until every scope has begun.
@@ -911,7 +1034,7 @@ static void beginRetiringInteractions(State& s,Obj selector,const std::vector<Re
     }
     FocusCancellation focus(selector,retire);
     guardRetiringInteractions(selector,retire,casting && casting->willClear(),held);
-    changes.prepare(groups,retire);
+    changes.prepare(groups,retire,&s);
     if(held && held->prepared())require(held->allows(selector),"held selection changed before original actor mutation");
     // This is the first mutation. Its SAME producer SRW checks queue180 again;
     // a new ICommand refuses before scratch/focus/selection/pool can change.
@@ -1094,6 +1217,7 @@ static void repair(State& s,Obj manager,Obj frames,GroupChanges& changes,Deferre
     if(std::any_of(retire.begin(),retire.end(),[](const Retire& value){return !value.alreadyReleased;}))
         releaseEvent.fire(manager,released.get(),current.frame.get());
     requireOwned(s);
+    changes.prune();changes.close();requireOwned(s);
     for(const auto& actor:retire) {
         // Invoke the original UnitPoolManager dispatcher even for an active HQ.
         // Its old instantiated type selects the old pool and normal release
@@ -1182,7 +1306,7 @@ extern "C" __declspec(dllexport) void OfflinePredictionActorUpdate(void* manager
         selection.commit(s,&held);
         s.inUpdate=false;
     } catch(const std::exception& error) {
-        try{changes.close();}catch(const std::exception& cleanup){ba::log("Prediction actor group cleanup failed: reason=%s retry=0",cleanup.what());}
+        try{changes.close(true);}catch(const std::exception& cleanup){ba::log("Prediction actor group cleanup failed: reason=%s retry=0",cleanup.what());}
         if(entered)s.inUpdate=false;
         s.failed=true;
         ba::log("Prediction actor repair failed: world=%llu match=%s reason=%s retry=0",
