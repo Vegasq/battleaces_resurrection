@@ -113,8 +113,14 @@ InputSystem press/release and Single-clock expiry through both HQ corrections:
 history unchanged,all2888 native hashes/full wire joins matching,natural shutdown.
 The existing Mouse is borrowed only inside the owned process;no device removal
 or physical/Internet claim.37/38 failures and39 pre-resume refusal remain preserved.
-390 Python checks/181-source helper build pass. Next:genuinely live/held click
-through correction;broader held input,group/render and physical acceptance stay open.
+390 Python checks/181-source helper build pass at40. Actual41 qualifies accepted
+original Down observer entry/completion in both rounds,with real MethodInfo0/+8
+matching the loaded thunk.13 named input callbacks forward originals once and
+invalidate no-op input;selection scopes also invalidate before SetEquals.9 policy
+and8 actual-source host groups,38 patcher tests,and185-source helper50 build pass.
+No held-click guard exception exists. Next:original dying/removal attribution,
+then preview refind after recreation/deferred commit and genuine release.
+Broader held input,group/render and physical acceptance stay open.
 Forced-retirement group clearing remains open. Casting,held-input and
 physical/Internet acceptance remain open;
 prediction-actor-correction.txt. N35's frozen kit remains reserved.

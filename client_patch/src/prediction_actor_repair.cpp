@@ -11,6 +11,7 @@
 #include "prediction_casting_cleanup.hpp"
 #include "prediction_group_intent.hpp"
 #include "prediction_click_policy.hpp"
+#include "prediction_input_observer.hpp"
 
 namespace ba_prediction_actors {
 using ba::Obj;
@@ -43,6 +44,7 @@ struct State {
     std::set<uint32_t> confirmedRecreation;
     uint64_t groupGeneration=0;
     ba_prediction_group_intent::Ledger groupIntent;
+    ba_prediction_input_observer::Ledger inputIntent;
 };
 static State& state(){static State* lifetime=new State;return *lifetime;}
 static bool flag(){return ba::flag(L"-prediction-movement-experimental");}
@@ -57,7 +59,7 @@ static void clearInactive(State& s) {
     // native world API, selection callback or original collection is touched.
     ba::log("Prediction actors inactive: world=%llu match=%s observerRootsOnly=1 actorsUntouched=1",
         static_cast<unsigned long long>(s.world),s.match.c_str());
-    s.identities.clear();s.pending.clear();s.admission={};s.confirmedRecreation.clear();s.groupIntent.clear();s.manager.reset();s.simulation.reset();
+    s.identities.clear();s.pending.clear();s.admission={};s.confirmedRecreation.clear();s.groupIntent.clear();s.inputIntent.discard();s.manager.reset();s.simulation.reset();
     s.world=0;s.match.clear();s.thread=0;s.checked=false;s.failed=false;
 }
 
@@ -266,6 +268,7 @@ static void checkContext(State& s,Obj manager,Obj frames) {
     if(s.world!=world || s.match!=match) {
         require(s.groupGeneration!=UINT64_MAX,"actor group generation exhausted");
         s.groupIntent.reset(++s.groupGeneration);
+        s.inputIntent.discard();
         s.identities.clear();s.pending.clear();s.admission={};s.confirmedRecreation.clear();s.simulation=std::make_unique<Root>(simulation);
         s.manager=std::make_unique<Root>(manager);s.world=world;s.match=match;s.thread=GetCurrentThreadId();
         s.failed=false;s.checked=false;

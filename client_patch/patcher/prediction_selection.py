@@ -51,15 +51,79 @@ CALL_HOOKS = [
          offset=0x3bf175d, before='e8aeb12a00'),
     dict(name='OfflinePredictionControlGroupCamera', rva=0x3bfa027,
          offset=0x3bf8627, before='e8e4422a00'),
+    # Original Down has accepted the ordinary no-drag/no-caster path.
+    # void(UnitSelector*, MethodInfo*=null); call original 0x3bf4a60 once,
+    # then observe pending Single only inside the actual Down callback.
+    dict(name='OfflinePredictionClickDownAccepted', rva=0x3bf7e64,
+         offset=0x3bf6464, before='e8f7cbffff'),
 ]
 
-# Redirect the one codegen method-pointer slot, preserving its DIR64 fixup.
-# The original MoveNext body remains callable for inactive delegation.
+# Redirect exact codegen method-pointer slots, preserving their DIR64 fixups.
+# Original bodies remain callable for unchanged inactive delegation.
+# Input callbacks: void(UnitSelector*, const CallbackContext*, MethodInfo*).
+# CallbackContext is the original nested InputAction value type (16 bytes),
+# passed indirectly in RDX on Win64. Never fabricate it or infer selector from
+# saved registers. Subscribe/Unsubscribe pass callback MethodInfo to ctor
+# 0x018d00, which reads MethodInfo+8. Require a positive runtime witness that
+# actual callback MethodInfo+0/+8 resolve to this loaded thunk before capture.
+# A constructor CALL observer alone would not observe later input invocations.
 POINTER_HOOKS = [
     dict(name='OfflinePredictionRepeatFocusNext', rva=0x6d4dc48, offset=0x6d4b248,
          before='e09dbf8301000000', target_rva=0x3bf9de0,
          relocation_block_offset=0x736fbb4, relocation_block_before='00d0d40614030000',
          relocation_entry_offset=0x736fdd8, relocation_entry_before='48ac'),
+    dict(name='OfflinePredictionInputFocusCancel0', rva=0x6d4db50, offset=0x6d4b150,
+         before='6077bf8301000000', target_rva=0x3bf7760,
+         relocation_block_offset=0x736fbb4, relocation_block_before='00d0d40614030000',
+         relocation_entry_offset=0x736fd9a, relocation_entry_before='50ab'),
+    dict(name='OfflinePredictionInputFocusCancel1', rva=0x6d4db58, offset=0x6d4b158,
+         before='d077bf8301000000', target_rva=0x3bf77d0,
+         relocation_block_offset=0x736fbb4, relocation_block_before='00d0d40614030000',
+         relocation_entry_offset=0x736fd9c, relocation_entry_before='58ab'),
+    dict(name='OfflinePredictionInputFocusCancel2', rva=0x6d4db60, offset=0x6d4b160,
+         before='4078bf8301000000', target_rva=0x3bf7840,
+         relocation_block_offset=0x736fbb4, relocation_block_before='00d0d40614030000',
+         relocation_entry_offset=0x736fd9e, relocation_entry_before='60ab'),
+    dict(name='OfflinePredictionInputFocusCancel3', rva=0x6d4db68, offset=0x6d4b168,
+         before='b078bf8301000000', target_rva=0x3bf78b0,
+         relocation_block_offset=0x736fbb4, relocation_block_before='00d0d40614030000',
+         relocation_entry_offset=0x736fda0, relocation_entry_before='68ab'),
+    dict(name='OfflinePredictionInputFocusCancel4', rva=0x6d4db70, offset=0x6d4b170,
+         before='2079bf8301000000', target_rva=0x3bf7920,
+         relocation_block_offset=0x736fbb4, relocation_block_before='00d0d40614030000',
+         relocation_entry_offset=0x736fda2, relocation_entry_before='70ab'),
+    dict(name='OfflinePredictionInputCancelAbility', rva=0x6d4db78, offset=0x6d4b178,
+         before='9079bf8301000000', target_rva=0x3bf7990,
+         relocation_block_offset=0x736fbb4, relocation_block_before='00d0d40614030000',
+         relocation_entry_offset=0x736fda4, relocation_entry_before='78ab'),
+    dict(name='OfflinePredictionInputQueueModifier', rva=0x6d4db80, offset=0x6d4b180,
+         before='a079bf8301000000', target_rva=0x3bf79a0,
+         relocation_block_offset=0x736fbb4, relocation_block_before='00d0d40614030000',
+         relocation_entry_offset=0x736fda6, relocation_entry_before='80ab'),
+    dict(name='OfflinePredictionInputForceModifier', rva=0x6d4db88, offset=0x6d4b188,
+         before='707abf8301000000', target_rva=0x3bf7a70,
+         relocation_block_offset=0x736fbb4, relocation_block_before='00d0d40614030000',
+         relocation_entry_offset=0x736fda8, relocation_entry_before='88ab'),
+    dict(name='OfflinePredictionInputPosition', rva=0x6d4db90, offset=0x6d4b190,
+         before='d07abf8301000000', target_rva=0x3bf7ad0,
+         relocation_block_offset=0x736fbb4, relocation_block_before='00d0d40614030000',
+         relocation_entry_offset=0x736fdaa, relocation_entry_before='90ab'),
+    dict(name='OfflinePredictionInputDown', rva=0x6d4db98, offset=0x6d4b198,
+         before='207dbf8301000000', target_rva=0x3bf7d20,
+         relocation_block_offset=0x736fbb4, relocation_block_before='00d0d40614030000',
+         relocation_entry_offset=0x736fdac, relocation_entry_before='98ab'),
+    dict(name='OfflinePredictionInputUp', rva=0x6d4dba0, offset=0x6d4b1a0,
+         before='607fbf8301000000', target_rva=0x3bf7f60,
+         relocation_block_offset=0x736fbb4, relocation_block_before='00d0d40614030000',
+         relocation_entry_offset=0x736fdae, relocation_entry_before='a0ab'),
+    dict(name='OfflinePredictionInputContextDown', rva=0x6d4dba8, offset=0x6d4b1a8,
+         before='f080bf8301000000', target_rva=0x3bf80f0,
+         relocation_block_offset=0x736fbb4, relocation_block_before='00d0d40614030000',
+         relocation_entry_offset=0x736fdb0, relocation_entry_before='a8ab'),
+    dict(name='OfflinePredictionInputContextUp', rva=0x6d4dbb0, offset=0x6d4b1b0,
+         before='9082bf8301000000', target_rva=0x3bf8290,
+         relocation_block_offset=0x736fbb4, relocation_block_before='00d0d40614030000',
+         relocation_entry_offset=0x736fdb2, relocation_entry_before='b0ab'),
 ]
 
 # Pin the register/return contracts and original collection operations as well
@@ -90,6 +154,60 @@ BODY_GUARDS = [
     dict(rva=0x3bf3155, before='488b5424304533c0'),
     dict(rva=0x3bfa021, before='488b164533c0'),
     dict(rva=0x3bfa02c, before='c74714000080ff'),
+    # Original input bodies and accepted Down call context remain untouched.
+    dict(rva=0x3bf7760, before='83b9a0000000007558833dd8ec240300488d91a800000048c70200000000c781'),
+    dict(rva=0x3bf77d0, before='83b9a0000000017558833d68ec240300488d91a800000048c70200000000c781'),
+    dict(rva=0x3bf7840, before='83b9a0000000027558833df8eb240300488d91a800000048c70200000000c781'),
+    dict(rva=0x3bf78b0, before='83b9a0000000037558833d88eb240300488d91a800000048c70200000000c781'),
+    dict(rva=0x3bf7920, before='83b9a0000000047558833d18eb240300488d91a800000048c70200000000c781'),
+    dict(rva=0x3bf7990, before='33d2e989e9ffffcccccccccccccccccc48895c2408574883ec20803d8d152603'),
+    dict(rva=0x3bf79a0, before='48895c2408574883ec20803d8d15260300488bfa488bd97518488d0d80d3f102'),
+    dict(rva=0x3bf7a70, before='48895c2408574883ec20803dbe14260300488bda488bf97518488d0db0d2f102'),
+    dict(rva=0x3bf7ad0, before='48895c2410574883ec50803d5f14260300488bfa488bd9753a488d0da065f602'),
+    dict(rva=0x3bf7d20, before='48895c24104889742418574883ec30803d0b12260300488bf2488bd9754b488d'),
+    dict(rva=0x3bf7f60, before='40534883ec20488bc2488bd9488bc833d2e8aa3aa40080bb190100000088836c'),
+    dict(rva=0x3bf80f0, before='48895c2410574883ec70803d410e260300488bfa488bd97518488d0dc8d1f102'),
+    dict(rva=0x3bf8290, before='40534883ec20488bc2488bd9488bc833d2e87a37a40088836d0100004883c420'),
+    dict(rva=0x3bf7e5f, before='33d2488bcb'),
+    dict(rva=0x3bf7e69, before='488b5c2448488b7424504883c4305fc3'),
+    dict(rva=0x3bf4a60, before='40534883ec60803dc044260300488bd97518488d0d67c9f102e88281a2fcf083'),
+    dict(rva=0x3bf8e0f, before='488b742430898328010000c7837001000001000000488b5c24384883c4205fc3'),
+    # Special delegate ctor retains the actual callback MI and reads its +8
+    # dispatch pointer. Both subscription and removal use the same original
+    # MI cells; no delegate or MethodInfo layout is rewritten by these hooks.
+    dict(rva=0x18d00, before='40534883ec20833d3bd7e20600488bda498b40084c8bc9488941104c89412848895120'),
+    # Subscribe: original callback MI load / selector / delegate / ctor.
+    dict(rva=0x3bee820, before='4c8b05796bf202488bd7488bc8488be8e8cba442fc'),
+    dict(rva=0x3bee991, before='4c8b05186af202488bd7488bc8488be8e85aa342fc'),
+    dict(rva=0x3beeb02, before='4c8b059f68f202488bd7488bc8488be8e8e9a142fc'),
+    dict(rva=0x3beec73, before='4c8b054667f202488bd7488bc8488be8e878a042fc'),
+    dict(rva=0x3beede4, before='4c8b05cd65f202488bd7488bc8488be8e8079f42fc'),
+    dict(rva=0x3beee5f, before='4c8b05e262f202488bd7488bc8488be8e88c9e42fc'),
+    dict(rva=0x3beeeda, before='4c8b05af61f202488bd7488bc8488be8e8119e42fc'),
+    dict(rva=0x3beef55, before='4c8b053461f202488bd7488bc8488be8e8969d42fc'),
+    dict(rva=0x3beefd0, before='4c8b056160f202488bd7488bc8488be8e81b9d42fc'),
+    dict(rva=0x3bef04b, before='4c8b05e65ff202488bd7488bc8488be8e8a09c42fc'),
+    dict(rva=0x3bef0c6, before='4c8b059b5ff202488bd7488bc8488be8e8259c42fc'),
+    dict(rva=0x3bef141, before='4c8b05005ff202488bd7488bc8488be8e8aa9b42fc'),
+    dict(rva=0x3bef1bc, before='4c8b059d5ef202488bd7488bc8488be8e82f9b42fc'),
+    dict(rva=0x3bef237, before='4c8b05ea5df202488bd7488bc8488be8e8b49a42fc'),
+    dict(rva=0x3bef2ae, before='4c8b05a35df202488bd7488bc8488bf0e83d9a42fc'),
+    # Unsubscribe: original callback MI load / selector / delegate / ctor.
+    dict(rva=0x3befb80, before='4c8b051958f202488bd7488bc8488be8e86b9142fc'),
+    dict(rva=0x3befcf1, before='4c8b05b856f202488bd7488bc8488be8e8fa8f42fc'),
+    dict(rva=0x3befe62, before='4c8b053f55f202488bd7488bc8488be8e8898e42fc'),
+    dict(rva=0x3beffd3, before='4c8b05e653f202488bd7488bc8488be8e8188d42fc'),
+    dict(rva=0x3bf0144, before='4c8b056d52f202488bd7488bc8488be8e8a78b42fc'),
+    dict(rva=0x3bf01bf, before='4c8b05824ff202488bd7488bc8488be8e82c8b42fc'),
+    dict(rva=0x3bf023a, before='4c8b054f4ef202488bd7488bc8488be8e8b18a42fc'),
+    dict(rva=0x3bf02b5, before='4c8b05d44df202488bd7488bc8488be8e8368a42fc'),
+    dict(rva=0x3bf0330, before='4c8b05014df202488bd7488bc8488be8e8bb8942fc'),
+    dict(rva=0x3bf03ab, before='4c8b05864cf202488bd7488bc8488be8e8408942fc'),
+    dict(rva=0x3bf0426, before='4c8b053b4cf202488bd7488bc8488be8e8c58842fc'),
+    dict(rva=0x3bf04a1, before='4c8b05a04bf202488bd7488bc8488be8e84a8842fc'),
+    dict(rva=0x3bf051c, before='4c8b053d4bf202488bd7488bc8488be8e8cf8742fc'),
+    dict(rva=0x3bf0597, before='4c8b058a4af202488bd7488bc8488be8e8548742fc'),
+    dict(rva=0x3bf060e, before='4c8b05434af202488bd7488bc8488bf0e8dd8642fc'),
 ]
 
 

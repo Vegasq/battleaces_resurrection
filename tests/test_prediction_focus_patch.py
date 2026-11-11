@@ -167,8 +167,10 @@ class PredictionFocusPatchTests(unittest.TestCase):
                                                        ['AuthoredRepeatNext'], thunk_exports=['AuthoredRepeatNext'])
 
     def test_shipped_focus_sites_preserve_original_body_and_argument_abi(self):
-        self.assertEqual(len(selection.POINTER_HOOKS), 1)
-        pointer = selection.POINTER_HOOKS[0]
+        focus_pointers = [row for row in selection.POINTER_HOOKS
+                          if row['name'] == 'OfflinePredictionRepeatFocusNext']
+        self.assertEqual(len(focus_pointers), 1)
+        pointer = focus_pointers[0]
         self.assertEqual((pointer['rva'], pointer['target_rva'], pointer['before']),
                          (0x6d4dc48, 0x3bf9de0, 'e09dbf8301000000'))
         calls = {row['rva']: row for row in selection.CALL_HOOKS}

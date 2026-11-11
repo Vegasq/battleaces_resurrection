@@ -260,6 +260,20 @@ static void requireActorHook() {
     requireMovementHook(0x3bf315d,"OfflinePredictionControlGroupCamera");
     requireMovementHook(0x3bfa027,"OfflinePredictionControlGroupCamera");
     requireMovementPointerHook(0x6d4dc48,"OfflinePredictionRepeatFocusNext");
+    requireMovementHook(0x3bf7e64,"OfflinePredictionClickDownAccepted");
+    requireMovementPointerHook(0x6d4db50,"OfflinePredictionInputFocusCancel0");
+    requireMovementPointerHook(0x6d4db58,"OfflinePredictionInputFocusCancel1");
+    requireMovementPointerHook(0x6d4db60,"OfflinePredictionInputFocusCancel2");
+    requireMovementPointerHook(0x6d4db68,"OfflinePredictionInputFocusCancel3");
+    requireMovementPointerHook(0x6d4db70,"OfflinePredictionInputFocusCancel4");
+    requireMovementPointerHook(0x6d4db78,"OfflinePredictionInputCancelAbility");
+    requireMovementPointerHook(0x6d4db80,"OfflinePredictionInputQueueModifier");
+    requireMovementPointerHook(0x6d4db88,"OfflinePredictionInputForceModifier");
+    requireMovementPointerHook(0x6d4db90,"OfflinePredictionInputPosition");
+    requireMovementPointerHook(0x6d4db98,"OfflinePredictionInputDown");
+    requireMovementPointerHook(0x6d4dba0,"OfflinePredictionInputUp");
+    requireMovementPointerHook(0x6d4dba8,"OfflinePredictionInputContextDown");
+    requireMovementPointerHook(0x6d4dbb0,"OfflinePredictionInputContextUp");
     requireMovementBytes(0x3bf305b,"\x45\x88\xf0",3);
 }
 uint64_t movementWorldId() {

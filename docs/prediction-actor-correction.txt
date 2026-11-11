@@ -691,6 +691,60 @@ clear click fields or fabricate a release to make it pass. Active/deferred/held
 guards remain until their ownership/release behavior is separately established.
 Cross-group runtime,broader held gestures and physical input remain unqualified.
 
+Live-click provenance - original callback observer foundation
+The next held-click fix needs positive input/removal ownership;matching scalar
+IDs or empty sets cannot distinguish correction cleanup from player cancellation.
+Original FocusControlGroupCancel0..4 can return without a scope or event. The
+movement-only recipe now redirects13 exact callback codegen slots,retaining
+their DIR64 relocations and unchanged original subscription/removal machinery.
+Each wrapper forwards the actual selector,original16-byte CallbackContext pointer
+and actual MethodInfo to its untouched original body exactly once. It never
+constructs a CallbackContext,reads guessed delegate storage or changes bindings.
+
+Before observing,require the current Unity thread/world/match/presentation graph
+and actual callback MethodInfo0/+8 equal the loaded hooked codegen slot. Original
+Down's exact ProcessClick CALL has a separate marker. Only a completed marked
+Down with original primary=true/mode1 can create observer metadata. Every later
+named input,including a no-op cancel/modifier/position callback,invalidates it.
+Selection scope dispatch also invalidates before original SetEquals;no-op edits
+cannot be inferred safe from missing SelectionChanged. Nested/rejected/throwing
+callbacks cannot rearm older metadata. This ledger owns no Unit pointer or saved
+selection,and does NOT authorize actor repair. Original live-click guards remain.
+Natural-removal attribution,preview-only external edits and no-scope focus paths
+still need their own exact operation provenance before held preservation.
+
+Authored9 policy/forwarding groups and8 actual-source adapter groups PASS at
+/W4 /WX. Controls cover all13 exports,unchanged original context bytes,wrong MI/
+signature/slot,uninitialized/old owners,no positive marker,nesting,and nonstandard
+original exceptions. The initial host run retained a duplicate-error failure;
+completion now recognizes an already-abandoned observer,and final host02 passes.
+38 focused selection/focus/actor patcher tests pass,including pinned-original
+admission,ordinary/worker omission and corrupted DIR64 refusal. Full helper50
+build passes185 unchanged source bindings,including prior58 actor groups.
+
+Actual41 PASSES142.657s:two actual Unity Custom rounds with the new helper/recipe,
+the unchanged bound-Mouse expiry/correction fixture,and natural shutdown of all
+clients/workers/authorities. Source/files stay unchanged,no force/cleanup error.
+Native log records exactly one completed original Single Down in each subject
+world:world1/generation1/serial4 and world2/generation2/serial16,entity5. The real
+callback MI dispatch witness therefore passes;the other named callback routes'
+full runtime coverage is not claimed. Existing movement/correction/expiry gates
+remain passing. This is observer qualification,not held restoration or physical
+input/Internet acceptance. Actual41 report SHA256:
+21760db2458696617bf0121c897b37ec997326b2502adf83f49ae46e535525d9.
+Helper50 SHA256:
+422dba04d105510f301be85a35e5c7db16c02cafcc17901586151d1eeb5f0986.
+Owned experimental GameAssembly SHA256:
+26d8d9e22c8a2e14b032d57812fb7b19ad8cdd3bade69616b5efa9681342f287.
+Preservation receipt f0b240fddc1a61d1aad8126a9ecb2b821f832f1293b40bff5ab0630e5a5d4a60
+retains954 prepared sources,185 C++ bindings,11 inputs,55 assets,213 captures and
+both failed/final authored host evidence. Live/server/manual/N35 stay unchanged.
+Independent file-only audit verifies all2892 closed native hashes and2892 full
+authority-wire/native65/rawbridge joins with0 mismatches,each world723 frames
+0..722 per client. Both strict actor/click episodes reproduce exactly;28 sparse
+nonempty native authority records also match. Audit receipt SHA256:
+342fdf0dbfb8193fbc11fdbfc5a7a10e19ae2702d9c3a6269f378d52352ecd6d.
+
 Forced-retirement whole-group clearing,casting/held input and
 physical/Internet acceptance remain OPEN. This does not close all mobile
 controls or full_feature_accepted;N35's human kit is unchanged.

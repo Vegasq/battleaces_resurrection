@@ -83,7 +83,11 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Prediction group-intent policy test build failed.' }
     & (Join-Path $OutputDirectory 'prediction_group_intent_tests.exe')
     if ($LASTEXITCODE -ne 0) { throw 'Prediction group-intent policy tests failed.' }
-    foreach ($bindingTest in @('prediction_actor_binding_tests','prediction_focus_binding_tests')) {
+    & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /WX /std:c++17 (Join-Path $PSScriptRoot 'src/prediction_input_observer_tests.cpp') "/Fe:$OutputDirectory/prediction_input_observer_tests.exe"
+    if ($LASTEXITCODE -ne 0) { throw 'Prediction input-observer test build failed.' }
+    & (Join-Path $OutputDirectory 'prediction_input_observer_tests.exe')
+    if ($LASTEXITCODE -ne 0) { throw 'Prediction input-observer tests failed.' }
+    foreach ($bindingTest in @('prediction_actor_binding_tests','prediction_focus_binding_tests','prediction_input_binding_tests')) {
         & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /WX /std:c++17 (Join-Path $PSScriptRoot "checkpoint/$bindingTest.cpp") "/Fe:$OutputDirectory/$bindingTest.exe"
         if ($LASTEXITCODE -ne 0) { throw "Prediction binding test build failed: $bindingTest" }
         & (Join-Path $OutputDirectory "$bindingTest.exe")

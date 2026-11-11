@@ -95,6 +95,11 @@ extern "C" __declspec(dllexport) void OfflinePredictionSelectionCommit(void* hel
     try {
         actors::require(actualClass==ba::klass(helper),"selection virtual dispatch class differs");
         Obj selector=helperSelector(helper);Context context(selector);
+        // AutoRaise is enabled by the original helper constructor. This scope
+        // dispatch also observes no-op edits, before original SetEquals decides
+        // whether to emit SelectionChanged. Natural-death attribution is a
+        // separate prerequisite; this observer never waives held-click guards.
+        context.state.inputIntent.invalidate();
         actors::require(ba::read<bool>(helper,0x10),"selection commit is outside its original suspension");
         actors::field(selector,"_selectionSet",0x90);
         Obj remove=actors::method(selector,"RemoveFromSelection",1,0x06002215,0x3bf25a0);

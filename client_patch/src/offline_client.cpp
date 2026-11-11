@@ -395,6 +395,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "prediction_movement.cpp"
 #include "prediction_actor_repair.cpp"
 #include "prediction_selection.cpp"
+#include "prediction_input_observer.cpp"
 #include "prediction_movement_smoke.cpp"
 #include "prediction_actor_smoke.cpp"
 #include "lan_audit.cpp"
