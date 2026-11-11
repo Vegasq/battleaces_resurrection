@@ -813,6 +813,17 @@ fd36a13b3b0bd5e2705875078606dafb24ab68dec72e44ca9636fb4803fee055.
 It retains968 sources,195 C++ bindings,11 inputs,55 assets,213 run captures and
 two separately labelled preexisting PID-refusal files.
 Private evidence:local/prediction-runtime/movement48-held-selection-balanced/.
+Independent file-only audit verifies ALL2892 closed native hashes,2892 raw
+bridge joins and2892 native65 joins against the complete1446-frame authority
+journal:723 frames0..722 per world/client. Each world conserves eight ordered
+accepted batches/actions. Frozen-source actor proofs independently reproduce
+frontier153,ten replayed frames and20 continuations;the held evaluator reproduces
+all fourteen phases and exact production prepare/preserve/serial/token joins.
+Proof receipt SHA256:
+f2dce6ead2d82a6d8e6cc6004936ed5917a5c93ed166c080723d2395d49d802d.
+Only the evaluator's descriptive scope string is clarified after the run;
+its predicates and the qualified C++ sources are unchanged.22 parser groups
+pass again;the exact runtime parser remains retained in the source snapshot.
 
 Forced-retirement whole-group clearing,broader casting/held input and
 physical/Internet acceptance remain OPEN. This does not close all mobile

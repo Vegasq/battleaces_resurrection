@@ -125,6 +125,8 @@ qualified path skips the whole deferred original removal;it writes neither
 selection nor click history. Empty casting scratch/no affected groups are
 required. All fourteen phases per world and natural shutdown pass143.305s,
 with source/inputs unchanged,no force or cleanup errors. 42-47 stay FAILED.
+Independent frozen-source audit matches all2892 native hashes and full wire
+joins,ordered commands,and both complete actor/input proofs.
 253 focused Python checks and the195-source helper59 build pass. Next:separate
 natural-removal/empty-preview recovery and forced-retirement group preservation.
 Broader held input,group/render and physical acceptance stay open.
