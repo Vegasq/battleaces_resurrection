@@ -20,6 +20,7 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
+  prediction-queued-orders.txt - N33 premature queued-movement counterexample,per-unit dependency repair and qualification status
   prediction-multi-unit-move.txt - N33 two-unit movement,survivor correction,partial purge and qualified four-unit close-formation integration
   prediction-server-ai.txt - qualified solo server-AI prediction, new private installers and owner-only deployment
   prediction-draft2-installers.txt - PR2 private client/server installer handoff and prediction desktop shortcut

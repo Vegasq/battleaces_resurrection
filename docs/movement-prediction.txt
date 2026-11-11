@@ -4,21 +4,27 @@ Scheduling PR#1 merged into main as0ad2afb;its tested behavior is preserved.
 Draft PR:https://github.com/Vegasq/battleaces_resurrection/pull/2
 
 CURRENT N33 PROGRESS
-Efficient native checkpoints pass1200-frame combat control and six corrections.
-Minimal restore plus eight native ticks takes1.93..4.97ms in the bounded run.
-The owned native worker transport passes combat/rematch and actual Unity menu/
-Quit. A late CRT thread-attach allocation failure is reproduced and fixed in
-the private derived worker DLL;35s idle and1200-frame actual AI/Continue/Quit
-now pass. Worker reconciliation matches1200 canonical frames and two corrected
-eight-frame tails with30 continuation frames;three retirements release saved
-payload after fixing page retention. See scoped original-report/reanalysis and
-timing details in prediction-worker-client.txt. Client integration remains
-OPEN;the installed game
-still has no prediction. Complete the actual client
-feature under N33 rather than stopping at this prototype. Exact mechanism,
-scope,failed controls and remaining gates:native-prediction-checkpoints.txt
-and prediction-worker-client.txt.
-The reconstruction-only evidence below is the earlier correctness baseline.
+As of2026-11-11,the opt-in client has actual native simulation and Unity
+integration for Custom1v1 and public1v1 against server-hosted AI. Private paired
+installers from64e21c6 and the matching restricted test server are available
+under the existing N35 handoff. The ordinary client remains unchanged. Human
+Internet feel and full N33 acceptance are still OPEN;PR2 remains a draft.
+
+The integrated worker uses bounded native checkpoints and replay,not the
+bootstrap reconstruction prototype below. Original Move/Hold respond before
+authority. Qualified cases include selected-actor restoration,group survival
+and canonical purge,original right-click/UI Hold,changing RTT,and four-unit
+close-formation movement through real remote replay. Actual71's separate
+file-only qualification matches2890 native states/wire comparisons and two
+natural rounds;its original parser failure stays preserved. Full source,
+artifact and scope details are in prediction-multi-unit-move.txt,
+prediction-server-ai.txt and the current REMAINING_DELIVERY_PLAN.txt.
+
+Remaining work includes forced group/type retirement,broader combined-input
+and gameplay-correction behavior,and the existing human Internet test. Keep
+prediction opt-in until the applicable integration and human results pass.
+The sections below retain the original N32 reconstruction-only baseline and
+its historical isolation boundary;they do not describe the current test kit.
 
 OBJECTIVE
 Start a genuine movement-prediction PR. The local simulation must execute a
@@ -66,7 +72,7 @@ artifact;its native provider was unavailable,so this is ordinary LLVM static
 evidence,not decompiler or runtime proof. Private source/tool/schema bindings
 and raw ranges:local/prediction-movement-20261109/restore-review.{txt,json}.
 
-NORMAL CLIENT/SERVER BOUNDARY
+HISTORICAL N32 CLIENT/SERVER BOUNDARY
 No normal launcher,host,wire mode or game simulation is changed by this draft.
 No server contact/restart/deployment or usual-client installation is part of
 N32. Tests use owned headless subprocesses,not user-owned game sessions. Raw
@@ -84,7 +90,7 @@ FOLLOW-UP INTEGRATION GATES
 - Measure physical input-to-visible motion and correction artifacts. Keep the
   feature opt-in until its native integration and actual human results pass.
 
-STATUS
+HISTORICAL N32 STATUS
 The unintegrated controller and native movement/correction proof pass at the
 following bounded scope. The installed game still has no movement prediction.
 

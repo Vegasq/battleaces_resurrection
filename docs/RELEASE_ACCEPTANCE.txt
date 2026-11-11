@@ -50,6 +50,13 @@ named close-formation integration case. It does not close collision-kernel,
 forced type/group retirement,broader input or physical/Internet acceptance.
 N35 kit/live server unchanged. Details:prediction-multi-unit-move.txt.
 
+The queued-Move dependency defect now has original native reproduction and a
+source/actual-worker repair:117 authored tests,one real ten-frame correction,
+363 full parsed-state comparisons through deferred command execution+20 and
+natural shutdown. Two-client original-command/render integration remains OPEN;
+this does not update the existing N35 kit or deployed host. Details:
+prediction-queued-orders.txt.
+
 Acceptance is scoped to actual artifacts and observations. A user request may
 be complete without closing its entire parent gate. Historical failures remain
 failures;skips,forced readiness cleanup and instrumentation have explicit limits.

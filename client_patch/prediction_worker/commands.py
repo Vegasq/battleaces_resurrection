@@ -205,6 +205,8 @@ class PendingAction:
     body: bytes
     predictive: bool
     join: bool
+    entity_ids: frozenset[int]
+    queued: bool
 
     @property
     def ordinal(self):
@@ -275,7 +277,13 @@ class CommandLedger:
             if normalized is None:
                 noops += 1
             else:
-                staged.append(PendingAction(sequence, index, first_speculative_frame, normalized, predictive, join))
+                action = parse_fields(normalized)[0]
+                groups = get_repeated_bytes(action.value, 1) if action.number == 1 else ()
+                entities = frozenset(entity for group in groups
+                                     for entity in get_repeated_uint(group, 3, max_values=4096))
+                queued = bool(get_uint(action.value, 2)) if action.number == 1 else False
+                staged.append(PendingAction(sequence, index, first_speculative_frame,
+                                            normalized, predictive, join, entities, queued))
         require(joins == ([0] if sequence == 1 else []), 'only first action of batch1 may Join')
         pending = self._pending + tuple(staged)
         size = self._pending_bytes + sum(len(item.body) for item in staged)
@@ -343,8 +351,25 @@ class CommandLedger:
     def forecast(self, frame):
         _integer(frame, 0, MAX_FRAME, 'forecast frame outside nonnegative int32')
         require(self._identity is not None and frame > self._received, 'forecast requires startup identity and an unknown frame')
-        actions = tuple(item.body for item in self._pending if item.predictive and
-                        max(item.first_speculative_frame, self._received + 1) == frame)
+        # A queued order depends on the earlier queue for every addressed unit.
+        # Omitted actions have unknown effects on that queue until authority.
+        # Derive barriers from the FIFO each time so acknowledgements and earlier
+        # immediate replacements take effect through the existing revision plan.
+        blocked, forecast = set(), []
+        for item in self._pending:
+            assigned = max(item.first_speculative_frame, self._received + 1)
+            if assigned > frame:
+                break
+            if not item.predictive or (item.queued and blocked.intersection(item.entity_ids)):
+                # Never partially predict a shared action. Its other members now
+                # also lack this predecessor, so dependent later orders wait too.
+                blocked.update(item.entity_ids)
+                continue
+            if not item.queued:
+                blocked.difference_update(item.entity_ids)
+            if assigned == frame:
+                forecast.append(item.body)
+        actions = tuple(forecast)
         require(len(actions) <= MAX_ACTIONS, 'forecast exceeds original per-player action cap')
         raw = (field_uint(1, frame) if frame else b'') + field_uint(2, 20) + field_uint(3, 50) + field_float(4, 1.)
         if actions:

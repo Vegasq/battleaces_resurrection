@@ -33,9 +33,14 @@ raw authority,fresh phase301/301,continuous actors/groups/typed caches,real
 remote replay10+20,all2890 native/wire matches and two natural rounds. Original
 failed report stays preserved;the exact Single operand parser correction is
 documented. Reuse this close-group case and its361-frame native baseline.
-Next N33 work:remaining forced group/type retirement and broader combined input
-paths,alongside existing N35 Internet feedback. No collision-kernel or human
-feel acceptance follows from this scripted case;prediction-multi-unit-move.txt.
+Next concrete N33 check:queued-order dependencies. Original engine control
+reproduces an omitted88 predecessor making queued12 start in the wrong direction,
+with up to5.580374units difference. The ledger repair passes117 authored checks;
+actual worker ten-frame replay and363 state comparisons through queued execution
+plus20frames now PASS with natural shutdown. Original client integration is next. See
+prediction-queued-orders.txt. Remaining forced group/type retirement and broader
+combined input stay open,alongside existing N35 Internet feedback. No collision-
+kernel or human feel acceptance follows from scripted close-formation evidence.
 
 Nick's requested0.4.0 client/server release is PUBLISHED;matching host deployed
 at134.209.176.39 and game TCP47623 reopened publicly,durable across restart.
@@ -267,6 +272,10 @@ These grouped rows summarize the detailed matrices;they are not a percentage or
 an exact count of every remaining test. DEV.txt remains the owner of user answers.
 
 COMPLETED
+[x] Queued-movement dependency source/worker repair:original native counterexample,
+    immediate Move/Hold controls,117 authored checks,actual ten-frame repair,
+    363 matching states including deferred execution+20,natural worker shutdown.
+    Original Unity command integration remains pending;prediction-queued-orders.txt.
 [x] Four-unit close-formation prediction (Actual71,separate file-only reanalysis01):
     every member moves before authority,original group/typed caches continuous
     through real remote replay+20,all2890 native/wire matches,two natural rounds.

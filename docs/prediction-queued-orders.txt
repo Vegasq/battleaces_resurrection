@@ -1,0 +1,97 @@
+BATTLE ACES - QUEUED MOVEMENT DEPENDENCIES
+Reviewed:2026-11-11. N33 remains ACTIVE. Source and native-worker repair PASS;Unity pending.
+
+PROBLEM AND SOURCE REPAIR
+The local command ledger predicts Move12/Hold14 and waits for server authority
+for other abilities. Previously it filtered out a pending nonpredictive command
+but still predicted a later queued Move for the same unit. Without its preceding
+order,the native simulation immediately started the queued Move. This could send
+a unit in the opposite direction before correction. Canonical FIFO and transmitted
+bytes were already preserved;the defect was in the speculative action subset.
+
+The ledger now records each normalized action's immutable addressed IDs and queued
+flag. Forecasts walk pending ordinals through the requested frame,tracking IDs
+whose queue depends on an omitted action. A queued action intersecting those IDs
+waits as a whole;its other addressed units inherit that dependency for subsequent
+queued orders. An immediate predicted Move/Hold replaces its addressed queues and
+clears their dependencies. Unrelated units and standalone queued Moves still
+predict. Future replacements cannot change an earlier forecast. Confirmation
+removes the acknowledged predecessor and the existing complete revision plan
+replays the affected frames before applying newly available queued input.
+
+No command is dropped from the pending ledger or network. Original bytes,
+ordinals,whole-batch acknowledgements and entity admission remain unchanged.
+Prediction eligibility remains12/14;ability88 is not newly predicted.
+
+ORIGINAL ENGINE COUNTEREXAMPLE - PASS
+Four sequential original-Simulation worlds use the same ordinary initial-unit
+fixture and identical ready0..300 prefix;definitions/globals are unchanged.
+The subject is confirmed Gunbot11/type1/army1,health600,no runtime state writes.
+Full intent sends ability88 toward A at301 and queued Move12 toward opposite B
+at303. The pre-repair ledger,with received frontier300,omits88 and forecasts
+only queued12 at303. This is a real retained-ledger output,not a fabricated guess.
+
+The original full-intent trajectory continues toward A;the later B response is
+observed at351. The old forecast starts B at303 and differs by up to5.580374units
+from full intent within303..310. Immediate Move12 instead of queued12 genuinely
+replaces A at303. A separate immediate Hold14 stops A with zero303-frame drift,
+then queued12 starts B at304. These positives support dependency resets without
+disabling ordinary immediate prediction. Internal command-queue contents are not
+decoded;the evidence is exact input bytes,original UnitState and trajectory.
+
+All1354 frames across the four worlds are retained. Every world closes normally;
+child0,reaped/handleclosed,Job2/0/0,no forced cleanup or errors. Source/assets stay
+unchanged. This is an original-engine control,not a Unity or keyboard-input test.
+Report:local/queued-move-dependency01/native-control01/verification.json
+SHA256f2fa4a3add4f9f4a21bd17ff273cbd8b1a46526bb42d5ede7af1d36620527c9c
+
+AUTHORED COVERAGE
+The initial8-case ledger test has3RED dependency failures and5positive controls.
+The corrected source passes117 focused ledger,worker,adapter,reconciler and
+server-AI-verifier tests. New coverage includes same-batch/separate-batch order,
+confirmation release,shared-group propagation,partial reset,later reblocking,
+future-frame isolation,mixed-ability Execute,UI/empty no-ops and immediate Hold.
+An authored NativeSession test confirms65 only stages bytes,then PROCESS_MSG
+replays the predecessor before releasing the exact queued Move forecast.
+This authored ABI test does not execute the original native DLL.
+Retained RED:local/queued-move-dependency01/ledger-red01/
+Current tests:local/queued-move-dependency01/python-green01/verification.json
+
+ACTUAL NATIVE WORKER - PASS
+One actual NativeSession world uses the current source with qualified heap12 /
+cooperative03 and the frozen Python interpreter. Its301 canonical prefix states
+match the original control. With received/confirmed300 and physical head310,
+the actual original SimProcessMsg301..310 bytes contain no premature queued
+action;the subject stays at its ready position. The original full command bodies
+remain pending and are submitted through real control67 in their original order.
+
+Receiving authority301..310 changes no native-call or checkpoint counters.
+The next PROCESS_MSG performs exactly one ten-frame301..310 replay with the
+original canonical bytes. The corrected310 head and all61 continuation states
+311..371 match the original full parsed Spectator31 state and UnitState. This
+includes B's eventual351 execution and20 further frames,so losing the hidden
+queued order cannot pass by merely keeping the unit still. Total full-state
+comparisons:363 (301 prefix,one corrected head,61 continuations).
+
+Bindings remain unchanged;all382 checkpoints are dropped and saved_bytes is0
+after retirement. Child exits0,naturally,reaped/handleclosed,Job2/0/0,no forced
+cleanup or errors. One cumulative extra Job process remains UNATTRIBUTED;no
+identity/role is inferred. All87 source and retained input bindings stay intact.
+Parent elapsed6.022s;the measured repair boundary is25.480ms including4.944ms
+of explicit corrected-head observation. This is instrumented headless timing,
+not a physical-input latency or worst-case performance claim.
+
+Parent report:local/queued-move-dependency01/worker-control01/prepared01/verification.json
+SHA256d889460305bdcdb224f22b3c73105087f07f84fbb2600e2ed9b9ba7e3e6fc6c6
+Exact child proof:local/queued-move-dependency01/worker-control01/prepared01/child/report.json
+SHA2564e7dee5ff74c62f13d5948149708d2ec64d1cfeed8579cae4d95cc28279b0c08
+The parent's inherited generic harness preamble describes its older three-world
+test. The invocation and child define this actual one-world queued-order scope;
+the original report remains unchanged. No1200-frame or three-world claim follows.
+
+NEXT
+Qualify the original client command path in two real Unity rounds. Observe
+through400/420 to include the actual deferred B execution plus20frames;the old
+close-formation360 cutoff is insufficient. Reuse both completed native controls.
+Existing N35 installers,
+reserved manual games and live server remain unchanged. No new Nick action.

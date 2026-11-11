@@ -4,6 +4,15 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+2026-11-11 queued-order repair:original native control confirms queued Move12
+must wait behind preceding88. The old forecast omitted88 but started queued12,
+causing up to5.580374units opposite-direction difference. Immediate Move/Hold
+replacement controls pass. The source repair preserves per-unit dependencies,
+exact wire/FIFO and whole actions;117 authored tests pass. The actual native
+worker now passes ten-frame repair and363 state comparisons,including deferred
+B execution+20frames,with natural shutdown/saved checkpoint bytes0. Original
+Unity command integration is next. N35/live/manual unchanged;prediction-queued-orders.txt.
+
 2026-11-11 close-formation progress:Actual71's separate file-only qualification
 PASSES all four ordinary Gunbots' original Move in two Custom rounds. Responses
 58.634..60.698ms precede raw authority by437..438ms;fresh phases301/301. Same
