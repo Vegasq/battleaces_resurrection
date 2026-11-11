@@ -4,6 +4,17 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+2026-11-11 large-correction attribution:Actual74 PASSES two natural client/server
+rounds with controlled100ms C2S delay windows after RTT falls. Original turn2
+assigned/canonical phases533/538 and537/540 cause real native same-head repairs.
+Sampled rendered backtracks2.179506/1.207480units stay within corrected published
+native segments (outside residual<3.76e-6). Closed-file decomposition passes both
+worlds and the>.75 large-event gate.627 Python/39 C++ executables PASS. Actual73
+remainsFAILED due an unlogged diagnostic gate-open error;the movement gate now
+reuses the qualified bounded sharing retry. No smoothing implemented yet;next
+is bounded presentation correction. N35/live/manual unchanged;full N33/human
+feel staysOPEN. Details:prediction-correction-motion.txt.
+
 2026-11-11 queued-order repair:original native control confirms queued Move12
 must wait behind preceding88. The old forecast omitted88 but started queued12,
 causing up to5.580374units opposite-direction difference. Immediate Move/Hold

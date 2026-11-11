@@ -1,8 +1,9 @@
 BATTLE ACES - CURRENT DELIVERY ROADMAP
 Updated:2026-11-11. ACTIVE. Single current work queue;final release is not accepted.
 
-CURRENT PRIORITY:N33 remaining group/type and gameplay/input/correction paths,
-plus existing N35 human Internet feedback. Nick's server-hosted AI prediction
+CURRENT PRIORITY:N33 bounded presentation correction for reproduced native
+command-retime backtracks;remaining group/type and gameplay/input paths plus
+existing N35 human Internet feedback stay open. Nick's server-hosted AI prediction
 test with solo_ai_host=server is READY. Frozen19b5aa5 supports only Custom1v1.
 Actual publicmode1 human0/nativebot1 now passes629full-state comparisons,
 AI correction/replay10+20 and natural lifecycle at475msRTT. Actual03's original
@@ -43,6 +44,16 @@ and39 C++ test executables pass;prediction-queued-orders.txt. Reuse this case.
 Remaining forced group/type retirement,broader combined input/correction artifacts
 and existing N35 Internet feedback stay open. No collision-kernel or human feel
 acceptance follows from these scripted cases.
+
+Actual74 now PASSES two natural rounds and complete sampled native/publication/
+render decomposition of large command-retime backtracks2.179506/1.207480units.
+Both are contained in the corrected native endpoint segments;no sampled render
+amplification is observed. This closes attribution for this changed100ms input-
+delay scenario,not Portable16 retrospectively or visual comfort. Actual73 remains
+FAILED;its diagnostic open failure led to reuse of the qualified bounded sharing
+retry with exact error logs.627 Python/39 C++ checks pass. Next design/qualify
+bounded presentation correction without changing native authority or immediate
+input;no smoothing has been implemented. See prediction-correction-motion.txt.
 
 Nick's requested0.4.0 client/server release is PUBLISHED;matching host deployed
 at134.209.176.39 and game TCP47623 reopened publicly,durable across restart.

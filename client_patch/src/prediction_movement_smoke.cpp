@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <locale>
 #include <sstream>
+#include "native_quit_gate.hpp"
 
 namespace ba_prediction_movement_smoke {
 using ba::Obj;
@@ -26,6 +27,7 @@ struct State {
     unsigned samples=0;
     unsigned turnsIssued=0;
     std::array<std::string,2> turnHashes{};
+    std::array<ba_native_quit_gate::Wait,2> turnGateWaits{};
     Vec3 activeTarget{};
     std::deque<MotionSample> motion;
     ULONGLONG lastSample=0,createdTick=0;
@@ -59,17 +61,27 @@ static const std::wstring& transitionGateDirectory() {
 }
 static bool transitionGate(unsigned ordinal) {
     const auto& directory=transitionGateDirectory();if(directory.empty())return false;
-    const auto& s=state();
+    auto& s=state();
     require((ordinal==2||ordinal==3)&&s.world&&s.incarnation&&s.match.size()==32&&
         s.match.find_first_not_of("0123456789abcdef")==std::string::npos,
         "movement turn gate binding is invalid");
     const auto filename=s.match+"-"+std::to_string(s.world)+"-turn"+std::to_string(ordinal)+".ready";
     const auto path=directory+L"\\"+std::wstring(filename.begin(),filename.end());
+    auto& wait=s.turnGateWaits[ordinal-2];
     ba_native_settings::Handle file(CreateFileW(path.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,
         FILE_FLAG_OPEN_REPARSE_POINT,nullptr));
     if(file.value==INVALID_HANDLE_VALUE) {
-        const DWORD error=GetLastError();
-        require(error==ERROR_FILE_NOT_FOUND,"movement turn gate cannot be read");return false;
+        const DWORD error=GetLastError();const auto result=wait.failed(error,GetTickCount64());
+        if(result==ba_native_quit_gate::Result::Missing)return false;
+        if(result==ba_native_quit_gate::Result::Sharing) {
+            if(wait.attempts==1)ba::log("MOVEMENT TURN gate busy: world=%llu ordinal=%u win32=%lu retryBoundMs=%u",
+                static_cast<unsigned long long>(s.world),ordinal,error,static_cast<unsigned>(wait.MaxWaitMs));
+            return false;
+        }
+        ba::log("MOVEMENT TURN gate open refused: world=%llu ordinal=%u win32=%lu retryExpired=%d retryBoundMs=%u",
+            static_cast<unsigned long long>(s.world),ordinal,error,result==ba_native_quit_gate::Result::Expired?1:0,
+            static_cast<unsigned>(wait.MaxWaitMs));
+        throw std::runtime_error("movement turn gate cannot be read; win32="+std::to_string(error));
     }
     ba_native_settings::ordinary(file.value);
     const auto expected=std::string("BA_MOVEMENT_TURN_V1 ")+s.match+" "+std::to_string(s.world)+" "+
@@ -82,6 +94,11 @@ static bool transitionGate(unsigned ordinal) {
     require(ReadFile(file.value,bytes.data(),static_cast<DWORD>(expected.size()),&read,nullptr)&&
         read==expected.size()&&!memcmp(bytes.data(),expected.data(),expected.size()),
         "movement turn gate generation/actor/ordinal differs");
+    const auto now=GetTickCount64();require(wait.ready(now),"movement turn gate sharing retry exceeded 1000ms");
+    if(wait.active)ba::log("MOVEMENT TURN gate busy settled: world=%llu ordinal=%u attempts=%u elapsedMs=%llu strictReader=1",
+        static_cast<unsigned long long>(s.world),ordinal,static_cast<unsigned>(wait.attempts),
+        static_cast<unsigned long long>(wait.elapsed(now)));
+    wait.clear();
     return true; // Immutable provenance; state consumes it without deleting it.
 }
 static void reset(){state()=State{};} // Observer GC roots only, on retained main thread.

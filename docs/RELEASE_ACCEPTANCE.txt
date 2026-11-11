@@ -60,6 +60,14 @@ the named queued-order integration case;broader controls,forced retirement and
 human Internet acceptance remain open. The N35 kit/deployed host are unchanged.
 Details:prediction-queued-orders.txt.
 
+Actual74 PASSES large correction attribution in two natural original-client
+rounds:controlled100ms C2S windows,exact command/native replay and published
+endpoint joins,rendered2.179506/1.207480unit backtracks contained within native
+segments. Both-world decomposition and>.75 event reproduction pass. This adds
+diagnostic evidence,not visual-comfort acceptance or a smoothing implementation.
+Actual73's failed/forced run staysFAILED.627 Python/39 C++ checks pass;the N35
+kit and live host remain unchanged. See prediction-correction-motion.txt.
+
 Acceptance is scoped to actual artifacts and observations. A user request may
 be complete without closing its entire parent gate. Historical failures remain
 failures;skips,forced readiness cleanup and instrumentation have explicit limits.

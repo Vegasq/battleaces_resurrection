@@ -32,6 +32,9 @@ class StreamShaper:
         self.tasks = set()
         self._owner_loop = None
         self._configured_rtt_ms, self._revision, self._setting = float(rtt_ms), 0, False
+        self._directional_active = None
+        self._directional_records = []
+        self._directional_enabled = set()
         self.metadata_limit = metadata_limit
         self._metadata = {direction: dict(seen=0, dropped=0, rows=[]) for direction in
                           ('client_to_server', 'server_to_client')}
@@ -94,6 +97,70 @@ class StreamShaper:
                     requested_tick_ms=requested_tick, effective_tick_ms=effective_tick,
                     requested_perf_counter_ns=requested_perf, effective_perf_counter_ns=effective_perf)
 
+    def set_directional_delay(self, direction, extra_ms, duration_ms, *, tick=None):
+        """Add noncumulative delay to future reads in one bounded loop-time window.
+
+        The base ordered schedule includes any existing RTT queue debt. The
+        extra delay is added to that base, then final byte order is preserved.
+        Already queued chunks are never changed. Expiry affects future reads;
+        their final deadlines can still follow an earlier delayed chunk.
+        """
+        if direction not in ('client_to_server', 'server_to_client') or type(direction) is not str:
+            raise ValueError('Direction must be client_to_server or server_to_client')
+        if (type(extra_ms) not in (int, float) or not math.isfinite(extra_ms) or not 0 < extra_ms <= 100 or
+                type(duration_ms) not in (int, float) or not math.isfinite(duration_ms) or not 1 <= duration_ms <= 1000):
+            raise ValueError('Directional delay must be finite: extra>0..100ms,duration1..1000ms')
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            raise ValueError('Directional delay requires the active owning event loop') from None
+        if (loop is not self._owner_loop or self.listener is None or self.closing or self.paused or
+                not self.listener.is_serving() or self._setting):
+            raise ValueError('Directional delay requires the active owning event loop')
+        if len(self._directional_records) >= 32:
+            raise ValueError('Directional delay window limit32 reached')
+        if self._directional_active is not None and loop.time() < self._directional_active['end_loop']:
+            raise ValueError('Directional delay windows must not overlap')
+        if tick is not None and not callable(tick):
+            raise ValueError('Tick must be a callable or None')
+        def observed_tick():
+            value = tick() if tick is not None else None
+            if tick is not None and (type(value) is not int or value < 0):
+                raise ValueError('Tick must return a nonnegative integer')
+            return value
+        old = self._directional_active
+        self._setting = True
+        try:
+            requested_perf = time.perf_counter_ns()
+            requested_tick = observed_tick()
+            start = loop.time()
+            record = dict(window_id=len(self._directional_records)+1, direction=direction,
+                          extra_ms=float(extra_ms), duration_ms=float(duration_ms),
+                          requested_tick_ms=requested_tick, effective_tick_ms=None,
+                          requested_perf_counter_ns=requested_perf, effective_perf_counter_ns=None,
+                          start_loop=start, end_loop=start+duration_ms/1000)
+            self._directional_active = record
+            effective_tick = observed_tick()
+            effective_perf = time.perf_counter_ns()
+            if requested_tick is not None and effective_tick < requested_tick:
+                raise ValueError('Tick regressed during directional delay change')
+            record.update(effective_tick_ms=effective_tick, effective_perf_counter_ns=effective_perf)
+            self._directional_records.append(record)
+            self._directional_enabled.add(direction)
+        except BaseException:
+            self._directional_active = old
+            raise
+        finally:
+            self._setting = False
+        return dict(record)
+
+    def _directional_for_read(self, direction, received):
+        active = self._directional_active
+        if (active is not None and active['direction'] == direction and
+                active['start_loop'] <= received < active['end_loop']):
+            return active['extra_ms'], active['window_id']
+        return 0.0, None
+
     def delay_metadata(self):
         """Detached payload-free snapshot; first N records retained per direction.
 
@@ -101,11 +168,14 @@ class StreamShaper:
         the corresponding operation has not completed (including cancellation).
         The default0 performs no chunk capture and leaves ordinary stats intact.
         """
-        return dict(schema=1, metadata_limit=self.metadata_limit, revision=self._revision,
+        result = dict(schema=1, metadata_limit=self.metadata_limit, revision=self._revision,
                     configured_rtt_ms=self._configured_rtt_ms, directions={
                         key: dict(seen=value['seen'], dropped=value['dropped'],
                                   rows=[dict(row) for row in value['rows']])
                         for key, value in self._metadata.items()})
+        if self._directional_records:
+            result['directional_delays'] = [dict(record) for record in self._directional_records]
+        return result
 
     def _chunk_metadata(self, direction, connection, received, due, size):
         if not self.metadata_limit:
@@ -148,12 +218,17 @@ class StreamShaper:
         rng, loop = random.Random(seed), asyncio.get_running_loop()
 
         async def produce():
-            previous = 0.0
+            previous_base = previous_final = 0.0
             while data := await reader.read(65536):
                 received=loop.time()
-                due = max(previous, received + max(0, self.delay + rng.uniform(-self.jitter, self.jitter)))
-                previous = due  # TCP bytes remain ordered even with jitter.
+                base_due = max(previous_base, received + max(0, self.delay + rng.uniform(-self.jitter, self.jitter)))
+                extra_ms, window_id = self._directional_for_read(direction, received)
+                due = max(previous_final, base_due + extra_ms / 1000)
+                previous_base, previous_final = base_due, due  # Separate debt avoids per-chunk accumulation.
                 metadata = self._chunk_metadata(direction, connection, received, due, len(data))
+                if metadata is not None and direction in self._directional_enabled:
+                    metadata.update(base_due_loop=base_due, directional_extra_ms=extra_ms,
+                                    directional_window_id=window_id, final_due_loop=due)
                 await queue.put((due, data,received,metadata))
                 self.stats['maximum_queued_chunks'] = max(self.stats['maximum_queued_chunks'], queue.qsize())
             await queue.put(None)

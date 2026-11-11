@@ -20,6 +20,7 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
+  prediction-correction-motion.txt - N33 large native command-retime backtracks,strict sampled render decomposition and next presentation work
   prediction-queued-orders.txt - N33 premature queued-movement counterexample,per-unit dependency repair and qualification status
   prediction-multi-unit-move.txt - N33 two-unit movement,survivor correction,partial purge and qualified four-unit close-formation integration
   prediction-server-ai.txt - qualified solo server-AI prediction, new private installers and owner-only deployment

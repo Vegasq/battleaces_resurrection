@@ -42,6 +42,7 @@ from tools.verify_prediction_client_worker import (
     CREATE_SUSPENDED, RetainedJob, SHIPPING_EXPORTS, quit_trace_evidence)
 from tools import prediction_close_formation_evidence as close_formation_evidence
 from tools import prediction_queued_orders_evidence as queued_orders_evidence
+from tools import prediction_input_delay as input_delay
 
 MAX_LOG = 64 * 1024 * 1024
 HEX64 = re.compile(r'[0-9a-f]{64}')
@@ -207,6 +208,7 @@ def prepare(args):
     frames = args.frames if args.frames is not None else (650 if changing_rtt or expired_click or held_click or args.scenario in ('mobile','close-formation','queued-orders') else 200 if args.scenario == 'startup' else 600)
     close_formation = close_formation_evidence.option(args,frames,position_trace)
     queued_orders = queued_orders_evidence.option(args,frames,position_trace)
+    delay_config = input_delay.option(args,frames,position_trace)
     actor_correction = bool(getattr(args, 'actor_correction', False))
     mobile_correction = bool(getattr(args, 'mobile_correction', False))
     mobile_group_intent = bool(getattr(args, 'mobile_group_intent', False))
@@ -460,6 +462,9 @@ def prepare(args):
         move_slot=args.move_slot, expected_matches=2 if args.lifecycle == 'natural' else 1,
         endpoint_scope='ephemeral loopback TLS only; no production endpoint',
         feel_contract=FEEL_CONTRACT, full_feature_accepted=False)
+    if delay_config is not None:
+        invocation['transition_input_delay']=delay_config
+        input_delay.validate_plan(invocation)
     if expired_click:
         invocation['expired_click'] = True
         validate_expired_click_plan(invocation)
@@ -560,6 +565,7 @@ def verify_prepared(output):
             'prepared invocation identity differs')
     close_formation_evidence.validate_plan(plan)
     queued_orders_evidence.validate_plan(plan)
+    input_delay.validate_plan(plan)
     if plan.get('scenario') == 'mobile':
         validate_mobile_plan(plan)
     validate_expired_click_plan(plan)
@@ -768,10 +774,14 @@ def publish_transition_gate(directory, command, ordinal, tick, perf):
 class ChangingRttController:
     """Diagnostic local relay control; existing client RTT traffic is the witness."""
     def __init__(self, tick, perf=time.perf_counter_ns, *, require_sampled_us=False, transition_gates=None,
-                 phase_source='pacer_wait'):
+                 phase_source='pacer_wait', directional_delay=None):
         self.tick, self.perf = tick, perf
         self.require_sampled_us = require_sampled_us
         self.transition_gates = transition_gates
+        self.directional_delay = directional_delay
+        if directional_delay is not None:
+            input_delay.validate_settings(directional_delay)
+            require(transition_gates is not None,'input delay requires transition gates')
         require(phase_source in ('pacer_wait','decision'),'unknown transition phase observation source')
         self.phase_source = phase_source
         self.worlds = []
@@ -847,6 +857,8 @@ class ChangingRttController:
                 state.update(fall_pose=latest,high_held_perf_ns=fall['effective_perf_counter_ns']-state['rise']['effective_perf_counter_ns'],
                     high_estimate_us=fresh[-1]['estimate_us'],fall=fall,stage='low')
                 if self.transition_gates is not None:
+                    if self.directional_delay is not None:
+                        state['input_delay']=shaper.set_directional_delay(**self.directional_delay,tick=self.tick)
                     state['turn2_gate']=publish_transition_gate(self.transition_gates,state['command'],2,self.tick,self.perf)
                 return
             if state['stage'] == 'low':
@@ -890,6 +902,7 @@ class ChangingRttController:
         return dict(schema=1,worlds=self.worlds,require_sampled_us=self.require_sampled_us,
             phase_source=self.phase_source,
             transition_orders=self.transition_gates is not None,
+            **({'transition_input_delay':dict(self.directional_delay)} if self.directional_delay is not None else {}),
             scope='Configured BOTH-direction FUTURE-read delay, not measured RTT; queued chunks keep original due times. '
                   'Own correlated application ACK estimates include directory transfer. No new network requests.')
 
@@ -2570,7 +2583,8 @@ async def run_prepared(output):
     turn_directory=run/'transition-gates'if plan.get('transition_orders')else None
     if turn_directory is not None:turn_directory.mkdir(exist_ok=False)
     changing = ChangingRttController(tick,require_sampled_us=plan.get('changing_pose_clock')=='sampled_us',
-        transition_gates=turn_directory,phase_source=plan.get('transition_phase_source')or 'pacer_wait') if plan.get('changing_rtt') else None
+        transition_gates=turn_directory,phase_source=plan.get('transition_phase_source')or 'pacer_wait',
+        directional_delay=plan.get('transition_input_delay')) if plan.get('changing_rtt') else None
     started = time.monotonic()
     report = dict(passed=False, scoped_observation_passed=False, movement_feel_witness_passed=False,
         full_feature_accepted=False, scope=__doc__, scenario=plan['scenario'], lifecycle=plan['lifecycle'],
@@ -3249,6 +3263,7 @@ async def run_prepared(output):
                 finalize_movement_observation(report,collect_independent)
             except BaseException as error:
                 report.update(error=repr(error), traceback=traceback.format_exc(), scoped_observation_passed=False)
+        input_delay.finalize(plan,report,run)
         if pki: await cleanup_step(errors, 'remove ephemeral PKI', lambda: remove_test_pki(pki_folder))
         if audit: await cleanup_step(errors, 'close fixture audit', audit.close)
         report['source_unchanged'] = report['files_unchanged'] = False
@@ -3264,7 +3279,7 @@ async def run_prepared(output):
         report['teardown_scope'] = ('original result/Continue/Leave/Quit required' if plan['lifecycle'] == 'natural'
                                     else 'forced owned prefix teardown; no native Quit or acceptance claim')
         report['passed'] = bool(report['scoped_observation_passed'] and report['source_unchanged'] and
-            expired_click_final_gate(plan, report) and
+            input_delay.gate(plan,report) and expired_click_final_gate(plan, report) and
             held_click_final_gate(plan, report) and
             (not ordinary_active or ordinary_evidence.gate(plan,report)) and
             (plan['scenario'] != 'mobile' or mobile_final_gate(plan,report)) and
@@ -3497,6 +3512,7 @@ def main(argv=None):
     parser.add_argument('--worker-package', type=Path,
                         help='Owned frozen private package; bind all files and use its actual worker imports/runtime')
     parser.add_argument('--expected-helper-sha256'); parser.add_argument('--expected-gameassembly-sha256')
+    parser.add_argument('--transition-input-delay-ms',type=int,help='Explicit traced 100ms input-delay diagnostic')
     parser.add_argument('--scenario', choices=('startup', 'movement', 'mobile', 'close-formation', 'queued-orders'), default='startup')
     parser.add_argument('--lifecycle', choices=('natural', 'prefix'), default='natural')
     parser.add_argument('--frames', type=int); parser.add_argument('--timeout', type=float, default=180)

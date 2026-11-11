@@ -1,0 +1,85 @@
+N33 - LARGE COMMAND-RETIME CORRECTIONS - 2026-11-11
+
+Result and next work
+Actual74 PASSES two original client/server rounds and closed-file decomposition
+of large visible backtracks. World1 renders2.179506units backward over121.030ms;
+world2 renders1.207480units over64.487ms. Both follow the native corrected
+publication endpoints within float32 precision. This reproduces a large artifact
+and attributes it in this scenario;it is not a visual-comfort or full N33 PASS.
+Next:design and qualify bounded presentation correction while preserving native
+authority,state parity,immediate input,actor lifetime and original selection.
+No presentation smoothing is implemented by this checkpoint. N35's installers,
+deployed server and all manual/user copies remain unchanged.
+
+Changed scenario and evidence
+Reuse the genuine650-frame movement/transition-order fixture with two natural
+worlds,subject slot0,130/475ms and existing trace74:1:0:400:650. Immediately after
+the observed475->130RTT fall,before original turn2 creation,add100ms client-to-
+server scheduling to reads during one250ms window. Existing queued chunks keep
+their deadlines. Separate base/final watermarks preserve TCP order and prevent
+per-chunk accumulation;the other direction/default path stays unchanged.
+Opaque TLS chunk metadata proves scheduling and recovery,not which encrypted
+chunk contains a command. Original constructor/67/72 and exact submitted-body
+bytes independently bind turn2 to the actual canonical command and native replay.
+
+Actual74 source/helper/runtime stay unchanged through the run. All children
+quit naturally0,gameJobs3/0/0 and authorityJobs2/0/0;no force or cleanup errors.
+Elapsed180.119s. Both captured transition-delay windows pass their complete
+schedule/creation/recovery gates. The private output is
+local/prediction-runtime/movement74-input-delay/.
+Original run/verification.json SHA256
+6584e580da034da355aeaf51ce0e055e98c80359eb7e4f28207cdc09ee96522c
+invocation.json SHA256
+fe1989eed44025c8cd27479c8b224ce82da1c3c7d6f059c80f927e2339da0990
+
+World1 turn2 is assigned533/canonical538. Two actual same-head repairs shift
+2.520002 and0.630005units. World2 is assigned537/canonical540;its repairs shift
+1.259998 and0.629999units. The analyzer joins each native pre/post-replay pair
+to its actual promotion group and exact command,then joins the latest same-frame
+query completed before publication to the original published frame endpoints.
+Corrected-H minus old-H plus the following native step equals the first new
+published endpoint change. The final canonical command group and20continuation
+states are checked against full native hashes. Multiple repair pairs are retained.
+
+The sampled Transform points remain within the corresponding published native
+segments:maximum outside-segment residual2.95594e-6/3.75129e-6units. This supports
+native command-retime correction as the cause of these sampled backtracks,with
+no observed renderer amplification. It does not sample Unity's interpolation
+clock,prove physical comfort or retrospectively attribute Portable16's events.
+The unchanged frame_timing_audit.cpp and consumed interpreter reuse the retained
+32-sample QPC/perf-counter witness;no extra original query or clock run is added.
+Closed-file analysis lives atlocal/prediction-correction-motion01/analysis74-01/.
+verification.json SHA256
+f7929a755eada158386e43acdeb65baac97f4c4d72af7e2b4e414e5ab0f5a665
+
+Preserved failure73 and diagnostic repair
+Actual73 remainsFAILED/forced. World2 turn3 could not open its ready marker;
+the exact Win32 error was not logged. Its publisher already closed the temporary
+file before atomic rename;all four65byte markers retained correct contents.
+Do not call this a partial-write failure or claim its unknown error was32.
+Exploratory73 observedW1 .890075units andW2 .596118,but W2's own publication
+buffer was incomplete;no peer trace substitution or full acceptance was made.
+Original73 report SHA256
+c9633f033f1ec53a559da8d156bf5b33cda248221002cf501afa7a145709be9d
+
+The movement diagnostic now reuses the existing native_quit_gate.hpp policy,
+qualified indocs/native-quit-gate-wait.txt. Only sharing error32 is deferred for
+at most1000ms,independently per ordinal/world. Missing cannot reset the budget;
+unknown errors and successful opens after expiry still refuse. Strict read-share,
+ordinary-file,exact actor/generation/ordinal/length/content checks remain intact.
+First-busy,settled and refusal paths log numeric errors. Actual74 required no
+busy retry,so it proves this integration's successful path,not73's missing code.
+
+Validation and installed automation artifact
+627 combined Python checks PASS;all39 helper C++ executables PASS. The closed-
+file analyzer reproduces retained17's smaller measurements without falsely
+meeting this new>.75 threshold. Exact original sender bodies come from retained
+submitted-batches/*.pb;canonical identity-normalized bytes are rejected by the
+sender-hash regression. Existing failed captures and private scripts are intact.
+Helper100 has222 unchanged build sources and is installed only in the owned
+local/prediction-runtime/game,with priorhelper99/manifest retained separately.
+Helper SHA256d35417f9f343c0b95054d0a5b0dcd930205138d52f0d594e802a5197bfc27fa6
+Manifest SHA25605d68ff3e8a221d6ecf398726feb8fde4c6acb84149f9ba21cfb111b946b5499
+Evidence/scripts/receipts:local/prediction-correction-motion01/.
+Broader group/type/input behavior and existing N35 human Internet acceptance
+remain open. This checkpoint publishes source/evidence only,not new installers.
