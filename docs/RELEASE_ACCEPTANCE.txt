@@ -406,6 +406,11 @@ D8    OPEN        Bounded two/four-room TLS/native and older soak evidence retai
                   IDs resolve Count0 while absent and Count1 on restoration;
                   returned callbacks remain distinct from authorization. This
                   does not accept broad empty-preview-held repair or all controls.
+                  An original Mortar9 control exercises both timed setup/unsetup
+                  transitions without changing observed full identity/token.
+                  This rules out that proposed morph route;actual type-change/
+                  forced-group coverage staysOPEN. Its original reader failures
+                  remain preserved;the scoped proof is separate file-only work.
                   Details:prediction-actor-correction.txt. N35 remains pending.
                   219named Windows/C-data21-match cadence/resource check PASSES:
                   19.974326-20.005228Hz,max gap124.3548ms,zero worker awaits>50ms.

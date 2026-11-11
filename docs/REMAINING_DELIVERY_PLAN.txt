@@ -149,7 +149,12 @@ Count0,restoration resolves current Count1,all native/wire/continuation gates
 and two natural rounds/Quit pass. Both fresh phases185->185,response61/59ms
 after enqueue and422/437ms before raw bridge. This named mobile button case is
 complete;60/61 stayFAILED.
-Next:remaining group/type paths and broader input/render behavior.
+A bounded original Mortar9 control now exercises both real timed Setup21/22
+transitions without changing observed full ID/type/army/token. A separate strict
+file-only proof qualifies its retained capture;original reader failures stay
+FAILED. This rules out the proposed setup-morph route,not forced-group coverage.
+Next:genuine context/right-button Move through original input,remaining group/
+type paths and broader input/render behavior.
 Natural-removal/empty-preview-held repair remains unqualified.
 Detailed scopes:prediction-actor-correction.txt.
 Physical/Internet acceptance is open.

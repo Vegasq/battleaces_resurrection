@@ -1249,7 +1249,45 @@ This closes the named original mobile button-release case;
 it does not qualify natural-removal/empty-preview-held repair,all controls,
 generic newborn movement,physical UI or Internet play. Private evidence:
 local/prediction-runtime/movement62-mobile-held-return/.
-Next:the remaining forced-group/type paths and broader
+Original Mortar setup identity control
+A finite original-Simulation control now rules out the proposed Mortar9
+Setup21/22 morph at its explicit INITIAL-entity scope. The fixture adds one
+initial Mortar before native world creation,selects a validated legal custom
+deck/active group4,and preserves shipped entity,modifier,label and ability
+definitions. It sends only ordinary Join and original instant Setup21 at140 /
+Setup22 at210,through280. No runtime identity/group edit or player-build claim.
+Both transitions genuinely execute:SETUP11,SettingUp/UnsettingUp+Immobile labels,
+49 increasing timer samples0.05..2.45seconds,then stable completed labels and
+IDLE. Timer absence at190/260 is retained asNone while the state/labels complete
+one frame later;it is not fabricated zero. OutOfCombat is an explicit unchanged
+derived baseline label. All281 full ID/type/army/confirmed-token observations
+remain[10,0,9,11]. Both native viewers agree on these subject fields;global
+viewer equality or hidden allocation identity is not claimed.
+
+Control01 FAILED before any step because the initial reader confused compact
+label-name order with explicit numeric config keys. The corrected pure reader
+uses original GameConfig.field6 IDs and preserves raw label keys. Control02
+captures all281 steps and closes its world without force,but remains FAILED
+at the post-close reader's overly strict requirement for a timer on every
+SETUP row. Both original reports are preserved. The retained child exits1 for
+that reader refusal;Job2/0/0 and retained-handle cleanup are recorded,not a
+normal Unity Quit qualification.
+Original02 report SHA256:
+9616635fd9927581171c029982057408718d73ed09a2f3f0d20357d3608db201.
+Preservation receipt SHA256:
+3b78d1a292d866c79482b229fbbfc708bae2e1e920531b412efcde23e4a2c7a9.
+Separate file-only reanalysis02 PASSES exact unmodified snapshot/journal/census/
+registry hashes,with native/process/network tripwires and no execution attempts.
+Its stronger classifier rejects interrupted phases,backward timers and delayed
+completion;the authored three-case RED is preserved before the repair. All50
+focused classifier/decoder tests pass. Earlier reanalysis01 is superseded;
+neither original failed report is reclassified. Final file-only proof SHA256:
+ad620df4543c3aca4ce646d18342357927e27420a6a16742b4087beb81ebd35a.
+This closes only the Mortar setup-morph hypothesis. It does not supply a genuine
+forced-retirement manual-group/type-change episode. No production helper,
+installed human copy or live host change. Private evidence:
+local/mortar-setup-identity01/ and local/mortar-setup-identity02/.
+Next:genuine original context/right-button Move,remaining forced-group/type paths and broader
 input/render/physical/Internet acceptance. This is not full-feature closure.
 896 buffered early-phase decisions and both QPC traces are retained from57.
 Neither peer enters recovery in that run;55's earlier transient gap remains a
