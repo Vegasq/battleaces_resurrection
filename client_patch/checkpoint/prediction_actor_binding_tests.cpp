@@ -16,6 +16,7 @@
 #include <set>
 #include <limits>
 #include <functional>
+#include <cmath>
 #ifndef BA_MOVEMENT_HEADER
 #define BA_MOVEMENT_HEADER "../src/prediction_movement.hpp"
 #endif
@@ -25,8 +26,8 @@ namespace host {
 using Obj=void*;
 struct Class;
 struct Method {Obj function=nullptr;const char* name=nullptr;uint32_t token=0;Class* result=nullptr;uint32_t parameters=1;uint32_t flags=0;};
-struct Class {std::string space,name;std::vector<Method*> methods;};
-struct Field {size_t offset=0;};
+struct Class {std::string space,name;std::vector<Method*> methods;Class* declaring=nullptr;};
+struct Field {size_t offset=0;Class* type=nullptr;Class* parent=nullptr;uint32_t flags=0;int32_t literal=0;};
 struct Node {
     Class* klass=nullptr;
     std::array<unsigned char,0x220> bytes{};
@@ -49,6 +50,10 @@ static Obj failedRoot=nullptr;
 static Obj castingServer=nullptr,castingQueue=nullptr,expectedCasting=nullptr;
 static unsigned queueLocks=0,castingClears=0;
 static bool presentationOwned=false,failCastingClear=false;
+static float clickNow=10.0f;
+static unsigned clickClockCalls=0;static bool failClickClock=false,wrongClickBox=false;
+static int32_t clickSingleSize=4,clickModeSize=4;
+static std::map<std::string,Field> clickLiterals;
 static uint64_t movementWorld=0;
 static std::string movementMatch;
 static std::function<void()> focusParameterHook;
@@ -62,6 +67,7 @@ static Obj expectedGroupHelper=nullptr;
 static unsigned char groupRemoveCode[32]{},groupBeginCode[32]{},groupDisposeCode[8]{},groupMarkCode[32]{};
 static unsigned char focusCode[]={0x3b,0x91,0xa0,0,0,0,0x75,0x59,0x83,0x3d,0x99,0x34,0x25,0x03,0,0x48,0x8d,0x91,0xa8,0,0,0,0x48,0xc7,0x02,0,0,0,0,0xc7,0x81,0xa0,0,0,0,0xff,0xff,0xff,0xff};
 static unsigned char clearCode[]={0x48,0x89,0x5c,0x24,0x08,0x57,0x48,0x83,0xec,0x70,0x48,0x8b,0xd9,0x80,0x3d,0xb4};
+static unsigned char clickClockCode[]={0x48,0x83,0xec,0x28,0x48,0x8b,0x05,0x0d,0xf8,0x5f,0x06,0x48,0x85,0xc0,0x75,0x18,0x48};
 static void check(bool ok,const char* reason){if(!ok)throw std::runtime_error(reason);}
 static Class* type(const char* space,const char* name){
     const auto key=std::make_pair(std::string(space),std::string(name));
@@ -83,9 +89,9 @@ template<class T>static T read(Obj object,size_t offset){
 }
 static bool contains(Obj node,uint32_t id,Obj){return static_cast<Node*>(node)->components.count(id)!=0;}
 static uint32_t item(Obj node,uint32_t id,Obj){return static_cast<Node*>(node)->components.at(id);}
-static Method containsMethod,itemMethod,selectionContainsMethod,countMethod,valuesMethod,enumeratorMethod,moveNextMethod,currentMethod,disposeMethod,focusMethod,scopeBeginMethod,scopeDisposeMethod,clearMethod,removeSelectionMethod,groupRemoveMethod,groupMarkMethod;
+static Method containsMethod,itemMethod,selectionContainsMethod,countMethod,valuesMethod,enumeratorMethod,moveNextMethod,currentMethod,disposeMethod,focusMethod,scopeBeginMethod,scopeDisposeMethod,clearMethod,removeSelectionMethod,groupRemoveMethod,groupMarkMethod,clickTimeMethod;
 static Class* focusParameter=nullptr;
-static Node boxedBool,boxedInt;
+static Node boxedBool,boxedInt,boxedSingle;
 static bool failEnumeration=false;
 static void metadata(){
     auto uintType=type("System","UInt32");auto boolType=type("System","Boolean");
@@ -108,10 +114,12 @@ static void metadata(){
     groupMarkMethod={groupMarkCode,"MarkForFire",0x060000ce,type("System","Void"),0};
     clearMethod={clearCode,"Clear",0x060025ac,type("System","Void"),0};
     removeSelectionMethod={reinterpret_cast<Obj>(&contains),"RemoveSelection",0x0600220a,type("System","Void"),1};
+    clickTimeMethod={clickClockCode,"get_realtimeSinceStartup",0x06001040,type("System","Single"),0,0x10};
     for(auto* method:{&selectionContainsMethod,&countMethod,&valuesMethod,&enumeratorMethod,&moveNextMethod,&currentMethod,&disposeMethod,&focusMethod,&scopeBeginMethod,&scopeDisposeMethod,&clearMethod})methodObjects.insert(method);
     type("Uncapped","UnitSelector")->methods={&focusMethod};
     methodObjects.insert(&removeSelectionMethod);
     methodObjects.insert(&groupRemoveMethod);methodObjects.insert(&groupMarkMethod);
+    methodObjects.insert(&clickTimeMethod);type("UnityEngine","Time")->methods={&clickTimeMethod};
     methodObjects.insert(&scopeBeginMethod);methodObjects.insert(&scopeDisposeMethod);
     type("Uncapped.Collections","UnitSelectionSet")->methods={&selectionContainsMethod,&clearMethod,&groupRemoveMethod};
     type("Uncapped","ControlGroup")->methods={&scopeBeginMethod};
@@ -131,6 +139,16 @@ static void metadata(){
             {"<IsSuspended>k__BackingField",{0x10}},{"_simFrames",{0x48}},
             {"_componentData",{0x158}},{"<DeadToTheSim>k__BackingField",{0x160}},
             {"_localPlayer",{0x90}},{"ArmyID",{0x38}},{"_simulation",{0x48}}};
+    auto* selectorType=type("Uncapped","UnitSelector");auto* modeType=type("","DeferredClickMode");modeType->declaring=selectorType;
+    fields["_doubleClickTime"]={0x28,type("System","Single"),selectorType};
+    fields["_lastPointerUpTime"]={0x154,type("System","Single"),selectorType};
+    fields["_doubleClickFirstClickReferenceUnitEntityId"]={0x128,uintType,selectorType};
+    fields["_deferredClickMode"]={0x170,modeType,selectorType};
+    fields["_isPointerDown"]={0x16c,boolType,selectorType};fields["_isContextPointerDown"]={0x16d,boolType,selectorType};
+    fields["_isDragging"]={0x119,boolType,selectorType};
+    clickLiterals={{"None",{0,modeType,modeType,0x56,0}},{"SingleClickOnMouseUp",{0,modeType,modeType,0x56,1}},
+        {"DoubleClickOnMouseUp",{0,modeType,modeType,0x56,2}}};
+    boxedSingle.klass=type("System","Single");
 }
 static Obj methods(Obj klass,void** iterator){
     const auto index=reinterpret_cast<uintptr_t>(*iterator);
@@ -139,6 +157,7 @@ static Obj methods(Obj klass,void** iterator){
     *iterator=reinterpret_cast<void*>(index+1);return values[index];
 }
 static Obj parent(Obj){return nullptr;}
+static const char* className(Obj value){return static_cast<Class*>(value)->name.c_str();}
 static const char* methodName(Obj value){return static_cast<Method*>(value)->name;}
 static uint32_t parameterCount(Obj value){return static_cast<Method*>(value)->parameters;}
 static uint32_t methodToken(Obj value){return static_cast<Method*>(value)->token;}
@@ -150,14 +169,29 @@ static Obj parameter(Obj method,uint32_t){
 static Obj resultType(Obj value){return static_cast<Method*>(value)->result;}
 static Obj fromType(Obj value){return value;}
 static size_t fieldOffset(Obj value){return static_cast<Field*>(value)->offset;}
-static bool isValueType(Obj klass){return klass==type("Authored","ValueEnumerator");}
-static bool isEnum(Obj){return false;}
+static Obj fieldType(Obj value){return static_cast<Field*>(value)->type;}
+static Obj fieldParent(Obj value){return static_cast<Field*>(value)->parent;}
+static uint32_t fieldFlags(Obj value){return static_cast<Field*>(value)->flags;}
+static void staticFieldValue(Obj value,void* result){check(result!=nullptr,"authored literal output missing");memcpy(result,&static_cast<Field*>(value)->literal,4);}
+static Obj declaringType(Obj value){return static_cast<Class*>(value)->declaring;}
+static Obj classField(Obj value,const char* name){
+    if(value!=type("","DeferredClickMode"))throw std::runtime_error("unexpected authored class field lookup");
+    const auto found=clickLiterals.find(name);return found==clickLiterals.end()?nullptr:&found->second;
+}
+static bool isEnum(Obj value){return value==type("","DeferredClickMode");}
+static Obj enumBase(Obj value){check(isEnum(value),"authored enum base lookup on another type");return type("System","Int32");}
+static bool isValueType(Obj klass){return klass==type("Authored","ValueEnumerator")||isEnum(klass)||
+    klass==type("System","Single")||klass==type("System","Int32")||klass==type("System","UInt32")||klass==type("System","Boolean");}
 static int32_t valueSize(Obj klass,uint32_t* alignment){
-    check(klass==type("System","UInt32"),"unexpected authored scalar type");*alignment=4;return 4;
+    if(klass==type("System","Boolean")){*alignment=1;return 1;}
+    if(klass==type("System","Single")){*alignment=4;return clickSingleSize;}
+    if(isEnum(klass)){*alignment=4;return clickModeSize;}
+    check(klass==type("System","UInt32")||klass==type("System","Int32")||klass==type("System","Single")||isEnum(klass),
+        "unexpected authored scalar type");*alignment=4;return 4;
 }
 static void* unbox(Obj value){
     auto* node=static_cast<Node*>(value);
-    if(isValueType(node->klass)){node->unboxedReceiver=true;return node;}
+    if(node->klass==type("Authored","ValueEnumerator")){node->unboxedReceiver=true;return node;}
     return node->bytes.data();
 }
 static Obj boolean(bool value){put(boxedBool,0,value);return &boxedBool;}
@@ -173,6 +207,7 @@ using Obj=void*;static DWORD initialThread=1;static Obj owner=nullptr;
 template<class T>T api(const char* name){
     if(!strcmp(name,"il2cpp_class_get_methods"))return reinterpret_cast<T>(&host::methods);
     if(!strcmp(name,"il2cpp_class_get_parent"))return reinterpret_cast<T>(&host::parent);
+    if(!strcmp(name,"il2cpp_class_get_name"))return reinterpret_cast<T>(&host::className);
     if(!strcmp(name,"il2cpp_method_get_name"))return reinterpret_cast<T>(&host::methodName);
     if(!strcmp(name,"il2cpp_method_get_param_count"))return reinterpret_cast<T>(&host::parameterCount);
     if(!strcmp(name,"il2cpp_method_get_token"))return reinterpret_cast<T>(&host::methodToken);
@@ -181,6 +216,13 @@ template<class T>T api(const char* name){
     if(!strcmp(name,"il2cpp_method_get_return_type"))return reinterpret_cast<T>(&host::resultType);
     if(!strcmp(name,"il2cpp_class_from_type"))return reinterpret_cast<T>(&host::fromType);
     if(!strcmp(name,"il2cpp_field_get_offset"))return reinterpret_cast<T>(&host::fieldOffset);
+    if(!strcmp(name,"il2cpp_field_get_type"))return reinterpret_cast<T>(&host::fieldType);
+    if(!strcmp(name,"il2cpp_field_get_parent"))return reinterpret_cast<T>(&host::fieldParent);
+    if(!strcmp(name,"il2cpp_field_get_flags"))return reinterpret_cast<T>(&host::fieldFlags);
+    if(!strcmp(name,"il2cpp_field_static_get_value"))return reinterpret_cast<T>(&host::staticFieldValue);
+    if(!strcmp(name,"il2cpp_class_get_declaring_type"))return reinterpret_cast<T>(&host::declaringType);
+    if(!strcmp(name,"il2cpp_class_get_field_from_name"))return reinterpret_cast<T>(&host::classField);
+    if(!strcmp(name,"il2cpp_class_enum_basetype"))return reinterpret_cast<T>(&host::enumBase);
     if(!strcmp(name,"il2cpp_object_unbox"))return reinterpret_cast<T>(&host::unbox);
     if(!strcmp(name,"il2cpp_class_is_valuetype"))return reinterpret_cast<T>(&host::isValueType);
     if(!strcmp(name,"il2cpp_class_is_enum"))return reinterpret_cast<T>(&host::isEnum);
@@ -195,6 +237,7 @@ template<class T>T native(uintptr_t rva){
     if(rva==0x3ea5790)return reinterpret_cast<T>(&host::groupBeginCode[0]);
     if(rva==0x3b02160)return reinterpret_cast<T>(&host::groupDisposeCode[0]);
     if(rva==0x3b02170)return reinterpret_cast<T>(&host::groupMarkCode[0]);
+    if(rva==0x8656b0)return reinterpret_cast<T>(&host::clickClockCode[0]);
     throw std::runtime_error("unexpected original native call");
 }
 template<class T>T read(Obj object,size_t offset){return host::read<T>(object,offset);}
@@ -229,7 +272,13 @@ static int count(void* value){
     return static_cast<int>(static_cast<host::Node*>(value)->values.size());
 }
 static void* invokeMethod(void* method,void* object,void** args){
-    auto& node=*static_cast<host::Node*>(object);const auto token=static_cast<host::Method*>(method)->token;
+    const auto token=static_cast<host::Method*>(method)->token;
+    if(token==0x06001040){
+        host::check(!object&&!args&&!host::queueLocks,"authored Single clock invocation ABI/lock differs");++host::clickClockCalls;
+        if(host::failClickClock)throw std::runtime_error("authored original clock failure");
+        host::boxedSingle.klass=host::type("System",host::wrongClickBox?"Int32":"Single");host::put(host::boxedSingle,0,host::clickNow);return &host::boxedSingle;
+    }
+    auto& node=*static_cast<host::Node*>(object);
     if(token==0x0600220a){
         host::check(object==host::currentSelector && args && args[0],"original removal owner/batch missing");
         ++host::selectionRemovals;host::interactionEvents.push_back("removeSelection");
@@ -441,12 +490,15 @@ struct Interaction {
     Node selector,oldActor,ability;
     std::vector<actors::Retire> retire;
     Interaction(){
+        ba::initialThread=ba_local::updateThread=GetCurrentThreadId();
         host::failEnumeration=false;selector.klass=host::type("Uncapped","UnitSelector");
         host::focusCalls=0;host::interactionEvents.clear();host::failedRoot=nullptr;
         host::failFocusBefore=host::failFocusAfter=host::focusNoOp=host::failScopeBegin=false;
         host::focusParameterHook={};host::queueLocks=host::castingClears=0;host::failCastingClear=false;
+        host::clickNow=10.0f;host::clickClockCalls=0;host::failClickClock=host::wrongClickBox=false;host::clickSingleSize=host::clickModeSize=4;
         put(selector,0x88,static_cast<void*>(&preview.set));put(selector,0x90,static_cast<void*>(&current.set));
         put(selector,0x98,static_cast<void*>(&casting.set));put(selector,0x128,uint32_t{UINT32_MAX});
+        put(selector,0x170,int32_t{0});put(selector,0x119,false);put(selector,0x154,host::clickNow);put(selector,0x28,0.25f);
         put(selector,0xa0,int32_t{-1});
         retire.push_back({&oldActor,{7,75,0},{7,75,0},false});
     }
@@ -967,6 +1019,102 @@ static void groupIntentPurgePreflightAndOriginalFailuresRetainMetadata(){
         if(mode==3)check(!host::groupMarks,"incomplete typed removal emitted original success notification");
     }
 }
+static void expiredClick(CastingInteraction& f){
+    f.held(false,false);
+    put(f.selector,0x128,uint32_t{7});put(f.selector,0x170,int32_t{0});put(f.selector,0x119,false);
+    put(f.selector,0x154,9.0f);put(f.selector,0x28,0.25f);host::clickNow=10.0f;
+}
+static void clickPredicatesPreserveHistory(CastingInteraction& f,const std::array<unsigned char,0x220>& history){
+    check(f.selector.bytes==history,"click-history predicates changed selector fields");
+    check(f.preview.allIDs.values==std::vector<uint32_t>{100}&&f.current.allIDs.values==std::vector<uint32_t>{100},
+        "click-history predicates changed selection");f.untouched();
+    check(host::interactionEvents.empty(),"click-history predicates entered original mutation callbacks");
+}
+static void expiredIdleClickHistoryDoesNotOwnRetiringActor(){
+    CastingInteraction f;expiredClick(f);
+    // Authored values use the ORIGINAL Single arithmetic. No QPC/Double clock
+    // or fabricated pointer callback is part of this isolated source regression.
+    check(host::clickNow-host::read<float>(&f.selector,0x154)>host::read<float>(&f.selector,0x28),
+        "authored idle history is not actually expired");
+    const auto history=f.selector.bytes;bool guardAllowed=true;std::string refusal;
+    try{actors::guardRetiringInteractions(&f.selector,f.retire,true);}
+    catch(const std::exception& error){guardAllowed=false;refusal=error.what();}
+    actors::CastingCleanupAccess access(f.state,&f.selector,f.retire);access.validate();
+    const bool cleanupReportsLive=access.hasAffectedLiveClick();
+    clickPredicatesPreserveHistory(f,history);
+    std::cout<<"expired idle click: affected ID7, mode0, buttons up, drag false, Single now10-last9 > window0.25; actor_allowed="
+        <<guardAllowed<<", casting_reports_live="<<cleanupReportsLive<<", history unchanged; actor refusal="<<refusal<<'\n';
+    check(guardAllowed&&!cleanupReportsLive,
+        "expired idle click history is still treated as live ownership by actor/casting guards");
+    check(host::clickClockCalls==2,"both actual click entrypoints did not read the original Single clock exactly once");
+}
+static void clickRefusesThroughBothActualEntryPoints(CastingInteraction& f,const char* name){
+    const auto history=f.selector.bytes;bool actorRefused=false,cleanupRefused=false;
+    try{actors::guardRetiringInteractions(&f.selector,f.retire,true);}catch(const std::exception&){actorRefused=true;}
+    try{actors::CastingCleanupAccess access(f.state,&f.selector,f.retire);access.validate();cleanupRefused=access.hasAffectedLiveClick();}
+    catch(const std::exception&){cleanupRefused=true;}
+    check(actorRefused&&cleanupRefused,(std::string("actual click entrypoints accepted live/unknown history: ")+name).c_str());
+    clickPredicatesPreserveHistory(f,history);
+}
+static void liveDeferredHeldAndMalformedHistoryRefuse(){
+    const char* cases[]={"equality","recent","deferred-single","deferred-double","primary-held","context-held","dragging",
+        "negative-now","negative-last","negative-window","clock-backwards","NaN-now","NaN-last","NaN-window",
+        "infinite-now","infinite-last","infinite-window","unknown-mode","invalid-primary-byte","invalid-context-byte","invalid-drag-byte"};
+    for(int mode=0;mode<21;++mode){CastingInteraction f;expiredClick(f);
+        const auto nan=std::numeric_limits<float>::quiet_NaN(),inf=std::numeric_limits<float>::infinity();
+        if(mode==0)host::clickNow=9.25f;if(mode==1)host::clickNow=9.125f;
+        if(mode==2)put(f.selector,0x170,int32_t{1});if(mode==3)put(f.selector,0x170,int32_t{2});
+        if(mode==4)f.held(true,false);if(mode==5)f.held(false,true);if(mode==6)put(f.selector,0x119,true);
+        if(mode==7)host::clickNow=-1.f;if(mode==8)put(f.selector,0x154,-1.f);if(mode==9)put(f.selector,0x28,-0.25f);
+        if(mode==10)host::clickNow=8.f;if(mode==11)host::clickNow=nan;if(mode==12)put(f.selector,0x154,nan);
+        if(mode==13)put(f.selector,0x28,nan);if(mode==14)host::clickNow=inf;if(mode==15)put(f.selector,0x154,inf);
+        if(mode==16)put(f.selector,0x28,inf);if(mode==17)put(f.selector,0x170,int32_t{3});
+        if(mode==18)put(f.selector,0x16c,uint8_t{2});if(mode==19)put(f.selector,0x16d,uint8_t{2});
+        if(mode==20)put(f.selector,0x119,uint8_t{2});clickRefusesThroughBothActualEntryPoints(f,cases[mode]);
+    }
+}
+static void originalClickFieldEnumClockAndBoxABIFailClosed(){
+    const char* cases[]={"Single-field-type","Single-field-offset","Single-field-static","Single-size","enum-parent","enum-literal",
+        "clock-static","clock-return-Double","clock-arity","clock-target","clock-entry","clock-box","clock-exception","enum-size"};
+    for(int mode=0;mode<14;++mode){CastingInteraction f;expiredClick(f);
+        const auto oldField=host::fields.at("_doubleClickTime"),oldLiteral=host::clickLiterals.at("None");
+        const auto oldMethod=host::clickTimeMethod;auto* const modeType=host::type("","DeferredClickMode");
+        auto* const oldDeclaring=modeType->declaring;const auto code=host::clickClockCode[0];
+        if(mode==0)host::fields.at("_doubleClickTime").type=host::type("System","Double");
+        if(mode==1)host::fields.at("_doubleClickTime").offset=0x2c;
+        if(mode==2)host::fields.at("_doubleClickTime").flags=0x10;if(mode==3)host::clickSingleSize=8;
+        if(mode==4)modeType->declaring=host::type("Uncapped","ControlGroup");if(mode==5)host::clickLiterals.at("None").literal=7;
+        if(mode==6)host::clickTimeMethod.flags=0;if(mode==7)host::clickTimeMethod.result=host::type("System","Double");
+        if(mode==8)host::clickTimeMethod.parameters=1;if(mode==9)host::clickTimeMethod.function=reinterpret_cast<void*>(&host::contains);
+        if(mode==10)host::clickClockCode[0]^=1;if(mode==11)host::wrongClickBox=true;if(mode==12)host::failClickClock=true;
+        if(mode==13)host::clickModeSize=8;
+        try{clickRefusesThroughBothActualEntryPoints(f,cases[mode]);}
+        catch(...){host::fields.at("_doubleClickTime")=oldField;host::clickLiterals.at("None")=oldLiteral;
+            host::clickTimeMethod=oldMethod;modeType->declaring=oldDeclaring;host::clickClockCode[0]=code;throw;}
+        host::fields.at("_doubleClickTime")=oldField;host::clickLiterals.at("None")=oldLiteral;
+        host::clickTimeMethod=oldMethod;modeType->declaring=oldDeclaring;host::clickClockCode[0]=code;
+    }
+}
+static void unmatchedClickDoesNotReadClockOrHistoryMetadata(){
+    CastingInteraction f;expiredClick(f);put(f.selector,0x128,uint32_t{99});host::failClickClock=true;
+    const auto oldField=host::fields.at("_doubleClickTime");host::fields.at("_doubleClickTime").type=nullptr;
+    const auto history=f.selector.bytes;
+    try{actors::guardRetiringInteractions(&f.selector,f.retire,true);
+        actors::CastingCleanupAccess access(f.state,&f.selector,f.retire);access.validate();
+        check(!access.hasAffectedLiveClick()&&!host::clickClockCalls,"unmatched history entered the original clock path");
+        clickPredicatesPreserveHistory(f,history);
+    }catch(...){host::fields.at("_doubleClickTime")=oldField;throw;}
+    host::fields.at("_doubleClickTime")=oldField;
+}
+static void expiredPreparationCannotClearAfterClickBecomesLive(){
+    for(bool held:{false,true}){CastingInteraction f;expiredClick(f);
+        actors::CastingCleanupAccess access(f.state,&f.selector,f.retire);actors::CastingCleanup plan(access,true);plan.prepare();
+        if(held)f.held(true,false);else put(f.selector,0x154,host::clickNow);
+        const auto history=f.selector.bytes;rejected([&]{plan.commit();});f.untouched();
+        check(f.selector.bytes==history&&host::interactionEvents==std::vector<std::string>({"lock","unlock"}),
+            "live click at commit cleared scratch, changed history, or entered another mutation callback");
+    }
+}
 }
 int main(){try{
     host::metadata();
@@ -997,5 +1145,9 @@ int main(){try{
     test::groupIntentUninitializedOrStillDeadActorCannotForgetObligation();
     test::groupIntentCanonicalLossPurgesThroughOriginalScopeAndNotification();test::groupIntentTypedInconsistencyRefusesBeforeDecliningOriginalRemove();
     test::groupIntentOwnerMetadataAndSignatureRefuseBeforeMutation();test::groupIntentPurgePreflightAndOriginalFailuresRetainMetadata();
-    std::cout<<"actor binding/held gesture/focus/casting/deferred/group-intent:53 actual-source authored flow groups PASS; no Unity/IL2CPP/native engine execution\n";return 0;
+    std::cout<<"prior53 actual-source authored flow groups PASS; testing expired click history\n";
+    test::expiredIdleClickHistoryDoesNotOwnRetiringActor();
+    test::liveDeferredHeldAndMalformedHistoryRefuse();test::originalClickFieldEnumClockAndBoxABIFailClosed();
+    test::unmatchedClickDoesNotReadClockOrHistoryMetadata();test::expiredPreparationCannotClearAfterClickBecomesLive();
+    std::cout<<"actor binding/held gesture/focus/casting/deferred/group-intent/click:58 actual-source authored flow groups PASS; no Unity/IL2CPP/native engine execution\n";return 0;
 }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}}

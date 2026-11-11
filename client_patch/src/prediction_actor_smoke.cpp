@@ -1,5 +1,6 @@
 // Explicit owned correction fixture. Original selection/control-group/focus APIs
 // only; no simulated callbacks, native state writes or observer-token changes.
+#include "prediction_expired_click_smoke.hpp"
 namespace ba_prediction_actor_smoke {
 namespace actors=ba_prediction_actors;
 namespace selection=ba_prediction_selection;
@@ -965,11 +966,12 @@ static void tick() {
 }
 }
 static void tick() {
+    if(expired_click::enabled())expired_click::frontendUpdate();
     if(ba::flag(L"-prediction-mobile-correction-smoke")){mobile::tick();return;}
     if(!ba::flag(L"-prediction-actor-correction-smoke"))return;
     try {
         const auto world=worker::movementWorldId();const auto match=worker::movementMatchId();
-        if(!worker::movementEnabled()||!world||match.empty()){state()=State{};return;}
+        if(!worker::movementEnabled()||!world||match.empty()){if(expired_click::enabled())expired_click::clear();state()=State{};return;}
         auto& s=state();if(s.world!=world||s.match!=match){s=State{};s.world=world;s.match=match;}
         if(s.failed||s.passed)return;
         auto& owner=actors::state();
@@ -985,16 +987,20 @@ static void tick() {
             escape(owner,selectorFor(owner),frame);return;
         }
         require(ba::lanSlot()==1,"actor fixture requires exactly two human seats");
+        if(expired_click::enabled()&&frame>=120&&
+            !expired_click::prepare(owner,selectorFor(owner),coreFor(owner),frame))return;
         if(frame<130)return;
         Obj selector=selectorFor(owner);
-        if(!s.setup){require(frame<145,"actor fixture missed pre-death selection window");setup(owner,selector,frame);return;}
+        if(!s.setup){require(frame<145,"actor fixture missed pre-death selection window");setup(owner,selector,frame);
+            if(expired_click::enabled())expired_click::observe(owner,selector,frame,"after_setup");return;}
         if(s.firstDead<0) {
             Obj old=s.originalCore->get();
             if(!ba::read<bool>(old,0x160)||ba::read<Obj>(old,0x158))return;
             const auto retained=actors::units(ba::read<Obj>(owner.manager->get(),0xa0));
             require(std::find(retained.begin(),retained.end(),old)!=retained.end(),"actor fixture dead HQ was not retained by original manager");
             s.focusRetainedAtDeath=ba::read<Obj>(selector,0xa8)==old&&ba::read<int>(selector,0xa0)==4;
-            s.firstDead=frame;event("original_dead_hq_retained",frame,old);return;
+            s.firstDead=frame;event("original_dead_hq_retained",frame,old);
+            if(expired_click::enabled())expired_click::observe(owner,selector,frame,"dead_hq_retained");return;
         }
         Obj core=coreFor(owner);if(!core)return;
         require(actors::resident(core).entityId==s.entity,"actor fixture resurrected Core identity differs");
@@ -1008,9 +1014,12 @@ static void tick() {
         Obj tracked=ba::read<Obj>(s.group->get(),0x10);
         Root remembered(actors::invoke(actors::method(tracked,"Contains",1,0x060000ac,0x3782540),tracked,idArgs));
         require(!actors::unbox<bool>(remembered.get()),"actor fixture group retains released HQ identity");
-        if(s.firstRestored<0){s.firstRestored=frame;event("original_hq_restored_and_admitted",frame,core);}
-        if(frame>=s.firstRestored+2){s.passed=true;event("hq_selection_correction_passed",frame,core);}
+        if(s.firstRestored<0){s.firstRestored=frame;event("original_hq_restored_and_admitted",frame,core);
+            if(expired_click::enabled())expired_click::observe(owner,selector,frame,"hq_restored");}
+        if(frame>=s.firstRestored+2){s.passed=true;event("hq_selection_correction_passed",frame,core);
+            if(expired_click::enabled())expired_click::observe(owner,selector,frame,"complete");}
     } catch(const std::exception& error) {
+        if(expired_click::enabled())expired_click::markFailed();
         state().failed=true;ba::log("Actor correction smoke failed: reason=%s physicalUI=0",error.what());
         worker::movementFail(error.what());
     }

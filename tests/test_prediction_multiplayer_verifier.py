@@ -224,6 +224,56 @@ class PreparationTests(unittest.TestCase):
             self.assertIn('-prediction-actor-correction-smoke',
                           verifier.command_extra(plan,index,self.args.output/'run'))
 
+    def test_expired_click_is_explicit_pinned_hq650_scope_and_forwarded(self):
+        self.args.scenario='movement';self.args.actor_correction=True;self.args.expired_click=True
+        helper=self.game/'BattleAcesOffline.dll'
+        helper.write_bytes(helper.read_bytes()+'-prediction-expired-click-smoke'.encode('utf-16-le'))
+        self.args.expected_helper_sha256=verifier.sha(helper)
+        manifest=self.game/'.battleaces-resurrection/patch-manifest.json'
+        value=json.loads(manifest.read_text());value['helper_sha256']=self.args.expected_helper_sha256
+        manifest.write_text(json.dumps(value))
+        receipt=self.args.helper_build_receipt
+        value=json.loads(receipt.read_text());value['helper_sha256']=self.args.expected_helper_sha256
+        receipt.write_text(json.dumps(value))
+        plan=verifier.prepare(self.args)
+        self.assertIs(plan['expired_click'],True);self.assertEqual((plan['frames'],plan['expected_matches']),(650,2))
+        self.assertEqual(verifier.verify_prepared(self.args.output),plan)
+        for index in (0,1):
+            flags=verifier.command_extra(plan,index,self.args.output/'run')
+            self.assertIn('-prediction-expired-click-smoke',flags)
+            self.assertIn('-prediction-actor-correction-smoke',flags)
+            self.assertFalse(any('mobile-' in flag or 'transition-gates' in flag for flag in flags))
+        value=json.loads((self.args.output/'invocation.json').read_text());value['expired_click']='true'
+        (self.args.output/'invocation.json').write_text(json.dumps(value))
+        with self.assertRaisesRegex(AssertionError,'Boolean'):verifier.verify_prepared(self.args.output)
+
+    def test_expired_click_rejects_wrong_scope_and_missing_marker_before_output(self):
+        self.args.scenario='movement';self.args.actor_correction=True;self.args.expired_click=True
+        for key,value in (('actor_correction',False),('lifecycle','prefix'),('frames',600),('rtt_ms',(475,130)),
+                          ('mobile_correction',True),('changing_rtt',True),('move_slot',1)):
+            existed=hasattr(self.args,key);old=getattr(self.args,key,None);setattr(self.args,key,value)
+            with self.subTest(key=key),self.assertRaisesRegex(AssertionError,'expired click requires'):
+                verifier.prepare(self.args)
+            if existed:setattr(self.args,key,old)
+            else:delattr(self.args,key)
+            self.assertFalse(self.args.output.exists())
+        with self.assertRaisesRegex(AssertionError,'helper lacks explicit -prediction-expired-click-smoke'):
+            verifier.prepare(self.args)
+        self.assertFalse(self.args.output.exists())
+
+    def test_expired_click_cli_and_default_are_separate_without_execution(self):
+        base=[]
+        for name in ('game','assets','output','python','module-root','heap-helper','cooperative','helper-build-receipt'):
+            base+=['--'+name,str(self.root/name)]
+        base+=['--expected-helper-sha256','a'*64,'--expected-gameassembly-sha256','b'*64]
+        with patch.object(verifier,'prepare',return_value=dict(output='owned',scenario='movement')) as prepare,patch('builtins.print'):
+            self.assertEqual(verifier.main(base+['--scenario','movement','--actor-correction','--expired-click']),0)
+            self.assertTrue(prepare.call_args[0][0].expired_click)
+            verifier.main(base);self.assertFalse(prepare.call_args[0][0].expired_click)
+        plan=verifier.prepare(self.args)
+        self.assertNotIn('expired_click',plan)
+        self.assertNotIn('-prediction-expired-click-smoke',verifier.command_extra(plan,1,self.args.output/'run'))
+
     def test_changing_rtt_is_explicit_ordinary650_frame_fixture(self):
         self.args.changing_rtt=True;self.args.scenario='movement'
         plan=verifier.prepare(self.args)
@@ -428,6 +478,204 @@ class OwnedSpawnTests(unittest.TestCase):
                 resume_child=lambda _: self.fail('must not resume'))
         self.assertIn('job-terminate', events); self.assertIn('job-close', events)
         self.assertEqual(events[-1], 'handle-close')
+
+
+class FreshPidSpawnTests(unittest.TestCase):
+    def fixture(self, root, pids, *, cleanup_failure=None, resume_failure=None, assignment_failure=False):
+        events, processes = [], []
+        remaining = iter(pids)
+
+        class Handle:
+            def __init__(self, pid): self.pid, self.closed = pid, False
+            def Close(self):
+                if cleanup_failure == 'handle': raise RuntimeError('authored process handle close failure')
+                events.append(('handle-close', self.pid)); self.closed = True
+
+        class Process:
+            stdin = stdout = stderr = None
+            def __init__(self, pid):
+                self.pid, self.returncode = pid, None
+                self._handle = Handle(pid)
+            def poll(self): return self.returncode
+            def terminate(self): events.append(('process-terminate', self.pid)); self.returncode = 92
+            def kill(self): events.append(('process-kill', self.pid)); self.returncode = 92
+            def wait(self, timeout):
+                events.append(('wait', self.pid))
+                if cleanup_failure == 'wait': raise RuntimeError('authored wait failure')
+                return self.returncode
+
+        class Job:
+            def __init__(self, process):
+                if assignment_failure: raise RuntimeError('authored assignment failure')
+                self.process, self.handle = process, object()
+                events.append(('assigned', process.pid))
+            def terminate_owned(self):
+                events.append(('job-terminate', self.process.pid)); self.process.returncode = 92
+            def accounting(self):
+                events.append(('accounting', self.process.pid))
+                return dict(total=1, active=int(cleanup_failure == 'active' or self.process.poll() is None), terminated=1)
+            def close_checked(self):
+                events.append(('job-close', self.process.pid))
+                if cleanup_failure == 'close': raise RuntimeError('authored Job close failure')
+                self.handle = None
+            def close(self):
+                events.append(('job-close-fallback', self.process.pid)); self.handle = None
+
+        def popen(argv, **kwargs):
+            self.assertTrue(kwargs['creationflags'] & verifier.CREATE_SUSPENDED)
+            process = Process(next(remaining)); processes.append(process)
+            events.append(('spawn', process.pid))
+            return process
+
+        def resume(process):
+            events.append(('resume', process.pid))
+            if resume_failure is not None: raise resume_failure(process)
+
+        return events, processes, dict(runtime=root, job_type=Job, popen=popen, resume_child=resume)
+
+    @staticmethod
+    def old_evidence(root, pids):
+        for pid in pids:
+            (root / f'dedicated-native-{pid}.log').write_bytes(f'ORIGINAL NATIVE {pid}'.encode())
+            (root / f'frame-timing-{pid}.tsv').write_bytes(f'ORIGINAL TIMING {pid}'.encode())
+
+    @staticmethod
+    def evidence_bytes(root):
+        return {path.name: path.read_bytes() for path in root.iterdir()}
+
+    def test_collision_then_fresh_requires_complete_cleanup_before_spawn_or_resume(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); self.old_evidence(root, [101]); before = self.evidence_bytes(root)
+            events, processes, kwargs = self.fixture(root, [101, 102])
+            refusals = []
+            child, job = verifier.spawn_fresh_owned(['authored'], refusals=refusals, client_index=1, **kwargs)
+            self.assertEqual(child.pid, 102)
+            self.assertEqual([event for event in events if event[0] == 'resume'], [('resume', 102)])
+            self.assertLess(events.index(('handle-close', 101)), events.index(('spawn', 102)))
+            self.assertLess(events.index(('job-close', 101)), events.index(('handle-close', 101)))
+            self.assertLess(events.index(('wait', 101)), events.index(('accounting', 101)))
+            self.assertTrue(processes[0]._handle.closed); self.assertFalse(child._handle.closed)
+            self.assertIsNotNone(job.handle)
+            self.assertEqual(len(refusals), 1)
+            self.assertEqual((refusals[0]['index'], refusals[0]['attempt'], refusals[0]['pid']), (1, 1, 101))
+            cleanup = refusals[0]['cleanup']
+            self.assertTrue(cleanup['retry_safe']); self.assertTrue(cleanup['reaped'])
+            self.assertTrue(cleanup['job_closed']); self.assertTrue(cleanup['retained_handle_closed'])
+            self.assertFalse(refusals[0]['resume_started']); self.assertEqual(cleanup['job_accounting']['active'], 0)
+            self.assertEqual(cleanup['errors'], [])
+            self.assertEqual(before, self.evidence_bytes(root))
+
+    def test_bound_exhaustion_retains_every_refusal_and_original_file_bytes(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); pids = list(range(101, 109)); self.old_evidence(root, pids)
+            before = self.evidence_bytes(root)
+            events, processes, kwargs = self.fixture(root, pids + [999])
+            refusals = []
+            with self.assertRaisesRegex(RuntimeError, 'fresh PID attempts exhausted'):
+                verifier.spawn_fresh_owned(['authored'], refusals=refusals, **kwargs)
+            self.assertEqual([row['pid'] for row in refusals], pids)
+            self.assertEqual([row['attempt'] for row in refusals], list(range(1, 9)))
+            self.assertTrue(all(row['cleanup']['retry_safe'] for row in refusals))
+            self.assertEqual(len(processes), 8)
+            self.assertTrue(all(process._handle.closed for process in processes))
+            self.assertFalse(any(event[0] == 'resume' for event in events))
+            self.assertEqual(before, self.evidence_bytes(root))
+
+    def test_incomplete_cleanup_never_retries_and_preserves_primary_collision(self):
+        for failure in ('wait', 'active', 'close', 'handle'):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as temp:
+                root = Path(temp); self.old_evidence(root, [101]); before = self.evidence_bytes(root)
+                events, processes, kwargs = self.fixture(root, [101, 102], cleanup_failure=failure)
+                refusals = []
+                with self.assertRaisesRegex(verifier.PidEvidenceCollision, 'reused PID evidence'):
+                    verifier.spawn_fresh_owned(['authored'], refusals=refusals, **kwargs)
+                self.assertEqual(len(processes), 1)
+                self.assertEqual(processes[0]._handle.closed, failure != 'handle')
+                self.assertEqual(len(refusals), 1); self.assertFalse(refusals[0]['cleanup']['retry_safe'])
+                self.assertTrue(refusals[0]['cleanup']['errors'])
+                self.assertFalse(any(event[0] == 'resume' for event in events))
+                self.assertEqual(before, self.evidence_bytes(root))
+
+    def test_other_assignment_failure_is_one_shot(self):
+        with tempfile.TemporaryDirectory() as temp:
+            events, processes, kwargs = self.fixture(Path(temp), [101, 102], assignment_failure=True)
+            refusals = []
+            with self.assertRaisesRegex(RuntimeError, 'authored assignment failure'):
+                verifier.spawn_fresh_owned(['authored'], refusals=refusals, **kwargs)
+            self.assertEqual(len(processes), 1); self.assertTrue(processes[0]._handle.closed)
+            self.assertEqual(refusals, []); self.assertNotIn(('resume', 101), events)
+
+    def test_untyped_freshness_failure_is_not_retried(self):
+        with tempfile.TemporaryDirectory() as temp:
+            events, processes, kwargs = self.fixture(Path(temp), [101, 102])
+            refusals = []
+            with patch.object(verifier, 'fresh_pid_evidence', side_effect=OSError('authored unreadable evidence')), \
+                    self.assertRaisesRegex(OSError, 'authored unreadable evidence'):
+                verifier.spawn_fresh_owned(['authored'], refusals=refusals, **kwargs)
+            self.assertEqual(len(processes), 1); self.assertTrue(processes[0]._handle.closed)
+            self.assertEqual(refusals, []); self.assertNotIn(('resume', 101), events)
+
+    def test_observed_job_checked_close_requires_real_close_success(self):
+        for success in (False, True):
+            with self.subTest(close_success=success):
+                calls, handle = [], object()
+                job = verifier.ObservedJob.__new__(verifier.ObservedJob)
+                job.handle, job.forced, job.final_accounting = handle, True, None
+                job.accounting = lambda: dict(total=1, active=0, terminated=1)
+                job.kernel = SimpleNamespace(CloseHandle=lambda value: calls.append(value) or success)
+                if success:
+                    job.close_checked()
+                    self.assertIsNone(job.handle)
+                else:
+                    with self.assertRaisesRegex(AssertionError, 'Job handle close failed'):
+                        job.close_checked()
+                    self.assertIs(job.handle, handle)
+                self.assertEqual(calls, [handle]); self.assertEqual(job.final_accounting['active'], 0)
+
+        # A later nonzero accounting sample must not be hidden by an earlier zero.
+        calls, handle = [], object()
+        job = verifier.ObservedJob.__new__(verifier.ObservedJob)
+        job.handle, job.forced = handle, True
+        job.accounting = lambda: dict(total=1, active=1, terminated=1)
+        job.kernel = SimpleNamespace(CloseHandle=lambda value: calls.append(value) or True)
+        with self.assertRaisesRegex(AssertionError, 'Job is active before close'):
+            job.close_checked()
+        self.assertEqual(calls, []); self.assertIs(job.handle, handle)
+
+    def test_resume_started_never_retries_even_for_collision_exception(self):
+        with tempfile.TemporaryDirectory() as temp:
+            events, processes, kwargs = self.fixture(Path(temp), [101, 102],
+                resume_failure=lambda process: verifier.PidEvidenceCollision(process.pid, []))
+            refusals = []
+            with self.assertRaises(verifier.PidEvidenceCollision):
+                verifier.spawn_fresh_owned(['authored'], refusals=refusals, **kwargs)
+            self.assertEqual(len(processes), 1); self.assertTrue(processes[0]._handle.closed)
+            self.assertTrue(refusals[0]['resume_started']); self.assertIsNone(refusals[0]['cleanup'])
+            self.assertEqual([event for event in events if event[0] == 'resume'], [('resume', 101)])
+
+    def test_fresh_one_shot_preserves_assignment_gate_and_no_cleanup(self):
+        with tempfile.TemporaryDirectory() as temp:
+            events, processes, kwargs = self.fixture(Path(temp), [101])
+            refusals = []
+            verifier.spawn_fresh_owned(['authored'], refusals=refusals, **kwargs)
+            self.assertEqual(events, [('spawn', 101), ('assigned', 101), ('resume', 101)])
+            self.assertEqual(refusals, []); self.assertFalse(processes[0]._handle.closed)
+
+    def test_single_existing_path_is_collision_and_attempt_bound_is_strict(self):
+        for suffix in ('dedicated-native-101.log', 'frame-timing-101.tsv'):
+            with self.subTest(suffix=suffix), tempfile.TemporaryDirectory() as temp:
+                root = Path(temp); (root / suffix).write_bytes(b'KEEP ORIGINAL')
+                events, _, kwargs = self.fixture(root, [101])
+                refusals = []
+                with self.assertRaisesRegex(RuntimeError, 'fresh PID attempts exhausted'):
+                    verifier.spawn_fresh_owned(['authored'], refusals=refusals, max_attempts=1, **kwargs)
+                self.assertEqual([row['exists'] for row in refusals[0]['paths']].count(True), 1)
+                self.assertEqual((root / suffix).read_bytes(), b'KEEP ORIGINAL')
+                self.assertFalse(any(event[0] == 'resume' for event in events))
+        for value in (0, 9, True, 1.5):
+            with self.subTest(bound=value), self.assertRaisesRegex(AssertionError, 'attempt bound'):
+                verifier.spawn_fresh_owned(['authored'], runtime=Path('.'), refusals=[], max_attempts=value,
+                    popen=lambda *a, **kw: self.fail('invalid bound must not spawn'))
 
 
 class OwnedJobDrainTests(unittest.IsolatedAsyncioTestCase):

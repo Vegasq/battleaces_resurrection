@@ -105,8 +105,16 @@ pass. Actual pending counts are0/0,so nonzero preservation stays authored only.
 Actual36 now passes same-world Cancel4/new-Focus4 handoff:old epoch3 is
 superseded before genuine Start5 and synchronous Next. All2892 native hashes
 and wire triples match,natural shutdown. Weak registration is observed;no
-actual late-old delivery claim. Next:expired idle-click history and live/held
-input guards;broader held and physical input remain open.
+actual late-old delivery claim. Expired idle-click history now has a shared
+source fix and58 passing authored groups. Equality,recent/deferred/held input,
+malformed state and ABI mismatches still refuse;history is never cleared.
+Cleanup rechecks immediately before mutation. Actual40 now passes original
+InputSystem press/release and Single-clock expiry through both HQ corrections:
+history unchanged,all2888 native hashes/full wire joins matching,natural shutdown.
+The existing Mouse is borrowed only inside the owned process;no device removal
+or physical/Internet claim.37/38 failures and39 pre-resume refusal remain preserved.
+390 Python checks/181-source helper build pass. Next:genuinely live/held click
+through correction;broader held input,group/render and physical acceptance stay open.
 Forced-retirement group clearing remains open. Casting,held-input and
 physical/Internet acceptance remain open;
 prediction-actor-correction.txt. N35's frozen kit remains reserved.

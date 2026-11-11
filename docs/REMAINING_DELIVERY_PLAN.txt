@@ -87,8 +87,13 @@ pending preservation is authored coverage;actual before/after counts are0.
 Actual36 now passes same-world Cancel4/new-Focus4 handoff:old epoch3 is
 superseded before genuine Start5 and its synchronous first Next;all2892 native
 hashes/wire joins match,natural shutdown. Old weak registration is observed;
-an actual late old callback is not claimed. Next:expired idle-click history
-versus genuinely live/held input,then broader held-input qualification.
+an actual late old callback is not claimed. Actual40 now qualifies expired idle
+click history through genuine original InputSystem press/release,original Single
+clock and both HQ correction rounds. History stays unchanged;all2888 closed native
+hashes/wire joins match,natural shutdown.37/38 failed and39 pre-resume refusal stay
+preserved.58 authored C++ groups/390 Python checks pass;live/deferred/held/unknown
+intent stays protected. Next:genuinely live click held through correction,then
+broader held-input/group/render qualification. Physical/Internet acceptance is open.
 Prediction eligibility remains
 12/14. Forced-retirement group clearing and physical/Internet
 feedback remain open. N35's reserved kit stays frozen. Prior failures and the
@@ -157,6 +162,11 @@ COMPLETED
     These close their named integration scopes,not full physical/Internet D8.
 [x] Same-world original focus cancellation/new-start handoff (actual36):old
     metadata and weak registration,new startup/callback ordering,native parity.
+[x] Expired idle-click policy and actual-source regression:58 authored groups,
+    preserving history and rechecking live intent before casting cleanup.
+[x] Original input/Single-clock expiry through two HQ corrections (actual40):
+    unchanged released history,all2888 native/wire joins,natural lifecycle.
+    Scripted owned-process Mouse,not physical/Internet acceptance.
 [x] N32 scheduling merge and initial prediction draft:real native motion before
     confirmation and bounded correction/replay proof. Client rollout remains open.
 [x] N29 selected test host deployed/readiness-checked with rollback and matching

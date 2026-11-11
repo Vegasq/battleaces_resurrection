@@ -577,6 +577,28 @@ Nonzero pending preservation is authored-only coverage;actual counts are0.
 Actual36 now passes same-world Cancel4/new-Focus4 handoff,old-scope supersession,
 genuine Start5/synchronous Next,all2892 native hashes/wire triples/natural Quit.
 Weak registration is observed without claiming an actual late old delivery.
-Next:expired idle-click history versus genuinely live/held intent. Keep broader held
-input and forced-retirement group handling open. N35 remains the same pending
+Expired idle-click history now has a shared source fix and58 passing actual-
+source authored groups. Only strictly expired original-Single idle history is
+allowed;recent/deferred/held/unknown input remains refused,with no history writes.
+Actual37 fails the original action/control binding preflight before any queued
+event. Its compound guard does not identify which index/comparison failed;
+no pairing or callback conclusion is drawn. Sources/inputs are unchanged,but
+cleanup is forced;the failed report and captures are preserved. Actual38 then
+proves all3 actual actions share one existing FastMouse:identity checks pass,
+Count/reflectedLength1 agree,and only added-device membership fails. It remains
+FAILED/forced with no queued events. Next:borrow the unique already-bound Mouse
+inside the owned process;no device creation/removal,filter changes or OS input
+injection. Source/381 authored Python checks distinguish that route from a
+virtual-device/physical claim.39 is refused before resume on a reused PID's old
+evidence;no capture is overwritten and no input executes. Bounded collision-only
+fresh-PID handling now passes9 new ownership cases/all390 combined Python checks.
+Actual40 now qualifies that original callback/clock/correction path in both
+rounds:twenty strict input records,Single elapsed0.402967453/0.402664185 beyond
+window0.400000006,and unchanged released history through HQ restoration.
+All2888 closed native hashes and full native65/rawbridge/authority wire joins
+match;all children exit naturally0/Jobsinactive/no force,source/inputs unchanged.
+Independent audit reproduces both complete actor and click proofs from pinned
+snapshots. This closes expired idle history,not live/deferred gestures or physical
+input. Next:genuinely live primary click held through correction.
+Keep broader held input and forced-retirement group handling open. N35 remains the same pending
 human test;these fixtures do not accept physical/Internet visual comfort.

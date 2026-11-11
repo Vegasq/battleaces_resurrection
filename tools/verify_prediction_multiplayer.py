@@ -176,7 +176,9 @@ def prepare(args):
                 'native position trace requires subject-owned changing RTT and transition orders')
     require(not transition_orders or changing_rtt, 'transition orders require explicit changing RTT')
     require(args.scenario in ('startup', 'movement', 'mobile'), 'unknown prepared scenario')
-    frames = args.frames if args.frames is not None else (650 if changing_rtt or args.scenario == 'mobile' else 200 if args.scenario == 'startup' else 600)
+    expired_click = getattr(args, 'expired_click', False)
+    require(type(expired_click) is bool, 'expired click option must be Boolean')
+    frames = args.frames if args.frames is not None else (650 if changing_rtt or expired_click or args.scenario == 'mobile' else 200 if args.scenario == 'startup' else 600)
     actor_correction = bool(getattr(args, 'actor_correction', False))
     mobile_correction = bool(getattr(args, 'mobile_correction', False))
     mobile_group_intent = bool(getattr(args, 'mobile_group_intent', False))
@@ -189,6 +191,11 @@ def prepare(args):
     mobile_caster_survey = bool(getattr(args, 'mobile_caster_survey', False))
     mobile_caster_lifetime = bool(getattr(args, 'mobile_caster_lifetime', False))
     mobile_ui_cast = bool(getattr(args, 'mobile_ui_cast', False))
+    if expired_click:
+        validate_expired_click_plan(dict(expired_click=True, actor_correction=actor_correction,
+            scenario=args.scenario, lifecycle=args.lifecycle, frames=frames, expected_matches=2 if args.lifecycle == 'natural' else 1,
+            move_slot=args.move_slot, rtt_ms=list(args.rtt_ms), changing_rtt=changing_rtt, transition_orders=transition_orders,
+            native_position_trace=position_trace, **{key: getattr(args, key, False) for key in EXPIRED_CLICK_MOBILE_FLAGS}))
     require(not mobile_group_intent or (args.scenario == 'mobile' and mobile_correction),
             'mobile group intent requires explicit mobile scenario/correction')
     require(not mobile_group_user_edits or mobile_group_intent,
@@ -261,7 +268,8 @@ def prepare(args):
                          (mobile_focus_restart,'-prediction-mobile-focus-restart-smoke'),
                          (mobile_caster_survey,'-prediction-mobile-caster-survey-smoke'),
                          (mobile_caster_lifetime,'-prediction-mobile-caster-lifetime-smoke'),
-                         (mobile_ui_cast,'-prediction-mobile-ui-cast-smoke')):
+                         (mobile_ui_cast,'-prediction-mobile-ui-cast-smoke'),
+                         (expired_click,'-prediction-expired-click-smoke')):
         require(not enabled or flag.encode('utf-16-le') in helper, 'helper lacks explicit ' + flag)
     required_hooks = prediction_worker.CALL_HOOKS + prediction_actor_repair.CALL_HOOKS
     required_pointers = prediction_actor_repair.POINTER_HOOKS
@@ -354,6 +362,9 @@ def prepare(args):
         move_slot=args.move_slot, expected_matches=2 if args.lifecycle == 'natural' else 1,
         endpoint_scope='ephemeral loopback TLS only; no production endpoint',
         feel_contract=FEEL_CONTRACT, full_feature_accepted=False)
+    if expired_click:
+        invocation['expired_click'] = True
+        validate_expired_click_plan(invocation)
     if args.scenario == 'mobile':
         invocation.update(generic_movement_not_exercised=True,
             mobile_scope='Explicit original mobile release/reinit/freshMove; generic newborn440/460 feel is not exercised; group intent remains a separate open claim')
@@ -406,6 +417,26 @@ def validate_mobile_plan(plan):
             'prepared mobile group edits require typed explicit group intent')
 
 
+EXPIRED_CLICK_MOBILE_FLAGS = ('mobile_correction', 'mobile_group_intent', 'mobile_group_user_edits',
+    'mobile_recovery_stall', 'mobile_recall', 'mobile_focus', 'mobile_focus_no_start', 'mobile_focus_restart',
+    'mobile_caster_survey', 'mobile_caster_lifetime', 'mobile_ui_cast')
+
+
+def validate_expired_click_plan(plan):
+    require('expired_click' not in plan or type(plan['expired_click']) is bool,
+            'prepared expired click option must be Boolean')
+    if not plan.get('expired_click'):
+        return
+    require(plan.get('actor_correction') is True and plan.get('scenario') == 'movement' and
+            plan.get('lifecycle') == 'natural' and type(plan.get('frames')) is int and plan['frames'] == 650 and
+            type(plan.get('expected_matches')) is int and plan['expected_matches'] == 2 and
+            type(plan.get('move_slot')) is int and plan['move_slot'] == 0 and plan.get('rtt_ms') == [130,475] and
+            all(type(plan.get(key, False)) is bool and not plan.get(key, False) for key in
+                (*EXPIRED_CLICK_MOBILE_FLAGS, 'changing_rtt', 'transition_orders')) and
+            plan.get('native_position_trace') is None,
+            'expired click requires explicit HQ actor correction, natural movement650, slot0,130/475ms and no other fixture')
+
+
 def verify_prepared(output):
     output = Path(output).resolve(strict=True)
     require(output.is_relative_to((ROOT / 'local').resolve()), 'prepared output must be ignored and owned')
@@ -415,6 +446,7 @@ def verify_prepared(output):
             'prepared invocation identity differs')
     if plan.get('scenario') == 'mobile':
         validate_mobile_plan(plan)
+    validate_expired_click_plan(plan)
     require(Path(plan['game']).resolve() == (ROOT / 'local/prediction-runtime/game').resolve(),
             'prepared game is not the independent runtime copy')
     require(source_hashes() == plan['source_sha256'], 'source changed since preparation')
@@ -427,6 +459,7 @@ def verify_prepared(output):
 
 
 def command_extra(plan, index, run):
+    validate_expired_click_plan(plan)
     role = ('host', 'guest')[index]
     result = [f'-community-match-{role}-smoke', '-lan-smoke', '-dedicated-surrender-smoke',
         '-dedicated-surrender-frame=' + str(plan['surrender_frame']),
@@ -442,6 +475,8 @@ def command_extra(plan, index, run):
             '-prediction-movement-smoke-start-frame='+str(440 if index==plan['move_slot']else 460)]
     if plan.get('actor_correction'):
         result.append('-prediction-actor-correction-smoke')
+    if plan.get('expired_click'):
+        result.append('-prediction-expired-click-smoke')
     if plan.get('mobile_correction'):
         result.append('-prediction-mobile-correction-smoke')
     if plan.get('mobile_group_intent'):
@@ -1580,6 +1615,40 @@ def actor_correction_evidence(log, *, attacker_log, match, commits, raw_bodies, 
                 **joined, scope='Scripted original Move12 constructor; actual HQ death/retraction/admission and native replay+20; no physical UI or VFX claim')
 
 
+def finalize_expired_click_observation(report, plan, *, contexts, worker_states):
+    from tools.prediction_expired_click_evidence import evaluate
+    report['expired_click_witness_passed'] = False
+    validate_expired_click_plan(plan)
+    matches = [row['match'] for row in report.get('matches', [])]
+    require(plan.get('expired_click') is True and len(matches) == 2 and
+            [row.get('match') for row in contexts] == matches and not report.get('error') and
+            report.get('actor_correction', {}).get('passed') is True,
+            'expired click lacks both original actor contexts and the unchanged primary gate')
+    episodes = [dict(match=context['match'], **actor_correction_evidence(**context, worker_states=worker_states))
+                for context in contexts]
+    proof = evaluate(contexts[0]['log'], actor_episodes=episodes, expected_matches=matches)
+    proof['actor_correction_episodes'] = episodes
+    report['expired_click'] = proof
+    report['expired_click_witness_passed'] = proof['passed']
+
+
+def expired_click_final_gate(plan, report):
+    validate_expired_click_plan(plan)
+    if not plan.get('expired_click'):
+        return True
+    proof = report.get('expired_click', {})
+    matches = [row.get('match') for row in report.get('matches', [])]
+    episodes = proof.get('episodes', [])
+    actors = proof.get('actor_correction_episodes', [])
+    return bool(report.get('expired_click_witness_passed') is True and proof.get('passed') is True and
+        report.get('actor_correction', {}).get('passed') is True and
+        proof.get('original_actor_gate_passed') is True and proof.get('physical_input_exercised') is False and
+        proof.get('inputsystem_update_serial_observed') is False and len(matches) == 2 and
+        len(set(matches)) == 2 and len(episodes) == len(actors) == 2 and
+        [row.get('match') for row in episodes] == [row.get('match') for row in actors] == matches and
+        all(row.get('passed') is True for row in episodes + actors))
+
+
 def resume(process):
     ntdll = C.WinDLL('ntdll', use_last_error=True)
     ntdll.NtResumeProcess.argtypes, ntdll.NtResumeProcess.restype = [C.c_void_p], C.c_long
@@ -1604,6 +1673,15 @@ class ObservedJob(RetainedJob):
                 self.forced |= bool(self.final_accounting['active'])
             finally:
                 super().close()
+
+    def close_checked(self):
+        """Positive handle-close evidence for a child that has never resumed."""
+        if self.handle:
+            self.final_accounting = self.accounting()
+            self.forced |= bool(self.final_accounting['active'])
+            require(self.final_accounting['active'] == 0, 'refused child Job is active before close')
+            require(self.kernel.CloseHandle(self.handle), 'refused child Job handle close failed')
+            self.handle = None
 
 
 class WorkerJobLease:
@@ -1651,18 +1729,94 @@ async def close_owned_job(job, timeout=5.0, *, clock=time.monotonic, sleep=async
         job.close()
 
 
+class PidEvidenceCollision(RuntimeError):
+    def __init__(self, pid, paths):
+        super().__init__(f'reused PID evidence is not fresh: pid={pid}')
+        self.pid, self.paths = pid, paths
+        self.cleanup = None
+        self.resume_started = False
+
+
+def fresh_pid_evidence(process, runtime):
+    """Read-only check; historical PID files must stay at their original paths."""
+    paths = [Path(runtime) / f'dedicated-native-{process.pid}.log',
+             Path(runtime) / f'frame-timing-{process.pid}.tsv']
+    observed = [dict(path=str(path), exists=path.exists()) for path in paths]
+    if any(row['exists'] for row in observed):
+        raise PidEvidenceCollision(process.pid, observed)
+    return paths
+
+
+def close_suspended_refusal(process, job):
+    """Close only retained ownership; no PID lookup or evidence-file changes."""
+    receipt = dict(pid=process.pid, assigned_before_resume=True, resume_started=False,
+        reaped=False, exit_code=None, job_accounting=None, job_closed=False,
+        retained_handle_closed=False, streams_closed=False, errors=[])
+
+    def attempt(label, operation):
+        try:
+            return True, operation()
+        except BaseException as error:
+            receipt['errors'].append(dict(step=label, error=f'{type(error).__name__}: {error}'))
+            return False, None
+
+    def stop():
+        if process.poll() is None:
+            job.terminate_owned()
+    attempt('terminate retained suspended Job', stop)
+
+    def reap():
+        try:
+            code = process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()  # The exact retained, never-resumed child only.
+            code = process.wait(timeout=5)
+        require(code is not None and process.poll() is not None, 'refused child was not reaped')
+        receipt.update(reaped=True, exit_code=code)
+    attempt('reap retained suspended child', reap)
+    ok, accounting = attempt('observe refused Job drain', job.accounting)
+    if ok:
+        receipt['job_accounting'] = accounting
+        attempt('require refused Job empty', lambda: require(accounting['active'] == 0,
+            'refused child Job still has active processes'))
+    ok, _ = attempt('close refused Job handle', job.close_checked)
+    receipt['job_closed'] = ok and not getattr(job, 'handle', None)
+    if not receipt['job_closed']:
+        attempt('fallback kill-on-close refused Job', job.close)
+    streams_ok = True
+    for name in ('stdin', 'stdout', 'stderr'):
+        stream = getattr(process, name, None)
+        if stream is not None:
+            ok, _ = attempt(f'close refused {name}', stream.close)
+            streams_ok &= ok
+    receipt['streams_closed'] = streams_ok
+    ok, _ = attempt('close refused process handle', process._handle.Close)
+    receipt['retained_handle_closed'] = ok
+    receipt['retry_safe'] = bool(receipt['reaped'] and receipt['job_closed'] and
+        receipt['retained_handle_closed'] and streams_ok and not receipt['errors'] and
+        accounting is not None and accounting.get('active') == 0)
+    return receipt
+
+
 def spawn_owned(argv, *, before_resume=None, job_type=None, popen=None, resume_child=None, **kwargs):
     """Assign the exact retained Popen handle before any original child code."""
     process = job = None
+    resume_started = False
     try:
         flags = kwargs.pop('creationflags', 0) | CREATE_SUSPENDED | getattr(subprocess, 'CREATE_NO_WINDOW', 0)
         process = (popen or subprocess.Popen)(argv, creationflags=flags, **kwargs)
         job = (job_type or ObservedJob)(process)
         if before_resume:
             before_resume(process)
+        resume_started = True
         (resume_child or resume)(process)
         return process, job
-    except BaseException:
+    except BaseException as error:
+        if isinstance(error, PidEvidenceCollision):
+            error.resume_started = resume_started
+            if process is not None and job is not None and not resume_started:
+                error.cleanup = close_suspended_refusal(process, job)
+                raise
         if process is not None:
             try:
                 if process.poll() is None:
@@ -1689,6 +1843,22 @@ def spawn_owned(argv, *, before_resume=None, job_type=None, popen=None, resume_c
                             stream.close()
                     process._handle.Close()
         raise
+
+
+def spawn_fresh_owned(argv, *, runtime, refusals, client_index=None, max_attempts=8, **kwargs):
+    """Game-only retry gate; a refused child cannot run before its cleanup."""
+    require(type(max_attempts) is int and 1 <= max_attempts <= 8, 'invalid fresh PID attempt bound')
+    for attempt in range(1, max_attempts + 1):
+        try:
+            return spawn_owned(argv, before_resume=lambda process: fresh_pid_evidence(process, runtime), **kwargs)
+        except PidEvidenceCollision as error:
+            refusals.append(dict(index=client_index, attempt=attempt, pid=error.pid, paths=error.paths,
+                resume_started=error.resume_started, cleanup=error.cleanup))
+            cleanup = error.cleanup
+            if error.resume_started or not cleanup or not cleanup.get('retry_safe') or cleanup['pid'] != error.pid:
+                raise
+            if attempt == max_attempts:
+                raise RuntimeError(f'fresh PID attempts exhausted after {max_attempts} suspended refusals') from error
 
 
 def feel_rows(log):
@@ -2103,6 +2273,7 @@ async def run_prepared(output):
     actor_states = defaultdict(list)
     feel_context = remote_context = actor_context = None
     mobile_contexts = []
+    expired_actor_contexts = []
     turn_contexts=[];native_receipt_rows={}
     server = audit = pki = None
     tick = C.WinDLL('kernel32').GetTickCount64; tick.restype = C.c_uint64
@@ -2114,7 +2285,9 @@ async def run_prepared(output):
     report = dict(passed=False, scoped_observation_passed=False, movement_feel_witness_passed=False,
         full_feature_accepted=False, scope=__doc__, scenario=plan['scenario'], lifecycle=plan['lifecycle'],
         invocation_sha256=sha(output / 'invocation.json'), source_sha256_at_start=source_hashes(),
-        forced_cleanup=False, clients=[], authority_workers=[])
+        forced_cleanup=False, clients=[], authority_workers=[], pid_evidence_refusals=[])
+    if plan.get('expired_click'):
+        report['expired_click_witness_passed'] = False
     if plan['scenario'] == 'mobile':
         report.update(mobile_input_witness_passed=False,generic_movement_not_exercised=True,
             full_mobile_controls_accepted=False,mobile_scope=plan['mobile_scope'])
@@ -2250,22 +2423,22 @@ async def run_prepared(output):
                 argv += command_extra(plan, index, run)
                 info = subprocess.STARTUPINFO(); info.dwFlags |= subprocess.STARTF_USESHOWWINDOW; info.wShowWindow = 0
                 info.lpAttributeList = {'handle_list': [child.fileno()]}
-                def before_resume(process, row=row):
-                    row['native_path'] = runtime / f'dedicated-native-{process.pid}.log'
-                    row['trace'] = runtime / f'frame-timing-{process.pid}.tsv'
-                    require(not row['native_path'].exists() and not row['trace'].exists(), 'reused PID evidence is not fresh')
                 child.set_inheritable(True)
                 try:
-                    row['process'], row['job'] = spawn_owned(argv, cwd=game, startupinfo=info,
-                        close_fds=True, before_resume=before_resume)
+                    row['process'], row['job'] = spawn_fresh_owned(argv, cwd=game, startupinfo=info,
+                        close_fds=True, runtime=runtime, client_index=index,
+                        refusals=report['pid_evidence_refusals'])
                 finally:
                     child.set_inheritable(False); child.close()
+                row['native_path'] = runtime / f'dedicated-native-{row["process"].pid}.log'
+                row['trace'] = runtime / f'frame-timing-{row["process"].pid}.tsv'
                 row['assigned_before_resume'] = True
                 row['task'] = asyncio.create_task(ObservedBridge(reader, writer, resolve, version=2,
                     evidence=row['wire'], tick=lambda: int(tick())).run())
                 write(run / f'client-{index}-process.json', dict(pid=row['process'].pid,
                     profile=row['profile'], launch_tick=row['launch_tick'], command=argv,
-                    retained_handle_used=True, assigned_before_resume=True))
+                    retained_handle_used=True, assigned_before_resume=True,
+                    pid_evidence_refusals=[r for r in report['pid_evidence_refusals'] if r['index'] == index]))
             leave_stage, quit_released = 0, False
             while True:
                 for row in clients:
@@ -2277,6 +2450,7 @@ async def run_prepared(output):
                         'Native worker request failed:', 'Native worker startup refused:',
                         'Prediction actor repair failed:', 'Prediction selection admission failed:',
                         'Actor correction smoke failed:',
+                        'Expired click smoke failed:',
                         'Mobile correction smoke failed:',
                         'Offline loop stopped in ', 'Native Quit probe failed:')),
                         'actual movement client reported failure')
@@ -2361,6 +2535,13 @@ async def run_prepared(output):
                     bridge_frames=clients[1]['wire'], canonical_payloads={r['frame']:r['frame_payload_sha256']
                         for r in events if r['event']=='frame_queued' and r.get('match')==first},
                     canonical_states=states[first], native_states=actor_states[first])
+                if plan.get('expired_click'):
+                    for match in created:
+                        expired_actor_contexts.append(dict(actor_context, match=match,
+                            journal=read_journal(run, match, plan['frames']),
+                            canonical_payloads={row['frame']:row['frame_payload_sha256'] for row in events
+                                if row['event']=='frame_queued' and row.get('match')==match},
+                            canonical_states=states[match], native_states=actor_states[match]))
             if plan.get('mobile_correction'):
                 for match in created:
                     count = sum(row['event']=='frame_queued' and row.get('match')==match for row in events)
@@ -2618,6 +2799,9 @@ async def run_prepared(output):
                 if plan.get('actor_correction'):
                     require(actor_context is not None and 1 in worker_state_rows, 'victim actor native-state file unavailable')
                     report['actor_correction'] = actor_correction_evidence(**actor_context, worker_states=worker_state_rows[1])
+                    if plan.get('expired_click'):
+                        finalize_expired_click_observation(report, plan, contexts=expired_actor_contexts,
+                                                          worker_states=worker_state_rows[1])
                 require(plan['move_slot'] in worker_state_rows, 'selected closed worker native-state file unavailable')
                 report['command_phase']=command_phase(feel_context['rows'],match=feel_context['match'],
                     slot=feel_context['slot'],commits=events)
@@ -2675,6 +2859,7 @@ async def run_prepared(output):
         report['teardown_scope'] = ('original result/Continue/Leave/Quit required' if plan['lifecycle'] == 'natural'
                                     else 'forced owned prefix teardown; no native Quit or acceptance claim')
         report['passed'] = bool(report['scoped_observation_passed'] and report['source_unchanged'] and
+            expired_click_final_gate(plan, report) and
             (plan['scenario'] != 'mobile' or mobile_final_gate(plan,report)) and
             (changing is None or (report.get('changing_rtt_smoothness_passed') is True and
              report.get('changing_rtt_other_client_feel',{}).get('passed') is True)) and
@@ -2911,6 +3096,8 @@ def main(argv=None):
     parser.add_argument('--move-slot', type=int, choices=(0, 1), default=0)
     parser.add_argument('--actor-correction', action='store_true',
                         help='Explicit original Gunbot Move12/Core5 fixture; both clients use the same authored bootstrap')
+    parser.add_argument('--expired-click', action='store_true',
+                        help='With explicit HQ actor correction: already-bound Mouse inside owned process; Single-expired history through both natural650-frame rounds')
     parser.add_argument('--mobile-correction', action='store_true',
                         help='Explicit Gunbot10/11 fixture: original mobile group/focus death, correction and fresh Move')
     parser.add_argument('--mobile-group-intent', action='store_true',
@@ -2952,7 +3139,7 @@ def main(argv=None):
         report = asyncio.run(run_prepared(args.run_prepared))
         print(json.dumps({k: report[k] for k in ('passed', 'scoped_observation_passed', 'movement_feel_witness_passed',
             'mobile_input_witness_passed','group_intent_witness_passed','recovery_stall_witness_passed','recall_witness_passed','focus_witness_passed','focus_no_start_witness_passed','focus_restart_witness_passed','caster_survey_witness_passed','caster_lifetime_witness_passed','ui_command_witness_passed','generic_movement_not_exercised',
-            'full_feature_accepted', 'forced_cleanup', 'error') if k in report}))
+            'expired_click_witness_passed', 'full_feature_accepted', 'forced_cleanup', 'error') if k in report}))
         return 0 if report['passed'] else 1
     required = ('game', 'assets', 'output', 'python', 'module_root', 'heap_helper', 'cooperative', 'helper_build_receipt',
                 'expected_helper_sha256', 'expected_gameassembly_sha256')

@@ -10,6 +10,7 @@
 #include "prediction_movement.hpp"
 #include "prediction_casting_cleanup.hpp"
 #include "prediction_group_intent.hpp"
+#include "prediction_click_policy.hpp"
 
 namespace ba_prediction_actors {
 using ba::Obj;
@@ -661,7 +662,97 @@ static void reconcileGroupIntent(State& s) {
         s.groupIntent.erase(s.groupGeneration,entry.first);
     }
 }
+static void clickScalarSize(Obj value,int32_t expected) {
+    uint32_t alignment=0;
+    require(value && ba::api<int32_t(*)(Obj,uint32_t*)>("il2cpp_class_value_size")(value,&alignment)==expected,
+            "click history original scalar size differs");
+}
+static Obj clickField(Obj selector,const char* name,size_t offset,Obj expected,int32_t size) {
+    Obj member=ba::field(selector,name);
+    require(member && ba::api<Obj(*)(Obj)>("il2cpp_field_get_parent")(member)==ba::klass(selector) &&
+        ba::api<size_t(*)(Obj)>("il2cpp_field_get_offset")(member)==offset &&
+        !(ba::api<uint32_t(*)(Obj)>("il2cpp_field_get_flags")(member)&0x10u) &&
+        ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+            ba::api<Obj(*)(Obj)>("il2cpp_field_get_type")(member))==expected,
+        "click history original closed field differs");
+    clickScalarSize(expected,size);return member;
+}
+static Obj clickMode(Obj selector) {
+    Obj member=ba::field(selector,"_deferredClickMode");
+    Obj mode=ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+        ba::api<Obj(*)(Obj)>("il2cpp_field_get_type")(member));
+    const char* name=mode?ba::api<const char*(*)(Obj)>("il2cpp_class_get_name")(mode):nullptr;
+    require(mode && ba::api<bool(*)(Obj)>("il2cpp_class_is_enum")(mode) &&
+        ba::api<Obj(*)(Obj)>("il2cpp_class_get_declaring_type")(mode)==ba::klass(selector) &&
+        name && !strcmp(name,"DeferredClickMode") &&
+        ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+            ba::api<Obj(*)(Obj)>("il2cpp_class_enum_basetype")(mode))==type("System","Int32"),
+        "click history original nested mode enum differs");
+    clickScalarSize(type("System","Int32"),4);
+    clickField(selector,"_deferredClickMode",0x170,mode,4);
+    const char* names[]={"None","SingleClickOnMouseUp","DoubleClickOnMouseUp"};
+    for(int32_t value=0;value<3;++value) {
+        Obj literal=ba::api<Obj(*)(Obj,const char*)>("il2cpp_class_get_field_from_name")(mode,names[value]);
+        require(literal && ba::api<Obj(*)(Obj)>("il2cpp_field_get_parent")(literal)==mode &&
+            (ba::api<uint32_t(*)(Obj)>("il2cpp_field_get_flags")(literal)&0x50u)==0x50u &&
+            ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+                ba::api<Obj(*)(Obj)>("il2cpp_field_get_type")(literal))==mode,
+            "click history original mode literal differs");
+        int32_t actual=-1;ba::api<void(*)(Obj,void*)>("il2cpp_field_static_get_value")(literal,&actual);
+        require(actual==value,"click history original mode values differ");
+    }
+    return mode;
+}
+static float clickNow() {
+    // Time is a CLASS here, not an object receiver for actors::method(). The
+    // original static getter returns Single. runtime_invoke preserves its real
+    // MethodInfo and exposes a managed exception without guessing exception data.
+    Obj time=type("UnityEngine","Time"),single=type("System","Single"),found=nullptr;
+    void* iterator=nullptr;
+    while(Obj info=ba::api<Obj(*)(Obj,void**)>("il2cpp_class_get_methods")(time,&iterator)) {
+        const char* name=ba::api<const char*(*)(Obj)>("il2cpp_method_get_name")(info);
+        if(!name || strcmp(name,"get_realtimeSinceStartup") ||
+           ba::api<uint32_t(*)(Obj)>("il2cpp_method_get_token")(info)!=0x06001040 ||
+           ba::api<uint32_t(*)(Obj)>("il2cpp_method_get_param_count")(info)!=0)continue;
+        uint32_t implementation=0;
+        require(!found && (ba::api<uint32_t(*)(Obj,uint32_t*)>("il2cpp_method_get_flags")(info,&implementation)&0x10u) &&
+            ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+                ba::api<Obj(*)(Obj)>("il2cpp_method_get_return_type")(info))==single &&
+            ba::read<Obj>(info,0)==ba::native<Obj>(0x8656b0),
+            "click history original static clock method differs");
+        found=info;
+    }
+    require(found!=nullptr,"click history original static clock unavailable");clickScalarSize(single,4);
+    guard(0x8656b0,"\x48\x83\xec\x28\x48\x8b\x05\x0d\xf8\x5f\x06\x48\x85\xc0\x75\x18",16);
+    Root result(invoke(found,nullptr));
+    require(result.get() && ba::klass(result.get())==single,"click history clock boxed result differs");
+    float* value=ba::api<float*(*)(Obj)>("il2cpp_object_unbox")(result.get());
+    require(value!=nullptr,"click history clock unbox missing");return *value;
+}
+static bool affectedLiveClick(Obj selector,const std::set<uint32_t>& affected) {
+    namespace click=ba_prediction_click_policy;
+    // Preserve the old unmatched fast path: no new field reflection or time call.
+    const bool matches=affected.count(ba::read<uint32_t>(selector,0x128))!=0;
+    const auto decision=click::classify(matches,[&](){
+        classIs(selector,"Uncapped","UnitSelector");
+        Obj single=type("System","Single"),boolean=type("System","Boolean");
+        clickField(selector,"_doubleClickFirstClickReferenceUnitEntityId",0x128,type("System","UInt32"),4);
+        clickField(selector,"_doubleClickTime",0x28,single,4);
+        clickField(selector,"_lastPointerUpTime",0x154,single,4);
+        clickField(selector,"_isPointerDown",0x16c,boolean,1);
+        clickField(selector,"_isContextPointerDown",0x16d,boolean,1);
+        clickField(selector,"_isDragging",0x119,boolean,1);clickMode(selector);
+        click::State value;value.mode=ba::read<int32_t>(selector,0x170);
+        value.primaryDown=ba::read<uint8_t>(selector,0x16c);value.contextDown=ba::read<uint8_t>(selector,0x16d);
+        value.dragging=ba::read<uint8_t>(selector,0x119);
+        require(value.primaryDown<=1 && value.contextDown<=1 && value.dragging<=1,
+            "click history original Boolean value differs");
+        value.lastUp=ba::read<float>(selector,0x154);value.window=ba::read<float>(selector,0x28);return value;
+    },[](){return clickNow();});
+    return decision==click::Classification::LiveOrUnknown;
+}
 static void guardRetiringInteractions(Obj selector,const std::vector<Retire>& retire,bool clearingCasting=false) {
+    std::set<uint32_t> retired;for(const auto& actor:retire)retired.insert(actor.resident.entityId);
     for(const auto& actor:retire) {
         Obj casting=ba::read<Obj>(selector,0x98);
         uint32_t id=actor.resident.entityId;void* args[]={&id};
@@ -669,13 +760,11 @@ static void guardRetiringInteractions(Obj selector,const std::vector<Retire>& re
             Root has(invoke(method(casting,"Contains",1,0x060025b7),casting,args));
             require(!unbox<bool>(has.get()),"retiring actor remains in an active casting set");
         }
-        require(ba::read<uint32_t>(selector,0x128)!=id,
-                "retiring identity remains in a pending double-click reference");
     }
+    require(!affectedLiveClick(selector,retired),"retiring identity remains in live or unresolved click intent");
     if(!ba::read<bool>(selector,0x16c) && !ba::read<bool>(selector,0x16d))return;
     field(selector,"_activeAbilityCaster",0x100);
     require(!ba::read<Obj>(selector,0x100),"held gesture with an active ability caster is not qualified");
-    std::set<uint32_t> retired;for(const auto& actor:retire)retired.insert(actor.resident.entityId);
     for(const auto& entry:std::initializer_list<std::pair<const char*,size_t>>{
             {"_previewSelectionSet",0x88},{"_selectionSet",0x90},{"_castingSet",0x98}}) {
         field(selector,entry.first,entry.second);
@@ -728,7 +817,7 @@ struct CastingCleanupAccess {
         guard(cleanup::clearRva,reinterpret_cast<const char*>(cleanup::clearEntry.data()),cleanup::clearEntry.size());
     }
     bool hasActiveCaster(){return ba::read<Obj>(selector.get(),0x100)!=nullptr;}
-    bool hasAffectedLiveClick(){return retired.count(ba::read<uint32_t>(selector.get(),0x128))!=0;}
+    bool hasAffectedLiveClick(){return affectedLiveClick(selector.get(),retired);}
     struct Lock {ba_local::QueueLock lock;explicit Lock(CastingCleanupAccess&) {}};
     size_t commandCount() {
         const int count=ba_local::count(commands.get());

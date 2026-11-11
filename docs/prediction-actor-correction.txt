@@ -571,7 +571,124 @@ f65579a670122142db9ccfa78fc0ff0fa6f215abe0d719835ec620d3b8d38ab1.
 Helper46 SHA256:
 7038cbf8bb0b5bfadff6b4ccc541d6012f1b753f506ee39678c0196d7a467335.
 
-Next:distinguish expired inactive click history from genuinely live/held intent.
+Expired idle-click history - source regression fixed;runtime qualification open
+Original PointerUp refreshes lastUp154 and resets deferred mode170 without
+clearing first-click ID128. The old retirement/casting guards rejected that ID
+even after its original double-click window expired. Authored RED reproduces
+both refusals without changing history or selection. A shared classifier now
+allows only modeNone0,both buttons up,no drag,and finite nonnegative original
+System.Single now/lastUp/window with now>=lastUp and float elapsed>window.
+Equality,recent/deferred/held/unknown input remains refused. The adapter checks
+actual closed field types/offsets/sizes,nested enum/literals and the original
+static Single clock token06001040/RVA8656b0;unmatched IDs avoid the new reads.
+Both retirement and casting cleanup use it. Cleanup rechecks after preparation
+and before its first mutation;no callback,selector or click-history write is added.
+
+All58 actual-source authored groups pass /W4 /WX,including the prior53,21 live/
+malformed scalar controls,14 field/enum/clock/boxed-ABI controls,and prepare-
+expired/commit-live refusal before Clear/focus. This is an authored IL2CPP host,
+not original Unity input/runtime or physical acceptance. Retained build01 has
+a null exit-code reporting defect;private harness correction gives authoritative
+REDbuild02. Intermediate build03 passes54;final build04 passes58. Old evidence
+is preserved. RED receipt SHA256:
+dbe85f74abf7081b8d1bc005568f5e5fce1ae4afda5fbd67c6f63a40b3ca5dcd.
+Final authored summary SHA256:
+32ccb48cf8fe21df6c284d53e53ec885bf600faf1612449ae2de5e5e6e117a2a.
+Next:generate a genuine original InputSystem press/release,observe expiry via
+the original clock,and qualify correction while history stays unchanged.
+Actual37 FAILED42.063s before any queued event/EXPIRED CLICK record. The exact
+failure is the initial owned action/control compound guard;its log cannot
+distinguish index,action identity,control device or membership. No forced binding,
+fallback,callback/clock/expiry acceptance or physical result is inferred.
+Helper47 full build passes with181 unchanged C++ sources,and source review is
+clear;this does not override the runtime failure. Both games exit92/reaped and
+Jobs inactive0 under forced cleanup;the authority exits0/Job inactive0. Original
+source/inputs stay unchanged. All11inputs55assets950sources181C++ sources and50
+captures are retained before edits. Original failed report SHA256:
+c32618db3ab795aec12ec69147b76dc38f01b5d3a1d75982ac6220b7b8c55ad2.
+Preservation receipt SHA256:
+270c7ca5160f3ecb954dabf6d52092fa81b5170821b079695c617e6846b8139f.
+Actual38 FAILED35.984s but resolves the comparison:all3 actions retain their
+identity and each original control has the expected device;each action's sole
+resolved control belongs to the SAME existing FastMouse. Count and independently
+reflected m_Length both equal1. The added Mouse's controls are absent in every
+action,so all3 strict membership checks refuse before any event. No callback or
+expiry is accepted. Helper48 builds181 unchanged sources;both games exit92/reaped
+with forced cleanup/Jobs inactive0;authority exits0 and source/inputs unchanged.
+Its50 captures and all pinned inputs/sources are preserved. Failed report:
+8331dc23fdc97a0fec7ec144fba6fb31a68977d358b2e2814fff1e6ca43ed4f6.
+Preservation receipt:
+c3c3aef3756dfdb0e134c0547d61b9b81997c4fb06c1ea9717b40d349cf7831c.
+
+The next diagnostic borrows a UNIQUE Mouse found through the three actual action
+control lists,requiring its exact position/left/right getter objects and enabled
+state. Every observation/queue revalidates that mapping. Device creation/removal,
+MakeCurrent,forced bindings and OS input injection are absent;balanced session
+close releases only our roots. QueueEvent affects the owned game's InputSystem,
+not the physical desktop. The29-key evidence names input_source=bound_existing_mouse,
+borrowed_current then retained_scalar,and input_closed means SESSION closure.
+It explicitly reports virtual-device=false,native-device-removal=false and
+physical-input=false. All381 authored Python controls pass,including false source
+labels and unchanged actor/native/lifecycle gates. Genuine delivery is not yet
+qualified. Failed-fixture state stays retained to keep the first error visible.
+Helper49 full build passes181 unchanged C++ sources;independent borrowed-device
+review is clear. Actual39 is refused BEFORE RESUME by the existing stale-PID
+evidence guard. No mouse event or original gameplay executes;the still-suspended
+owned child follows the retained-handle cleanup path,and no game remains running.
+Original source/inputs stay unchanged. Its5 captures and all pins are preserved.
+Original refused-run report:
+19fb54a39b19a2645ec3a541c68206e6948cf27169b9186016d161299d4dd821.
+Preservation receipt:
+379c769bb595b7ec31f947a70100c4a950dfb8d637dc46e09fbbbaec93f8bf0e.
+Next:bounded fresh-PID selection ONLY after positive still-suspended owned-child
+cleanup,reaping and Job/handle closure. Old evidence is never moved or overwritten;
+other failures or possible resume must refuse retry. Typed collision-only handling
+now has a preserved authored RED and9 new passing ownership controls;all390 combined
+Python tests pass. Eight attempts are the fixed maximum,and each refusal is
+recorded with positive reaping,active0 Job accounting and checked handle closure.
+No evidence file is changed. This is a harness fix,not original callback/clock/
+correction acceptance. Unchanged helper49 is reused for the next actual run.
+
+Actual40 - original released-click expiry/correction qualified
+PASSES142.609s in two original Unity rounds. The UNIQUE existing FastMouse bound
+to position/primary/context actions is revalidated for every observation/queue;
+no device is created/removed/rebound and no OS mouse input is sent. Original
+StateEvent.From/write/QueueEvent/Dispose drives normal original subscriptions.
+Actual primary down/up happen on separate frontend callbacks,even where they
+share one simulation frame. Queue receipts alone never count as delivery.
+
+Original System.Single window is0.4000000059604645. Actual elapsed values are
+0.4029674530029297 and0.4026641845703125;raw bits reproduce strict float expiry.
+Released ID5/mode0/lastUp/window stay unchanged through original setup,actual
+false death,retained-HQ retirement/restoration and completion. Session close
+releases roots only;the native Mouse stays registered. Current owner observations
+become explicitly retained scalar identities after close,with no liveness claim.
+W1 stages focused120/pressed124/released125/expired+setup133/dead156/restored158/
+complete160. W2 focused120/pressed+released124/expired+setup132/dead156/restored163/
+complete165. Both strict complete actor proofs and both click proofs pass.
+
+Independent audit checks ALL2888 closed native hashes and ALL2888 complete
+authority-wire/native65-TSV/rawbridge joins,each world722 frames0..721. Sparse
+native authority logs intentionally contain only28 nonempty-action records;
+that exact subset also matches. Earlier audit reconstruction assumptions are
+retained separately,without altering the original runtime report. All games,
+client workers and authorities exit naturally0/reaped/Jobsinactive0,with no force
+or cleanup errors. Source/inputs/captures stay unchanged. Actual40 has no PID
+refusals;the new refusal retry branch remains authored coverage. Full helper49
+build passes181 unchanged C++ sources;390 focused Python cases pass.
+Original PASS report SHA256:
+a6abbfb0a19b4ecb6f0b5e074c8fc49e91a2f252c371d9c0259ade045f6893ac.
+Preservation receipt SHA256:
+cf7bf7f45a527c763298e6d0efadae5bc5e818e4f8ff82507c24945963ff185c.
+Independent qualification receipt SHA256:
+8f094f01fa02b83d280c7cb44387cb6ca9a8bb4083de023bbb7342d7aed474e7.
+Helper49 SHA256:
+857bbe7a87131b77b76d0c44866c03f14836795fcce26ea5700e385ecccf1d83.
+
+Expired idle history is now qualified at this scope. Next:genuine live primary
+click held through correction,with original deferred release preserved;do not
+clear click fields or fabricate a release to make it pass. Active/deferred/held
+guards remain until their ownership/release behavior is separately established.
 Cross-group runtime,broader held gestures and physical input remain unqualified.
 
 Forced-retirement whole-group clearing,casting/held input and
@@ -615,6 +732,14 @@ local/prediction-runtime/movement31-caster-lifetime/run/verification.json
 local/prediction-runtime/movement34-ui-cast/run/verification.json
 local/prediction-runtime/movement35-focus-no-start/run/verification.json
 local/prediction-runtime/movement36-focus-restart/run/verification.json
+local/prediction-runtime/movement37-expired-click/run/verification.json
+local/prediction-runtime/movement37-expired-click/file-audit01/receipt.json
+local/prediction-runtime/movement38-expired-click-binding/run/verification.json
+local/prediction-runtime/movement38-expired-click-binding/file-audit01/receipt.json
+local/prediction-runtime/movement39-bound-click/run/verification.json
+local/prediction-runtime/movement39-bound-click/file-audit01/receipt.json
+local/prediction-runtime/movement40-bound-click/run/verification.json
+local/prediction-runtime/movement40-bound-click/file-audit01/receipt.json
 
 N35's optional human Custom test remains frozen and reserved independently.
 The live host,firewall,usual client and user-owned sessions remain unchanged.
