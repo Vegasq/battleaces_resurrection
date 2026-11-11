@@ -114,8 +114,15 @@ recall,fresh input,all2888 native hashes/wire joins and natural shutdown,
 independently reproduced against frozen sources. Actual type-change
 and forced-retirement coverage remain open. A finite original-native build
 pair rules out the proposed delayed-birth trigger.
-Next:qualify those remaining group paths,the naturally removed/empty-preview
-held case,and broader held-input/render behavior.
+Held-input side restriction is reproduced and repaired locally:literalCore5/
+army1 checks now carry the verified captured local Core identity.16 policy and
+75 actual-source held cases pass;full helper65 binds200 unchanged sources.
+Actual51 requalifies the existing Core5 held episode in both real rounds,
+all2888 native hashes/wire joins and natural shutdown. A separate original-
+native Core0 control proves death153/Move151 escape,but Core0 Unity input/
+recovery remains OPEN. Next:integrate/qualify that mirrored client fixture,
+then the remaining group paths,naturally removed/empty-preview held input and
+broader input/render behavior. Detailed scopes:prediction-actor-correction.txt.
 Physical/Internet acceptance is open.
 Prediction eligibility remains
 12/14. Forced-retirement group clearing and physical/Internet

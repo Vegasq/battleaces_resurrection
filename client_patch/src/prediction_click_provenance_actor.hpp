@@ -16,7 +16,7 @@ static bool clickActive() {
         !ba_prediction_worker::movementMatchId().empty() && ba::initialThread &&
         GetCurrentThreadId()==ba::initialThread;
 }
-static bool clickSample(State& s,Obj selector,bool suspended,ClickSnapshot& result) {
+static bool clickSample(State& s,Obj selector,bool suspended,const click_proof::Identity& expected,ClickSnapshot& result) {
     require(clickActive() && s.thread==GetCurrentThreadId() && !s.failed &&
         s.world==ba_prediction_worker::movementWorldId() && s.match==ba_prediction_worker::movementMatchId() &&
         s.manager && s.simulation && ba_prediction_movement::ownsPresentation(s.simulation->get()) &&
@@ -28,8 +28,12 @@ static bool clickSample(State& s,Obj selector,bool suspended,ClickSnapshot& resu
         ba::read<Obj>(selector,0x138)==s.simulation->get(),"click provenance graph differs");
     field(selector,"_selectionChangeHelper",0x80);field(selector,"_previewSelectionSet",0x88);
     field(selector,"_selectionSet",0x90);field(selector,"_castingSet",0x98);field(selector,"_camera",0xc0);
+    field(s.simulation->get(),"_localPlayer",0x90);
+    Obj player=ba::read<Obj>(s.simulation->get(),0x90);classIs(player,"Uncapped","SimPlayer");
+    clickField(player,"ArmyID",0x38,type("System","UInt32"),4);
+    if(expected.entity==UINT32_MAX || expected.type!=3 || expected.army!=ba::read<uint32_t>(player,0x38))return false;
     result.graph={ba::read<Obj>(selector,0x80),ba::read<Obj>(selector,0x88),ba::read<Obj>(selector,0x90),
-        ba::read<Obj>(selector,0x98),ba::read<Obj>(s.simulation->get(),0x148),ba::read<Obj>(selector,0xc0),nullptr,nullptr};
+        ba::read<Obj>(selector,0x98),ba::read<Obj>(s.simulation->get(),0x148),ba::read<Obj>(selector,0xc0),nullptr,nullptr,player};
     Obj helper=result.graph[0];require(helper && result.graph[4] && result.graph[5],"click provenance helper/frames/camera missing");
     const char* helperName=ba::api<const char*(*)(Obj)>("il2cpp_class_get_name")(ba::klass(helper));
     require(helperName && !strcmp(helperName,"SelectionChangeHelper") &&
@@ -54,7 +58,7 @@ static bool clickSample(State& s,Obj selector,bool suspended,ClickSnapshot& resu
     field(selector,"_focusChaseControlGroup",0xa0);field(selector,"_activeAbilityCaster",0x100);
     if(ba::read<uint8_t>(selector,0x16c)!=1 || ba::read<bool>(selector,0x16d) || ba::read<bool>(selector,0x119) ||
        ba::read<bool>(selector,0x118) || ba::read<bool>(selector,0x190) || ba::read<int>(selector,0x170)!=1 ||
-       ba::read<uint32_t>(selector,0x128)!=5 || ba::read<int>(selector,0xa0)!=-1 || ba::read<Obj>(selector,0x100))return false;
+       ba::read<uint32_t>(selector,0x128)!=expected.entity || ba::read<int>(selector,0xa0)!=-1 || ba::read<Obj>(selector,0x100))return false;
     clickField(selector,"_doubleClickFirstClickReferencePosition",0x12c,vector,8);
     clickField(selector,"_currentPointerPosition",0x14c,vector,8);clickField(selector,"_pointerDownPosition",0x164,vector,8);
     clickField(selector,"_lastPointerUpTime",0x154,single,4);clickField(selector,"_doubleClickTime",0x28,single,4);
@@ -78,32 +82,46 @@ static bool clickSample(State& s,Obj selector,bool suspended,ClickSnapshot& resu
     result.graph[6]=server.get();result.graph[7]=commands.get();return true;
 }
 static bool clickSameSample(State& s,Obj selector,bool suspended) {
-    ClickSnapshot value;return clickSample(s,selector,suspended,value) &&
+    if(!s.clickProvenance.press())return false;
+    ClickSnapshot value;return clickSample(s,selector,suspended,s.clickProvenance.press()->identity,value) &&
         value.graph==s.clickSnapshot.graph && value.scalars==s.clickSnapshot.scalars;
 }
 [[maybe_unused]] static void clickCapture(State& s,Obj selector,const ba_prediction_input_observer::Ticket& ticket) {
     clickForget(s);
     if(s.inUpdate || !s.inputIntent.accepted() || !click_proof::same(ticket,*s.inputIntent.accepted()) ||
-       ba::read<uint32_t>(selector,0x128)!=5 || ba::lanSlot()!=1)return;
+       !s.manager || !s.simulation || ba::lanSlot()<0 || ba::lanSlot()>1)return;
+    classIs(selector,"Uncapped","UnitSelector");
+    clickField(selector,"_doubleClickFirstClickReferenceUnitEntityId",0x128,type("System","UInt32"),4);
+    const auto entity=ba::read<uint32_t>(selector,0x128);if(entity==UINT32_MAX)return;
     Obj unit=nullptr;Resident observed;
     for(Obj actor:units(ba::read<Obj>(s.manager->get(),0x10))) {
         const auto found=s.identities.find(actor);
-        if(found==s.identities.end() || found->second.identity.entityId!=5)continue;
+        if(found==s.identities.end() || found->second.identity.entityId!=entity)continue;
         require(!unit,"click provenance has duplicate active identity");unit=actor;observed=found->second;
     }
-    if(!unit || observed.identity.unitType!=3 || observed.identity.armyId!=1 || !observed.incarnation ||
+    if(!unit || observed.identity.unitType!=3 || !observed.incarnation ||
        observed.incarnation!=confirmedToken(s,observed.identity))return;
-    ClickSnapshot value;if(!clickSample(s,selector,false,value))return;
-    if(!clickSelectionShape(value.graph[1],5,3,true) || !clickSelectionShape(value.graph[2],5,3,true) ||
-       !clickSelectionShape(value.graph[3],5,3,false))return;
+    const auto actual=resident(unit);
+    if(actual.entityId!=entity || actual.unitType!=observed.identity.unitType || actual.armyId!=observed.identity.armyId)return;
+    Root config(ba::read<Obj>(unit,0x168));clickField(config.get(),"IsHQ",0x2c,type("System","Boolean"),1);
+    require(ba::read<uint8_t>(config.get(),0x2c)<=1,"click provenance HQ Boolean differs");
+    if(!ba::read<bool>(config.get(),0x2c))return;
+    const click_proof::Identity identity{entity,actual.unitType,actual.armyId,observed.incarnation};
+    ClickSnapshot value;if(!clickSample(s,selector,false,identity,value))return;
+    if(!clickSelectionShape(value.graph[1],entity,identity.type,true) || !clickSelectionShape(value.graph[2],entity,identity.type,true) ||
+       !clickSelectionShape(value.graph[3],entity,identity.type,false))return;
     Current frame(value.graph[4]);const int pressedFrame=ba::read<int>(frame.frame.get(),0x40);
-    click_proof::Press press{ticket,{5,3,1,observed.incarnation},reinterpret_cast<uintptr_t>(value.graph[0]),pressedFrame};
+    const auto native=frame.identity(entity);
+    if(!native || native->unitType!=identity.type || native->armyId!=identity.army ||
+       confirmedToken(s,actual)!=identity.token)return;
+    ClickSnapshot repeated;if(!clickSample(s,selector,false,identity,repeated) || repeated.graph!=value.graph || repeated.scalars!=value.scalars)return;
+    click_proof::Press press{ticket,identity,reinterpret_cast<uintptr_t>(value.graph[0]),pressedFrame};
     auto retained=std::make_unique<Root>(selector);
     require(retained->get()==selector,"click provenance selector root failed");
     s.clickProvenance.capture(s.inputIntent,press);s.clickSelector=std::move(retained);s.clickSnapshot=value;
-    ba::log("Prediction held click captured: world=%llu serial=%llu entity=5 token=%llu frame=%d rawTypedShape=1 repairAuthorized=0",
+    ba::log("Prediction held click captured: world=%llu serial=%llu entity=%u token=%llu frame=%d rawTypedShape=1 repairAuthorized=0",
         static_cast<unsigned long long>(s.world),static_cast<unsigned long long>(ticket.serial),
-        static_cast<unsigned long long>(observed.incarnation),pressedFrame);
+        entity,static_cast<unsigned long long>(observed.incarnation),pressedFrame);
 }
 struct ClickOriginalUpdate {
     State& state;
@@ -119,12 +137,13 @@ struct ClickOriginalUpdate {
        !s.inUpdate || info || selector!=s.clickSelector->get())return false;
     if(ba::klass(batch)!=type("Uncapped.Collections","UnitSet"))return false;
     field(batch,"_entityIds",0x18);
-    if(ids(ba::read<Obj>(batch,0x18))!=std::vector<uint32_t>{5} || !clickSameSample(s,selector,false))return false;
     const auto press=*s.clickProvenance.press();
-    if(confirmedToken(s,{5,3,1})!=press.identity.token ||
-       !clickSelectionShape(s.clickSnapshot.graph[1],5,3,true) ||
-       !clickSelectionShape(s.clickSnapshot.graph[2],5,3,true) ||
-       !clickSelectionShape(s.clickSnapshot.graph[3],5,3,false))return false;
+    const auto& identity=press.identity;
+    if(ids(ba::read<Obj>(batch,0x18))!=std::vector<uint32_t>{identity.entity} || !clickSameSample(s,selector,false))return false;
+    if(confirmedToken(s,{identity.entity,identity.type,identity.army})!=identity.token ||
+       !clickSelectionShape(s.clickSnapshot.graph[1],identity.entity,identity.type,true) ||
+       !clickSelectionShape(s.clickSnapshot.graph[2],identity.entity,identity.type,true) ||
+       !clickSelectionShape(s.clickSnapshot.graph[3],identity.entity,identity.type,false))return false;
     Current frame(s.clickSnapshot.graph[4]);
     operation=s.clickProvenance.beginRemoval(s.inputIntent,s.managerUpdateSerial,press.helper,press.identity,
         ba::read<int>(frame.frame.get(),0x40));return true;
@@ -143,17 +162,17 @@ struct ClickOriginalUpdate {
         if(s.originalManagerUpdate && operation.managerUpdate==s.managerUpdateSerial &&
            helper==s.clickSnapshot.graph[0] && clickSameSample(s,selector,true) &&
            s.clickProvenance.observe(s.inputIntent,operation,click_proof::RemovalPart::Commit,
-               reinterpret_cast<uintptr_t>(helper),5))return;
+               reinterpret_cast<uintptr_t>(helper),operation.identity.entity))return;
     }
     clickExternalEdit(s);
 }
 [[maybe_unused]] static bool clickFinishNatural(State& s,Obj selector,const click_proof::Removal& operation) {
     if(!clickCurrent(s) || !s.originalManagerUpdate || operation.managerUpdate!=s.managerUpdateSerial ||
-       !clickSameSample(s,selector,false) || !clickSelectionShape(s.clickSnapshot.graph[1],5,3,false) ||
-       !clickSelectionShape(s.clickSnapshot.graph[2],5,3,false) || !clickSelectionShape(s.clickSnapshot.graph[3],5,3,false) ||
-       confirmedToken(s,{5,3,1})!=operation.identity.token || !s.clickProvenance.finishRemoval(s.inputIntent,operation))return false;
-    ba::log("Prediction held click natural removal observed: world=%llu serial=%llu entity=5 token=%llu frame=%d operation=%llu managerUpdate=%llu originalParts=3 repairAuthorized=0",
+       !clickSameSample(s,selector,false) || !clickSelectionShape(s.clickSnapshot.graph[1],operation.identity.entity,operation.identity.type,false) ||
+       !clickSelectionShape(s.clickSnapshot.graph[2],operation.identity.entity,operation.identity.type,false) || !clickSelectionShape(s.clickSnapshot.graph[3],operation.identity.entity,operation.identity.type,false) ||
+       confirmedToken(s,{operation.identity.entity,operation.identity.type,operation.identity.army})!=operation.identity.token || !s.clickProvenance.finishRemoval(s.inputIntent,operation))return false;
+    ba::log("Prediction held click natural removal observed: world=%llu serial=%llu entity=%u token=%llu frame=%d operation=%llu managerUpdate=%llu originalParts=3 repairAuthorized=0",
         static_cast<unsigned long long>(s.world),static_cast<unsigned long long>(operation.ticket.serial),
-        static_cast<unsigned long long>(operation.identity.token),operation.frame,
+        operation.identity.entity,static_cast<unsigned long long>(operation.identity.token),operation.frame,
         static_cast<unsigned long long>(operation.nonce),static_cast<unsigned long long>(operation.managerUpdate));return true;
 }

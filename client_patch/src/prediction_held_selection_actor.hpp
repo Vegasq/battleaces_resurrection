@@ -21,10 +21,11 @@ class HeldSelection {
         if(!ba_prediction_held_selection_policy::eligible(state_.inputIntent,state_.clickProvenance,currentOwner(),value) ||
            !clickSameSample(state_,selector_,false))return false;
         Current currentFrame(frames_);
+        const auto& identity=value.currentIdentity;
         return ba::read<int>(currentFrame.frame.get(),0x40)==frame_ &&
-            clickSelectionShape(state_.clickSnapshot.graph[1],5,3,true) &&
-            clickSelectionShape(state_.clickSnapshot.graph[2],5,3,true) &&
-            clickSelectionShape(state_.clickSnapshot.graph[3],5,3,false);
+            clickSelectionShape(state_.clickSnapshot.graph[1],identity.entity,identity.type,true) &&
+            clickSelectionShape(state_.clickSnapshot.graph[2],identity.entity,identity.type,true) &&
+            clickSelectionShape(state_.clickSnapshot.graph[3],identity.entity,identity.type,false);
     }
 public:
     explicit HeldSelection(State& state):state_(state){}
@@ -43,24 +44,27 @@ public:
         Current currentFrame(frames_);frame_=ba::read<int>(currentFrame.frame.get(),0x40);
         prepared_=true;
         if(!current(selector)){prepared_=false;return false;}
-        ba::log("Prediction held selection prepared: world=%llu frame=%d entity=5 token=%llu serial=%llu retainedNumericSets=1 originalActorMutationStarted=0",
-            static_cast<unsigned long long>(state_.world),frame_,
+        ba::log("Prediction held selection prepared: world=%llu frame=%d entity=%u token=%llu serial=%llu retainedNumericSets=1 originalActorMutationStarted=0",
+            static_cast<unsigned long long>(state_.world),frame_,retirement_.currentIdentity.entity,
             static_cast<unsigned long long>(retirement_.residentIncarnation),
             static_cast<unsigned long long>(state_.inputIntent.serial()));return true;
     }
     bool allows(Obj selector)const{return current(selector);}
     void complete(Obj selector) {
         require(current(selector),"held selection changed during original actor recreation");
+        const auto& expected=retirement_.currentIdentity;
         unsigned found=0;
         for(Obj actor:units(ba::read<Obj>(state_.manager->get(),0x10))) {
-            const auto identity=resident(actor);if(identity.entityId!=5)continue;
+            const auto identity=resident(actor);if(identity.entityId!=expected.entity)continue;
             const auto observed=state_.identities.find(actor);
-            require(++found==1 && identity.unitType==3 && identity.armyId==1 &&
-                observed!=state_.identities.end() && observed->second.identity.entityId==5 &&
-                observed->second.identity.unitType==3 && observed->second.identity.armyId==1 &&
+            require(++found==1 && identity.unitType==expected.type && identity.armyId==expected.army &&
+                observed!=state_.identities.end() && observed->second.identity.entityId==expected.entity &&
+                observed->second.identity.unitType==expected.type && observed->second.identity.armyId==expected.army &&
                 observed->second.incarnation==retirement_.residentIncarnation &&
                 confirmedToken(state_,identity)==retirement_.residentIncarnation,
                 "held selection replacement is not the same admitted logical actor");
+            Root config(ba::read<Obj>(actor,0x168));clickField(config.get(),"IsHQ",0x2c,type("System","Boolean"),1);
+            require(ba::read<uint8_t>(config.get(),0x2c)==1,"held selection replacement is not an original HQ");
             field(actor,"<DeadToTheSim>k__BackingField",0x160);field(actor,"_componentData",0x158);
             require(!ba::read<bool>(actor,0x160) && ba::read<Obj>(actor,0x158),
                 "held selection replacement lacks its original live presentation");
@@ -68,8 +72,8 @@ public:
         require(found==1,"held selection replacement is missing");
         require(current(selector),"held selection changed after replacement validation");
         completed_=true;
-        ba::log("Prediction held selection preserved: world=%llu frame=%d entity=5 token=%llu serial=%llu originalRemovalSkipped=1 previewWrites=0 currentWrites=0 postRecreationAdmitted=1 originalUpStillPending=1",
-            static_cast<unsigned long long>(state_.world),frame_,
+        ba::log("Prediction held selection preserved: world=%llu frame=%d entity=%u token=%llu serial=%llu originalRemovalSkipped=1 previewWrites=0 currentWrites=0 postRecreationAdmitted=1 originalUpStillPending=1",
+            static_cast<unsigned long long>(state_.world),frame_,retirement_.currentIdentity.entity,
             static_cast<unsigned long long>(retirement_.residentIncarnation),
             static_cast<unsigned long long>(state_.inputIntent.serial()));
     }

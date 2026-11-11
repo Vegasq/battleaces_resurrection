@@ -955,6 +955,75 @@ local/prediction-checkpoint-20261110/forced-retirement-groups01/;
 Actual49 is local/prediction-runtime/movement49-group-frame-regression/.
 Actual50 is local/prediction-runtime/movement50-canonical-group-purge/.
 
+Captured local-Core identity generalization
+The original input/provenance ledgers admit entity0;UINT32_MAX is their sentinel.
+The production capture/sample/natural-removal/held adapters and pure predicate
+nevertheless selected literal5/type3/army1. A paired actual-source RED proves
+Core5 capture/prepare/complete succeeds while coherent Core0/army0/slot0 with
+the same accepted Down and canonical token never captures a Press. No preseeded
+Press is used. Exact actual-adapter RED receipt SHA256:
+d0c56386b9af04666f9cbd93773180963de717bcfc520230809eff54cb4a28ae.
+The separate pure predicate RED retains15 passing prior groups and a refused
+Core0 query;its original executable/report remain failed.
+
+Capture now derives the target from the genuine accepted Down/history,and
+requires one matching raw current/preview member,empty casting state,an actual
+resident/native Core identity,original IsHQ and the same nonzero canonical
+token. It validates the current local SimPlayer army and retains that player
+in the compared owner graph. Press identity is carried through every shape,
+natural-removal batch/part,token check,replacement lookup and log. Numeric IDs
+and armies no longer select the player side. No selection/history field is
+written. Natural Removed/empty-preview still refuses preservation;the existing
+original Up and no-op/input/owner invalidation rules remain.
+Pinned original metadata verifies SimPlayer.ArmyID is UInt32 at0x38 and
+EntityConfig.IsHQ is Boolean at0x2c. DeferredSelection already parameterized
+entity/army and needs no change.
+
+16 actual policy groups/112queries/290checks and75 actual-source held identity
+cases pass,including both sides,new/reused physical actors,role/identity/ABI
+drift,wrong caches and natural-removal refusal. The original106 group-scope
+case bodies remain unchanged after extracting their shared fake host;all pass.
+Two layout controls run in separate processes because original class metadata
+is immutable once its layout is cached. Full helper65 runs default73 plus both
+cold-layout controls and all existing suites,with200 unchanged source bindings.
+75-case receipt SHA256:
+f87964b7fb9f99d884d361aa09788565d2fe851f8e4dd1010648b14912c0ae55.
+Helper65 SHA256:
+7f5b74ba573988c07646333e39d79ba48be4e4fdee26a992f772c4f1a5604e17.
+Build receipt SHA256:
+9bb86de168f744aa26d5e277be475cf7357914430a41e101019afc6bbc10c651.
+
+A finite original-native Core0 control mirrors the initial encounter,using
+ordinary roster/decks and Move12,with no runtime writes. Its seed20261112
+baseline first damages Core0 at142 and kills it at153;Move151 prevents death
+through174. All151 earlier parsed states/input frames match. This differs
+from the retained Core5 timing and does not qualify Unity input/recovery.
+Control exits0,Job2/0/0,no force,sources/assets unchanged. Receipt SHA256:
+7a91e86995ec4fc8db6761c628faeac355847029faddb6388850ee6f7c00edf8.
+
+Actual51 then requalifies the existing Core5/type3/army1 held episode on the
+changed helper65:two actual Custom rounds130/475ms RTT,real Down150 with
+serial7/18 and token6,preservation160/163 once each,and real Up165. Both full
+fourteen-phase episodes and actor replay/20continuations pass;no selection or
+history writes. All2888 closed native hashes,2888 rawbridge and2888 native65
+joins match1444 journal frames,722/client/world0..721. Eight ordered batches/
+commits/actions per world are conserved. Clients,authorities and workers exit
+naturally0,Jobs inactive/unterminated,no force or cleanup errors. Sources and
+runtime inputs are unchanged. This is a regression at the existing Core5 scope;
+the real Core0 Unity episode is still OPEN. Report SHA256:
+7aa3213a2498080937595cd2407eef4bf6fc227c2d1eff3df47b2fc3c10159af.
+Preservation/proof/final audit SHA256:
+749cab012324b58d524e1e973078d91e0d70d6ac68a0e06a8764b201da55b7d6 /
+fae42684d3b8a4c5fbaf63f737bfaddc2e754b05d762ee6dddf69b2eeaa9361a /
+ab1429a0e93b2829ec14e6578cce3f69e77c9835b3582eb7a4924461fc903cbd.
+All1254 archive entries reverify:973 sources,200 helper bindings,11inputs,
+55assets and213captures. All260 retirement records have affectedGroups0;
+forced groups/type changes,naturally removed held input,broader rendering and
+physical/Internet acceptance remain OPEN. N35 and the live host are unchanged.
+Private evidence:local/prediction-checkpoint-20261111/held-side-generalization01/,
+held-adapter-side-red01/,held-adapter-side-green01/,held-side-native-control01/;
+local/prediction-runtime/movement51-held-identity-regression/.
+
 Changing latency
 Owned actual-source tests qualify bounded existing REFRESH/ACK sampling and
 expiry of old RTT samples. Movement05's separate file-only review matches1299

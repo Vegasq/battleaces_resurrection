@@ -38,7 +38,7 @@ struct Retire {
 };
 struct ClickSnapshot {
     std::array<uint32_t,8> scalars{};
-    std::array<Obj,8> graph{}; // Compared only; the retained selector roots them.
+    std::array<Obj,9> graph{}; // Compared only; retained selector/simulation own their graph.
 };
 struct State {
     uint64_t world=0;

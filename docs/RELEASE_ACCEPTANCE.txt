@@ -381,6 +381,11 @@ D8    OPEN        Bounded two/four-room TLS/native and older soak evidence retai
                   cleanup in both mobile rounds,retention/recall/fresh input,
                   all2888 native hashes and natural shutdown. Actual type-change,
                   forced retirement and physical/Internet acceptance stay OPEN.
+                  Captured local-Core identity generalization passes16 policy/
+                  75 actual-source cases and full helper65. Actual51 requalifies
+                  the prior Core5 held episode,2888 native hashes/wire joins and
+                  natural shutdown;Core0 has authored/headless control only.
+                  Its full Unity held episode remains OPEN.
                   Details:prediction-actor-correction.txt. N35 remains pending.
                   219named Windows/C-data21-match cadence/resource check PASSES:
                   19.974326-20.005228Hz,max gap124.3548ms,zero worker awaits>50ms.

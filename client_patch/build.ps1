@@ -95,11 +95,17 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Prediction held-selection policy test build failed.' }
     & (Join-Path $OutputDirectory 'prediction_held_selection_policy_tests.exe')
     if ($LASTEXITCODE -ne 0) { throw 'Prediction held-selection policy tests failed.' }
-    foreach ($bindingTest in @('prediction_actor_binding_tests','prediction_focus_binding_tests','prediction_input_binding_tests','prediction_click_selection_tests','prediction_group_retirement_tests','prediction_group_scope_tests')) {
+    foreach ($bindingTest in @('prediction_actor_binding_tests','prediction_focus_binding_tests','prediction_input_binding_tests','prediction_click_selection_tests','prediction_group_retirement_tests','prediction_group_scope_tests','prediction_held_identity_binding_tests')) {
         & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /WX /std:c++17 (Join-Path $PSScriptRoot "checkpoint/$bindingTest.cpp") "/Fe:$OutputDirectory/$bindingTest.exe"
         if ($LASTEXITCODE -ne 0) { throw "Prediction binding test build failed: $bindingTest" }
         & (Join-Path $OutputDirectory "$bindingTest.exe")
         if ($LASTEXITCODE -ne 0) { throw "Prediction binding tests failed: $bindingTest" }
+    }
+    # The original layout cache is immutable for a loaded game image. Check
+    # deliberately malformed layouts in separate processes before cache reuse.
+    foreach ($heldLayoutFlag in @('--bad-selector-layout','--bad-helper-layout')) {
+        & (Join-Path $OutputDirectory 'prediction_held_identity_binding_tests.exe') $heldLayoutFlag
+        if ($LASTEXITCODE -ne 0) { throw "Prediction held identity layout test failed: $heldLayoutFlag" }
     }
     & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /WX /std:c++17 (Join-Path $PSScriptRoot 'src/prediction_rtt_tests.cpp') "/Fe:$OutputDirectory/prediction_rtt_tests.exe"
     if ($LASTEXITCODE -ne 0) { throw 'Movement changing-RTT test build failed.' }

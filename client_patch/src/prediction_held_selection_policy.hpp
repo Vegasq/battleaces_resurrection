@@ -27,13 +27,15 @@ inline bool eligible(const input::Ledger& source,const provenance::Ledger& proof
        proof.phase()!=provenance::Phase::Held || proof.operation() ||
        !proof.current(source) || !proof.press() || !source.accepted())return false;
     const auto& press=*proof.press();const auto& accepted=*source.accepted();
-    const Identity qualified{5,3,1};
+    // The producer proves the current local HQ. Bind to its captured identity
+    // and lifetime; numeric IDs/armies do not select the qualified player side.
+    const auto& qualified=retirement.currentIdentity;
     return expectedOwner.generation && expectedOwner.world && expectedOwner.selector &&
         expectedOwner.manager && expectedOwner.thread && source.owner()==expectedOwner &&
         press.ticket.owner==expectedOwner && press.ticket.kind==input::Kind::Down &&
         accepted.kind==input::Kind::Down && accepted.serial==source.serial() &&
         provenance::same(press.ticket,accepted) && press.helper && press.frame>=0 &&
-        retirement.residentIdentity==qualified && retirement.currentIdentity==qualified &&
+        qualified.type==3 && retirement.residentIdentity==qualified &&
         press.identity.entity==qualified.entity && press.identity.type==qualified.type &&
         press.identity.army==qualified.army && retirement.residentIncarnation &&
         retirement.residentIncarnation==press.identity.token &&

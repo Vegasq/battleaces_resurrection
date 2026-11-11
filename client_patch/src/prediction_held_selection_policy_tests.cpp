@@ -52,11 +52,21 @@ static void exactSingleAlreadyReleasedOnly() {
     }
     Fixture f;f.retirement.alreadyReleased=false;check(!f.eligible(),"active actor retirement admitted");
 }
-static void residentAndCurrentIdentitiesAreExactFirstHQCase() {
+static void residentAndCurrentMustMatchCapturedHQ() {
     for(int side=0;side<2;++side)for(int field=0;field<3;++field)for(uint32_t value:{0u,2u,9u,UINT32_MAX}) {
         Fixture f;auto& identity=side?f.retirement.currentIdentity:f.retirement.residentIdentity;
         if(field==0)identity.entity=value;if(field==1)identity.type=value;if(field==2)identity.army=value;
         check(!f.eligible(),"another ID/type/army inherited held HQ policy");
+    }
+}
+static void eitherCoreUsesItsExactCapturedIdentity() {
+    for(const auto identity:std::array<provenance::Identity,2>{{{0,3,0,700},{5,3,1,701}}}) {
+        Fixture f(false);f.identity=identity;
+        const policy::Identity selected{identity.entity,identity.type,identity.army};
+        f.retirement={1,true,selected,selected,identity.token,identity.token};f.accept();
+        const auto press=*f.proof.press();const auto serial=f.source.serial();
+        check(f.eligible(),"exact captured local Core identity was restricted to one player side");
+        check(samePress(*f.proof.press(),press)&&f.source.serial()==serial,"paired identity query changed source intent");
     }
 }
 static void capturedIdentityCannotBeSubstituted() {
@@ -167,7 +177,8 @@ int main() {
     try {
         test::run("exact completed accepted Down, readonly",test::exactCompletedPressIsReadonly);
         test::run("exact one already released only",test::exactSingleAlreadyReleasedOnly);
-        test::run("resident/current exact qualified HQ",test::residentAndCurrentIdentitiesAreExactFirstHQCase);
+        test::run("resident/current match captured HQ",test::residentAndCurrentMustMatchCapturedHQ);
+        test::run("either Core retains its captured identity",test::eitherCoreUsesItsExactCapturedIdentity);
         test::run("captured identity exact",test::capturedIdentityCannotBeSubstituted);
         test::run("same nonzero canonical logical token",test::canonicalLogicalTokenMustStaySameAndNonzero);
         test::run("all13 later/no-op original inputs invalidate",test::everyLaterInputInvalidatesEvenNoopCallbacks);
