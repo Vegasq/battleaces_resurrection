@@ -31,7 +31,7 @@ class StandardClientImportTests(unittest.TestCase):
 root=pathlib.Path(sys.argv[1]).resolve()
 sys.path.insert(0,str(root))
 importlib.import_module('client_patch.patcher.patch_client')
-for name in ('prediction_worker','prediction_actor_repair','prediction_selection'):
+for name in ('prediction_worker','prediction_actor_repair','prediction_selection','prediction_click_provenance'):
     module=sys.modules['client_patch.patcher.'+name]
     assert pathlib.Path(module.__file__).resolve().is_relative_to(root),name
 assert not any(name=='client_patch.prediction_worker' or

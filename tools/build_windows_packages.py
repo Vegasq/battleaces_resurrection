@@ -48,7 +48,7 @@ CLIENT = COMMON + (
     'client_patch/__init__.py', 'client_patch/patcher/__init__.py',
     'client_patch/patcher/patch_client.py', 'client_patch/patcher/pe_imports.py',
     'client_patch/patcher/prediction_worker.py', 'client_patch/patcher/prediction_actor_repair.py',
-    'client_patch/patcher/prediction_selection.py',
+    'client_patch/patcher/prediction_selection.py', 'client_patch/patcher/prediction_click_provenance.py',
     'client_patch/patcher/legacy_compliance.py',
     'client_patch/patcher/startup_tasks.py',
     'client_patch/patcher/bundle_loading.py', 'client_patch/patcher/build37822_bundles.py',
@@ -397,7 +397,8 @@ def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=Non
                 files['program/crypto/certificate-build.json']=crypto[1]
         files['QUICKSTART.txt'] = (b'PRIVATE CUSTOM MOVEMENT PREDICTION TEST\r\n\r\n'
             b'Use an independent game copy and install the matching ordinary patch with the included installer.\r\n'
-            b'Then use the special launcher; the ordinary shortcut does not enable prediction.\r\n'
+            b'Then use the Battle Aces Prediction Test desktop shortcut created by the installer.\r\n'
+            b'Or open Start Prediction Client.cmd inside your selected test game folder.\r\n'
             b'Choose the game explicitly: Start Prediction Client.cmd --game "C:\\Games\\Battle Aces"\r\n'
             b'Use program\\runtime\\python.exe -I -B -m tools.prediction_client --help for check/prepare/start.\r\n'
             b'No original game files are included. Keep the normal client for ordinary play.\r\n'

@@ -1,21 +1,25 @@
 CUSTOM GAME - PRIVATE MOVEMENT PREDICTION TEST
 
-Both players must use this same private kit and its special launcher.
+Both players must use this same private installer and its prediction shortcut.
 Use Custom Game -> Invite Friend -> Start. The public Play/1v1 queue is not
 part of this experiment. Try Deck vs AI uses local play and cannot measure
 the online improvement.
 
 Setup on another Windows PC
 1. Make a separate copy of your supported Battle Aces build37822 game folder.
-2. Extract this kit. Run its Install Battle Aces.exe,select that test copy,
+2. Run the client prediction installer,select that test copy,
    and keep server134.209.176.39. Set your own player name.
-3. Open PowerShell in the extracted kit folder and run,using your test path:
-   & '.\Start Prediction Client.cmd' --game 'D:\Battle Aces Test'
-   The first special launch prepares the prediction patch. Use the same command
-   for later launches. The normal desktop shortcut starts the ordinary client.
+3. Double-click the new Battle Aces Prediction Test desktop shortcut.
+   You can also open Start Prediction Client.cmd inside the selected game folder.
+   The first launch prepares the prediction patch;later launches reuse it.
+   The runtime is installed beside the game;the downloaded installer is no
+   longer needed. Your existing ordinary desktop shortcut is preserved.
 
-Nick's prepared local copy has a separate double-click launcher supplied with
-the handoff. It already selects the test game and frozen runtime.
+The separate server installer is for hosting your own server. It asks for a
+supported game folder and a new empty server folder,then creates Start Server.exe.
+Start that server and enter its reachable IP in BOTH client installers. The
+game port is TCP47623. For the community server,keep134.209.176.39;you do not
+need to install or start another server. This handoff does not deploy the live host.
 
 What to try
 Invite the other tester in Custom Game and start the match. Build some units,

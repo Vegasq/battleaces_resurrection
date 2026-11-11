@@ -104,7 +104,7 @@ internal sealed class Installer : Form {
             else {
                 try {
                     DesktopShortcut.CreateOnDesktop((string)e.Result, Server);
-                    status.Text = Server ? "Installed. Battle Aces Server shortcut created on your desktop." : "Installed. Battle Aces Resurrection shortcut created on your desktop.";
+                    status.Text = DesktopShortcut.SuccessMessage((string)e.Result, Server);
                 } catch (Exception error) {
                     status.Text = "Installed, but the desktop shortcut could not be created. Open the launcher in the installed folder.";
                     MessageBox.Show(this, error.Message, "Desktop shortcut unavailable", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -196,7 +196,7 @@ internal sealed class Installer : Form {
                     using (Stream input = entry.Open()) using (Stream output = new FileStream(path, FileMode.CreateNew)) input.CopyTo(output);
                 }
             }
-            return Path.Combine(root, Server ? "battleaces-server-win64" : "battleaces-client-win64");
+            return InstallerPayload.Root(root, Server);
         }
     }
 
@@ -224,9 +224,9 @@ internal sealed class Installer : Form {
                     try { var parsed = new JavaScriptSerializer().Deserialize<Dictionary<string,object>>(output); if (parsed.ContainsKey("error")) message = (string)parsed["error"]; } catch { }
                     throw new Exception(message);
                 }
+                if (!resetRequested && !uninstallRequested)
+                    args.Result = DesktopShortcut.InstalledLauncher(output, Server ? selectedAddress : selectedGame, Server);
             }
-            if (!resetRequested && !uninstallRequested)
-                args.Result = Path.Combine(Path.GetFullPath(Server ? selectedAddress : selectedGame), Server ? "Start Server.exe" : "Start Battle Aces.cmd");
         } finally { File.Delete(request); }
     }
 

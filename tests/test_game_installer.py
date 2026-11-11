@@ -9,6 +9,7 @@ from unittest import mock
 from tools import game_installer as installer
 from tools.package_integrity import verify
 from client_patch.transport import rc_setup
+from tools import prediction_client
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -188,6 +189,67 @@ class GameInstallerTests(unittest.TestCase):
         self.patcher.side_effect=PermissionError('running game')
         with self.assertRaises(PermissionError): installer.uninstall(self.game)
         self.assertTrue(helper.exists());self.assertTrue(Path(result['launcher']).exists())
+
+    def private_package(self):
+        descriptor=self.package/prediction_client.DESCRIPTOR
+        descriptor.parent.mkdir(parents=True);descriptor.write_bytes(b'{}')
+        path=self.package/'package-manifest.json';manifest=json.loads(path.read_bytes())
+        manifest['files'][prediction_client.DESCRIPTOR]=dict(bytes=2,sha256=hashlib.sha256(b'{}').hexdigest())
+        path.write_text(json.dumps(manifest))
+        patch=mock.patch.object(prediction_client,'profile',return_value={})
+        patch.start();self.addCleanup(patch.stop)
+
+    def test_private_installer_returns_prediction_launcher_with_frozen_runtime(self):
+        self.private_package();result=self.install('localhost')
+        self.assertTrue(result['prediction_enabled'])
+        self.assertEqual(Path(result['launcher']),self.game/installer.PREDICTION_LAUNCHER)
+        script=Path(result['launcher']).read_bytes()
+        self.assertTrue(installer.owned_prediction_launcher(script))
+        self.assertIn(b'-m tools.prediction_client start --game "%~dp0."',script)
+        self.assertNotIn(str(self.package).encode(),script)
+        self.assertIn(b'-m tools.package_client start',Path(result['ordinary_launcher']).read_bytes())
+        self.assertEqual((self.game/installer.REPLAY_LAUNCHER).read_bytes(),installer.replay_launcher_bytes())
+        config=json.loads(Path(result['config']).read_bytes())
+        self.assertEqual(config['local_profile'],'prediction_custom')
+        self.assertEqual(config['server_host'],'localhost')
+        self.assertNotIn(b'-smoke',script)
+
+    def test_private_update_applies_explicit_host_and_name_to_existing_private_profile(self):
+        self.private_package();result=self.install()
+        path=Path(result['config']);value=json.loads(path.read_bytes())
+        value.update(fullscreen=False,server_port=5000);path.write_text(json.dumps(value))
+        identity=rc_setup.Resolver(path,self.game).read()
+        installer.install(self.package,dict(game_directory=str(self.game),server_host='localhost',display_name='New Name'))
+        updated=json.loads(path.read_bytes())
+        self.assertEqual((updated['server_host'],updated['display_name']),('localhost','New Name'))
+        self.assertEqual((updated['fullscreen'],updated['server_port'],updated['local_profile']),(False,5000,'prediction_custom'))
+        # Identity is intentionally per server route. Returning to the old
+        # route must reuse its retained credential, not create a new player.
+        after=rc_setup.remote(rc_setup.settings(value,path),path)
+        self.assertEqual((identity.player_id,identity.token),(after.player_id,after.token))
+
+    def test_private_foreign_launcher_is_refused_before_patch(self):
+        self.private_package();target=self.game/installer.PREDICTION_LAUNCHER
+        for data in (b'user script',installer.PREDICTION_MARKER+b'\r\necho custom',
+                     installer.prediction_launcher_bytes('.battleaces-resurrection/client-runtime/'+'a'*20)+b'echo changed'):
+            target.write_bytes(data)
+            with self.subTest(data=data),self.assertRaisesRegex(ValueError,'unrelated'):self.install()
+            self.assertEqual(target.read_bytes(),data)
+        self.patcher.assert_not_called()
+
+    def test_private_launcher_failure_rolls_back_all_configs_and_launchers(self):
+        self.private_package();self.install()
+        paths=[self.game/name for name in (installer.CONFIG,installer.LAUNCHER,installer.REPLAY_LAUNCHER,
+                                          prediction_client.CONFIG,installer.PREDICTION_LAUNCHER)]
+        before=[p.read_bytes() for p in paths];original=installer.atomic_write;failed=False
+        def write(path,data):
+            nonlocal failed
+            if path==paths[-1] and not failed:
+                failed=True;raise PermissionError('held prediction shortcut')
+            return original(path,data)
+        with mock.patch.object(installer,'atomic_write',side_effect=write):
+            with self.assertRaises(PermissionError):self.install('localhost')
+        self.assertTrue(failed);self.assertEqual([p.read_bytes() for p in paths],before)
 
 
 if __name__=='__main__':unittest.main()

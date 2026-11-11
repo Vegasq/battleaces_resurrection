@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import secrets
 import shutil
 import sys
@@ -18,6 +19,28 @@ LAUNCHER = 'Start Battle Aces.cmd'
 REPLAY_LAUNCHER = 'Watch Replay.cmd'
 MARKER = b'rem BA_RESURRECTION_GAME_LAUNCHER_V1'
 CONFIG = '.battleaces-resurrection/client-config.json'
+PREDICTION_LAUNCHER = 'Start Prediction Client.cmd'
+PREDICTION_MARKER = b'rem BA_RESURRECTION_PREDICTION_LAUNCHER_V1'
+
+
+def prediction_launcher_bytes(runtime_relative):
+    # Validate the same authored version path before placing it in CMD source.
+    launcher_bytes(runtime_relative)
+    runtime = runtime_relative.replace('/', '\\')
+    return ('@echo off\r\nsetlocal DisableDelayedExpansion\r\n' + PREDICTION_MARKER.decode() + '\r\n'
+            f'"%~dp0{runtime}\\program\\runtime\\python.exe" -I -B -m tools.prediction_client start '
+            '--game "%~dp0." %*\r\n'
+            'set "BA_CLIENT_EXIT=%errorlevel%"\r\n'
+            'if not "%BA_CLIENT_EXIT%"=="0" pause\r\n'
+            'exit /b %BA_CLIENT_EXIT%\r\n').encode('ascii')
+
+
+def owned_prediction_launcher(data):
+    if data is None:
+        return True
+    match = re.search(rb'client-runtime\\([0-9a-f]{20})\\program', data)
+    return bool(match and data == prediction_launcher_bytes(
+        '.battleaces-resurrection/client-runtime/' + match[1].decode('ascii')))
 
 
 def replay_launcher_bytes():
@@ -36,6 +59,10 @@ def uninstall(game):
     replay_script=replay_target.read_bytes() if replay_target.exists() else None
     if replay_script is not None and replay_script!=replay_launcher_bytes():
         raise PackageError('An unrelated Watch Replay.cmd exists; it was preserved')
+    prediction_target=contained_path(game,PREDICTION_LAUNCHER)
+    prediction_script=prediction_target.read_bytes() if prediction_target.exists() else None
+    if not owned_prediction_launcher(prediction_script):
+        raise PackageError('An unrelated Start Prediction Client.cmd exists; it was preserved')
     manifest=launcher.read_json(game/'.battleaces-resurrection/patch-manifest.json',131072)
     helper=contained_path(game,'BattleAcesOffline.dll')
     if helper.exists() and hashlib.sha256(helper.read_bytes()).hexdigest()!=manifest.get('helper_sha256'):
@@ -52,6 +79,10 @@ def uninstall(game):
     if replay_target.exists():
         if replay_target.read_bytes()!=replay_script: raise PackageError('Replay launcher changed during restore; it was preserved')
         replay_target.unlink()
+    if prediction_target.exists():
+        if prediction_target.read_bytes()!=prediction_script:
+            raise PackageError('Prediction launcher changed during restore; it was preserved')
+        prediction_target.unlink()
     return dict(uninstalled=True,original_game_restored=True,saves_preserved=True,
                 recovery_directory=str(game/'.battleaces-resurrection'))
 
@@ -73,6 +104,10 @@ def launcher_bytes(runtime_relative):
 def install(package, request):
     package = Path(package).resolve()
     inventory = verify(package, 'client')
+    prediction = 'program/prediction/prediction-profile.json' in inventory['files']
+    if prediction:
+        from tools import prediction_client
+        prediction_client.profile(package)
     required = {'game_directory', 'server_host'}
     if not isinstance(request, dict) or not required <= set(request) <= required | {'display_name'}:
         raise PackageError('Choose the game folder, server IP and player name')
@@ -84,6 +119,10 @@ def install(package, request):
     config = contained_path(game, CONFIG)
     target = contained_path(game, LAUNCHER)
     replay_target = contained_path(game, REPLAY_LAUNCHER)
+    prediction_target = contained_path(game, PREDICTION_LAUNCHER) if prediction else None
+    before_prediction = prediction_target.read_bytes() if prediction and prediction_target.exists() else None
+    if prediction and not owned_prediction_launcher(before_prediction):
+        raise PackageError('An unrelated Start Prediction Client.cmd exists; keep it and choose another working copy')
     before_config = config.read_bytes() if config.exists() else None
     before_launcher = target.read_bytes() if target.exists() else None
     before_replay_launcher = replay_target.read_bytes() if replay_target.exists() else None
@@ -102,6 +141,14 @@ def install(package, request):
     validated = rc_setup.settings(settings, config)
     launcher.native_storage_preflight(client.local_settings(settings, config))
     settings['server_host'] = validated['server_host']
+    prediction_config = prediction_settings = before_prediction_config = None
+    if prediction:
+        prediction_config, prediction_settings = prediction_client.settings(game)
+        before_prediction_config = prediction_config.read_bytes() if prediction_config.exists() else None
+        # An explicit installer choice must also reach an already prepared test
+        # profile. Retain its identity/profile/port and other saved preferences.
+        prediction_settings.update(server_host=settings['server_host'], display_name=settings['display_name'])
+        rc_setup.settings(prediction_settings, prediction_config)
     identity = hashlib.sha256((package/'package-manifest.json').read_bytes()).hexdigest()[:20]
     relative = '.battleaces-resurrection/client-runtime/' + identity
     runtime = contained_path(game, relative)
@@ -137,10 +184,19 @@ def install(package, request):
             raise PackageError('Game launcher changed during installation; existing launcher was preserved')
         if (replay_target.read_bytes() if replay_target.exists() else None) != before_replay_launcher:
             raise PackageError('Replay launcher changed during installation; existing launcher was preserved')
+        if prediction:
+            if (prediction_target.read_bytes() if prediction_target.exists() else None) != before_prediction:
+                raise PackageError('Prediction launcher changed during installation; existing launcher was preserved')
+            if (prediction_config.read_bytes() if prediction_config.exists() else None) != before_prediction_config:
+                raise PackageError('Prediction settings changed during installation; reopen the installer')
         try:
             atomic_write(config, (json.dumps(settings, indent=2)+'\n').encode('utf-8'))
             atomic_write(target, script)
             atomic_write(replay_target, replay_launcher_bytes())
+            if prediction:
+                prediction_config.parent.mkdir(parents=True, exist_ok=True)
+                atomic_write(prediction_config, (json.dumps(prediction_settings, indent=2)+'\n').encode('utf-8'))
+                atomic_write(prediction_target, prediction_launcher_bytes(relative))
         except BaseException:
             if before_config is None: config.unlink(missing_ok=True)
             else: atomic_write(config, before_config)
@@ -148,6 +204,13 @@ def install(package, request):
             else: atomic_write(target, before_launcher)
             if before_replay_launcher is None: replay_target.unlink(missing_ok=True)
             else: atomic_write(replay_target, before_replay_launcher)
+            if prediction:
+                if before_prediction is None: prediction_target.unlink(missing_ok=True)
+                else: atomic_write(prediction_target, before_prediction)
+                if before_prediction_config is None: prediction_config.unlink(missing_ok=True)
+                else: atomic_write(prediction_config, before_prediction_config)
             raise
-    return dict(installed=True, launcher=str(target), config=str(config), runtime=str(runtime),
+    return dict(installed=True, launcher=str(prediction_target if prediction else target),
+                ordinary_launcher=str(target), prediction_enabled=prediction,
+                config=str(prediction_config if prediction else config), runtime=str(runtime),
                 server_host=settings['server_host'], offline_supported=True)

@@ -1,0 +1,37 @@
+PR2 - PRIVATE CLIENT AND SERVER INSTALLERS
+Requested2026-11-11. This is a test handoff;full N33/D8 acceptance stays open.
+
+Output:dist/draft-pr2-20261111/
+  BattleAces-Client-Prediction-PR2.exe
+  BattleAces-Server-PR2.exe
+  SHA256SUMS.txt and build-manifest.json identify the exact payload/source.
+
+Client
+Use a separate supported build37822 game copy. Run the client installer,
+select that copy,enter your player name,and keep134.209.176.39 for the community
+server. The installer creates a Battle Aces Prediction Test desktop shortcut
+and Start Prediction Client.cmd inside the selected game. First launch prepares
+the prediction patch automatically from that installed package. The complete
+runtime is cached beside the game;the downloaded installer can be moved later.
+Existing ordinary desktop shortcuts are preserved. Both players use this same
+installer and the prediction shortcut,then Custom Game -> Invite Friend -> Start.
+Public Play/1v1 is not the prediction test. Solo AI remains local by default.
+
+Server
+For your own host,run the server installer with a supported game directory and
+a new empty server directory. It copies/imports local game data without changing
+the source game,then creates Start Server.exe and its desktop shortcut. Start
+that executable and enter the host's reachable IP in both client installers.
+Forward/allow TCP47623 for game connections. Existing hosts are not overwritten.
+The community server does not need a second local server running on your PC.
+This handoff does not deploy,restart,or reconfigure the live server.
+
+Scope
+The helper is the same helper88 qualified in Actual66 at c4e4948:original Hold
+settles locally before authority,two rounds finish naturally,and2888 closed
+parsed native state hashes match. Actual63 independently qualifies original
+right-click Move. New installer changes wire the correct launch path and
+profile settings;they do not add completed multi-unit/physical/Internet gates.
+The handoff manifest records package checks and their actual limits. Older N35
+copies remain reserved and frozen. Feedback uses the existing N35 answer fields
+in private DEV.txt;no duplicate test request is created.
