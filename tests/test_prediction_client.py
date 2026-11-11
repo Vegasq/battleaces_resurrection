@@ -160,7 +160,7 @@ class PredictionClientTests(unittest.TestCase):
     def test_public_settings_copied_by_whitelist_and_private_identity_stays_separate(self):
         original=dict(schema=3,game_directory=str(self.game),display_name='Player',local_profile='main',server_host='example.test',
             server_port=5000,server_name='secret.test',ca_bundle='trust.pem',credential_file='DO-NOT-COPY.json',room='friends',
-            fullscreen=False,solo_ai_host='server')
+            fullscreen=False,solo_ai_host='local')
         normal=self.game/'.battleaces-resurrection/client-config.json';normal.write_bytes(p.json_bytes(original))
         p.prepare(self.package,self.game)
         value=json.loads((self.game/p.CONFIG).read_bytes())
@@ -169,6 +169,27 @@ class PredictionClientTests(unittest.TestCase):
         self.assertEqual((value['fullscreen'],value['solo_ai_host']),(False,'server'))
         self.assertNotIn('credential_file',value);self.assertNotIn('ca_bundle',value)
         self.assertEqual(json.loads(normal.read_bytes()),original)
+
+    def test_fresh_private_settings_default_to_server_without_ordinary_config(self):
+        result=p.prepare(self.package,self.game)
+        value=json.loads((self.game/p.CONFIG).read_bytes())
+        self.assertEqual(value['solo_ai_host'],'server')
+        self.assertEqual(value['local_profile'],'prediction_custom')
+        self.assertIn('public mode1 server AI',result['scope'])
+        self.assertEqual(p.client.defaults(self.game)['solo_ai_host'],'local')
+        self.assertFalse((self.game/'.battleaces-resurrection/client-config.json').exists())
+
+    def test_existing_private_ai_host_and_other_saved_settings_survive_prepare(self):
+        path,value=p.settings(self.game)
+        path.parent.mkdir(parents=True)
+        for host in ('local','server'):
+            selected=dict(value,solo_ai_host=host,display_name='Saved private player',
+                server_host='private.example',server_port=5001,fullscreen=False)
+            before=p.json_bytes(selected);path.write_bytes(before)
+            with self.subTest(host=host):
+                p.prepare(self.package,self.game)
+                self.assertEqual(path.read_bytes(),before)
+                self.assertEqual(p.settings(self.game),(path,selected))
 
     def test_running_game_refusal_changes_no_game_or_manifest(self):
         before=self.manifest_path.read_bytes()
@@ -264,6 +285,7 @@ class PredictionClientTests(unittest.TestCase):
         for call in (first,second):
             config,remote,args=call.args;options=call.kwargs['prediction_worker']
             self.assertEqual(config['local_profile'],p.LOCAL_PROFILE)
+            self.assertEqual(config['solo_ai_host'],'server')
             self.assertTrue(args.unified_experimental);self.assertTrue(args.original_command_scheduling_experimental)
             self.assertTrue(args.player_features);self.assertFalse(hasattr(args,'smoke'));self.assertFalse(hasattr(args,'quit_smoke'))
             self.assertEqual(options.module_root,self.package/'program/app')
@@ -273,6 +295,7 @@ class PredictionClientTests(unittest.TestCase):
             argv=p.launcher.game_arguments(config,None,8765,args,prediction_worker=options)
             self.assertIn('-prediction-movement-experimental',argv)
             self.assertIn('-original-command-scheduling-experimental',argv)
+            self.assertIn('-solo-ai-host=server',argv)
             self.assertIn('-prediction-worker-python='+str(options.python),argv)
             self.assertFalse(any(word in flag for flag in argv for word in ('smoke','audit','probe','auto-ready','quit-','frame-timing')))
 

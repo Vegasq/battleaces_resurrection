@@ -274,8 +274,8 @@ class ArrivalNetworkTests(DedicatedFixture):
         await self.start_experiment()
         peer = await self.online(negotiate=True)
         self.assertTrue(self.server.community.sessions[peer.profile].peer.command_scheduling)
-        body = q.command(q.ENTER, peer.request+1, 1, mode=1, deck=peer.deck)
-        self.assertIn('Custom', await self.command(peer, q.ENTER, body[4:], ok=False))
+        body = q.command(q.ENTER, peer.request+1, 1, mode=2, deck=peer.deck)
+        self.assertIn('solo', await self.command(peer, q.ENTER, body[4:], ok=False))
         self.assertEqual(self.workers, [])
 
     async def test_mixed_custom_start_fails_before_worker(self):

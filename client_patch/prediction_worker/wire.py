@@ -45,6 +45,7 @@ class Op(IntEnum):
     PREDICTION_END = 69
     ACTIVE_ENTITIES = 70
     ENTITY_GUARD = 71
+    CANONICAL_ROSTER = 76
     SHUTDOWN = 127
 
 
@@ -126,6 +127,9 @@ def decode_request(packet):
         args = exact('<QII')
         require(1 <= args[1] <= 12 and 4096 <= args[2] <= 64 * 1024 * 1024,
                 'prediction lead/journal budget outside bounds')
+    elif op == Op.CANONICAL_ROSTER:
+        args = exact('<QI')
+        require(args[1] == 0, 'canonical AI roster requires own human slot0')
     elif op == Op.LOCAL_BATCH:
         require(16 < len(body) <= 16 + 65536, 'local batch player body exceeds64KiB/is empty')
         world, sequence = struct.unpack_from('<QQ', body)

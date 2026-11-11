@@ -19,6 +19,9 @@ struct State {
     DWORD owner=0;
     uint64_t world=0,connectionGeneration=0,generation=0;
     uint32_t lobbyEpoch=0;
+    bool publicRoute=false;
+    uint64_t publicTicket=0;
+    std::vector<Bytes> publicIdentities;
     std::string match,lobby;
     int64_t physicalNext=0,drainTarget=-1;
     int finalAuthority=-1;
@@ -97,12 +100,23 @@ void reset() noexcept {state=State{};earlyPhaseCount=0;earlyPhaseOverflow=false;
 static void context(Obj server) {
     require(ba::unified() && ba::dedicated() && ba::community() && ba::lan() &&
         ba_lan::secureMode() && ba_lan::secureVersion()==2 && ba_lan::originalCommandScheduling() &&
-        ba_lan::originalCommands.ready() && !ba_lan::publicMatch && !ba_public::active() &&
-        !ba_client::replayWorld(),"movement prediction requires negotiated TLSV2 Custom arrival mode");
+        ba_lan::originalCommands.ready() && !ba_client::replayWorld(),
+        "movement prediction requires negotiated TLSV2 arrival mode");
     require(ba_local::isTarget(server) && GetCurrentThreadId()==ba_local::updateThread,
         "movement prediction requires its owned Unity update thread");
     require(ba_community::online && !ba_community::abortPending && ba_lan::welcomed,
         "movement prediction community session is not active");
+    require(ba_lan::originalCommands.match()==ba_lan::dedicatedMatchId,
+        "movement prediction command match differs from assignment");
+    if(ba_lan::publicMatch) {
+        require(ba_public::current && ba_public::soloAiHost()==ba_solo_ai::Host::Server &&
+            ba_public::current->joining && !ba_public::current->aborting && !ba_public::current->lost &&
+            ba_public::current->intent.ownsServerAiPrediction(ba_community::generation,ba_lan::dedicatedMatchId) &&
+            ba::lanSlot()==0 && ba_lan::publicIdentities.size()==2,
+            "movement prediction does not own this server AI match/seat");
+        return;
+    }
+    require(!ba_public::active(),"Custom movement prediction overlaps public intent");
     const auto& lobby=ba_community::lobby;
     const int slot=ba::lanSlot();
     require(slot>=0 && slot<2 && lobby.members.size()==2 && !lobby.id.empty() && lobby.epoch &&
@@ -115,9 +129,15 @@ static void bound(Obj server) {
     context(server);
     require(state.prepared && !state.failed && !state.drained && state.server==server &&
         state.owner==GetCurrentThreadId() && state.connectionGeneration==ba_community::generation &&
-        state.lobbyEpoch==ba_community::lobby.epoch && state.lobby==ba_community::lobby.id &&
+        state.publicRoute==ba_lan::publicMatch &&
         state.match==ba_lan::dedicatedMatchId && state.match==worker::movementMatchId(),
         "movement prediction generation/match changed");
+    if(state.publicRoute) {
+        require(state.publicTicket==ba_public::current->intent.ticket &&
+            state.publicIdentities==ba_lan::publicIdentities,
+            "movement prediction public ticket/frozen roster changed");
+    } else require(state.lobbyEpoch==ba_community::lobby.epoch && state.lobby==ba_community::lobby.id,
+        "movement prediction Custom lobby changed");
     require(ba::read<Obj>(server,0x140)==state.simulation && state.world &&
         ba::read<uint64_t>(state.simulation,0x1a8)==state.world && state.world==worker::movementWorldId(),
         "movement prediction world changed");
@@ -138,12 +158,16 @@ void beforeReady() {
         // A new worker key proves the host retired the old one-world session.
         // All objects below remain owned by the original server root, not here.
         reset();
-        worker::movementBegin(ba_lan::dedicatedMatchId,static_cast<unsigned>(ba::lanSlot()));
+        worker::movementBegin(ba_lan::dedicatedMatchId,static_cast<unsigned>(ba::lanSlot()),ba_lan::publicMatch);
         require(worker::movementWorldId()==world && worker::movementMatchId()==ba_lan::dedicatedMatchId,
             "movement prediction BEGIN did not bind the current world");
         state.server=server;state.simulation=simulation;state.owner=GetCurrentThreadId();
         state.world=world;state.connectionGeneration=ba_community::generation;
         state.lobbyEpoch=ba_community::lobby.epoch;state.lobby=ba_community::lobby.id;
+        state.publicRoute=ba_lan::publicMatch;
+        if(state.publicRoute) {
+            state.publicTicket=ba_public::current->intent.ticket;state.publicIdentities=ba_lan::publicIdentities;
+        }
         state.match=ba_lan::dedicatedMatchId;state.generation=++generations;state.prepared=true;
         ba::log("Movement prediction ready: generation=%llu match=%s world=%llu slot=%d physicalNext=0 initialCheckpoint=1 BA_RESURRECTION_MOVEMENT_PIPELINE_V1",
             static_cast<unsigned long long>(state.generation),state.match.c_str(),
@@ -172,8 +196,11 @@ void authorityReceived(int frame,uint64_t receivedUs) {
 bool activeForRefresh() {
     if(!worker::movementEnabled() || !state.prepared || !state.pacingStarted || state.failed || state.drained ||
        !ba_lan::running || !ba_lan::worldReady || ba_lan::stopped || ba_lan::matchEnded ||
-       ba_community::abortPending || ba_community::lobby.phase!=ba_community_wire::Running ||
+       ba_community::abortPending ||
        !state.world || state.match.empty() || !worker::movementWorldId() || worker::movementMatchId().empty())return false;
+    if(state.publicRoute) {
+        if(!ba_public::current || ba_public::current->intent.phase!=ba_public_wire::Running)return false;
+    } else if(ba_community::lobby.phase!=ba_community_wire::Running)return false;
     bound(state.server);return true;
 }
 bool canPublish(void* simulation,uint64_t nowUs) {
@@ -204,9 +231,15 @@ static worker::MovementMetrics metrics() {
 static void canonical(Obj server,const Bytes& frame) {
     require(frame.size()>=8 && ba_lan::nextFrame>=0 &&
         ba_lan::u32(frame,0)==static_cast<uint32_t>(ba_lan::nextFrame),"noncontiguous movement authority frame");
-    const size_t first=ba_lan::u32(frame,4),second=frame.size()-8;
-    require(first>0 && first<=65536 && first<second && second-first<=65536,"movement authority player bounds");
-    const std::array<Bytes,2> inputs{{Bytes(frame.begin()+8,frame.begin()+8+first),Bytes(frame.begin()+8+first,frame.end())}};
+    std::vector<Bytes> inputs;
+    if(state.publicRoute) {
+        require(state.publicIdentities.size()==2,"movement public authority roster missing");
+        inputs=ba_public_wire::frame(frame,2).inputs;
+    } else {
+        const size_t first=ba_lan::u32(frame,4),second=frame.size()-8;
+        require(first>0 && first<=65536 && first<second && second-first<=65536,"movement authority player bounds");
+        inputs={Bytes(frame.begin()+8,frame.begin()+8+first),Bytes(frame.begin()+8+first,frame.end())};
+    }
     Root value(message(ba_lan::nextFrame));int total=0;
     for(size_t slot=0;slot<inputs.size();++slot) {
         Root player(ba_lan::parse("InputActionsByPlayer",inputs[slot]));
@@ -214,7 +247,9 @@ static void canonical(Obj server,const Bytes& frame) {
         Obj named=ba::get<Obj>(handle,"playerHandleWithName_");require(named,"movement authority named identity missing");
         Obj identity=ba::get<Obj>(named,"playerHandle_");require(identity,"movement authority raw identity missing");
         require(ba::get<uint64_t>(identity,"steamId_")==slot+1 && ba::get<bool>(identity,"isAliased_") &&
-            !ba::get<uint32_t>(handle,"aiProfileId_"),"movement authority identity differs from assigned human");
+            (state.publicRoute?ba_lan::serialize(handle)==state.publicIdentities[slot]:
+                !ba::get<uint32_t>(handle,"aiProfileId_")),
+            "movement authority identity differs from assigned roster");
         const int count=ba_local::count(ba::get<Obj>(player.get(),"actions_"));
         require(count>=0 && count<=256,"movement authority action count limit");total+=count;
         if(count)ba_local::addItem(ba::get<Obj>(value.get(),"playerInputActions_"),player.get());

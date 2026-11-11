@@ -4,6 +4,17 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+2026-11-11 current priority:server-hosted solo AI prediction for Nick's initial
+test. Source now admits negotiated publicmode1 human0/bot1 and validates/replays
+canonical AI against the frozen world roster.63 focused worker tests pass;
+67 server tests pass/one native opt-in test skipped. Actual publicAI02 now passes
+629 matching full native states,AI correction/replay10+20 and natural Quit at
+475msRTT. Actual03 also passes one original Move:63ms response,437ms before
+authority,exact441/441 command phase,629matching states and natural Quit.
+New paired installers/deployment are next. Old19b5aa5 kits stay Custom-only.
+Old live service stopped;replacement/firewall changes held.
+Details:prediction-server-ai.txt. Full N33/D8 remains OPEN.
+
 N33 ACTIVE:efficient native checkpoints match1200 unmodified combat-control
 frames,six corrections and continued original state. Minimal restore+8 native
 ticks costs1.93..4.97ms;including corrected-head observation3.53..6.65ms.

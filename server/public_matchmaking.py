@@ -17,6 +17,12 @@ from .community import Rejected, require
 from .diagnostics import failure_fields,validation_reason
 
 
+@dataclass(frozen=True)
+class AdmissionCohort:
+    mode: int
+    command_scheduling: bool
+
+
 @dataclass
 class Entry:
     session: object
@@ -25,6 +31,7 @@ class Entry:
     deck: tuple[int, ...]
     entered: float
     deadline: float
+    cohort: AdmissionCohort
     cosmetics: object = None
     full_loadout: bool = False
     offer: str | None = None
@@ -40,6 +47,7 @@ class Offer:
     mode: int
     entries: tuple[Entry, ...]
     deadline: float
+    cohort: AdmissionCohort
     phase: int = q.OFFERED
     ready: set[str] = field(default_factory=set)
     returned: set[str] = field(default_factory=set)
@@ -55,6 +63,16 @@ class PublicMatchmaking:
 
     def busy(self, profile):
         return profile in self.entries
+
+    def admission_cohort(self, session, mode):
+        scheduling = getattr(session.peer, 'command_scheduling', False)
+        require(type(scheduling) is bool, 'invalid public command scheduling admission')
+        if scheduling:
+            require(self.server.experimental_command_scheduling and
+                    getattr(session.peer, 'authenticated_tls', False) is True,
+                    'public arrival commands require enabled negotiated TLS admission')
+            require(mode == 1, 'public arrival commands support server-hosted solo AI mode1 only')
+        return AdmissionCohort(mode, scheduling)
 
     def status(self, profile):
         entry = self.entries.get(profile)
@@ -96,6 +114,7 @@ class PublicMatchmaking:
             require(not self.busy(profile) and session.lobby is None and not session.practicing and session.peer.room is None,
                     'leave the current activity before public matchmaking')
             require(command['ticket'] > session.last_public_ticket, 'public queue ticket was already used')
+            cohort = self.admission_cohort(session, command['mode'])
             require(command['mode'] in self.server.templates and self.server.bot_catalog is not None and
                     self.server.ai_factory is not None, 'server public mode/bot assets unavailable')
             try:
@@ -110,9 +129,11 @@ class PublicMatchmaking:
                 raise Rejected('profile save unavailable') from error
             require(not self.busy(profile) and session.lobby is None and not session.practicing and session.peer.room is None,
                     'activity changed while saving public selection')
+            require(self.admission_cohort(session, command['mode']) == cohort,
+                    'public admission changed while saving selection')
             remaining = command['wait_ms']/1000
             entry = Entry(session, command['ticket'], command['mode'], tuple(deck),
-                          now-(q.FALLBACK_SECONDS-remaining), now+remaining, cosmetics=cosmetics,
+                          now-(q.FALLBACK_SECONDS-remaining), now+remaining, cohort, cosmetics=cosmetics,
                           full_loadout=kind == loadout.ENTER_LOADOUT)
             session.last_public_ticket, session.deck, session.cosmetics = entry.ticket, list(deck), cosmetics
             if entry.full_loadout: session.full_loadout = True
@@ -120,7 +141,8 @@ class PublicMatchmaking:
             self.community.cancel_invites(lambda invite: profile in (invite.sender, invite.target), c.BUSY)
             self.publish(entry, q.WAITING, now=now)
             self.community.publish_presence()
-            self.server.audit('public_queue_entered', profile=profile, ticket=entry.ticket, mode=entry.mode, wait_ms=command['wait_ms'])
+            self.server.audit('public_queue_entered', profile=profile, ticket=entry.ticket, mode=entry.mode,
+                              wait_ms=command['wait_ms'], command_scheduling=cohort.command_scheduling)
             self.maintain(now)
             return
         entry = self.entries.get(profile)
@@ -172,28 +194,41 @@ class PublicMatchmaking:
                 missing = {entry.profile for entry in offer.entries} - offer.ready
                 self.dissolve(offer, 'public proposal acknowledgement timed out', remove=missing)
         for mode, (_, human_slots) in q.MODES.items():
-            while True:
-                waiting = sorted((entry for entry in self.entries.values() if entry.mode == mode and entry.offer is None
-                                  and not entry.session.peer.closed), key=lambda entry: (entry.entered, entry.profile))
-                if not waiting or (len(waiting) < len(human_slots) and now < waiting[0].deadline):
-                    break
-                if self.server.room_count() >= self.server.max_rooms:
-                    for entry in waiting:
-                        if now >= entry.deadline:
-                            self.retire(entry, 'server match capacity unavailable')
-                    self.community.publish_presence()
-                    break
-                members = tuple(waiting[:len(human_slots)])
-                offer = Offer(uuid.uuid4().hex, mode, members, now+self.offer_timeout)
-                self.offers[offer.id] = offer
-                reason = q.SOLO_AI_OFFER if len(members) == 1 else ''
-                for entry in members:
-                    entry.offer = offer.id
-                    self.publish(entry, q.OFFERED, offer=offer.id, reason=reason, now=now)
+            self.offer_waiting(AdmissionCohort(mode, False), human_slots, now)
+            if mode == 1:
+                self.offer_waiting(AdmissionCohort(mode, True), (0,), now)
+
+    def offer_waiting(self, cohort, human_slots, now):
+        # Never infer a queued ticket's partition from mutable connection flags.
+        # Negotiated solo search retains the original fallback deadline even
+        # when multiple experimental clients are waiting.
+        mode = cohort.mode
+        while True:
+            waiting = sorted((entry for entry in self.entries.values() if entry.cohort == cohort
+                              and entry.offer is None and not entry.session.peer.closed),
+                             key=lambda entry: (entry.entered, entry.profile))
+            if not waiting or ((cohort.command_scheduling or len(waiting) < len(human_slots))
+                               and now < waiting[0].deadline):
+                break
+            if self.server.room_count() >= self.server.max_rooms:
+                for entry in waiting:
+                    if now >= entry.deadline:
+                        self.retire(entry, 'server match capacity unavailable')
                 self.community.publish_presence()
-                self.server.audit('public_match_offered', match=offer.id, mode=mode,
-                                  humans=[entry.profile for entry in members],
-                                  tickets=[entry.ticket for entry in members], fallback=len(members) < len(human_slots))
+                break
+            members = tuple(waiting[:len(human_slots)])
+            offer = Offer(uuid.uuid4().hex, mode, members, now+self.offer_timeout, cohort)
+            self.offers[offer.id] = offer
+            reason = q.SOLO_AI_OFFER if len(members) == 1 else ''
+            for entry in members:
+                entry.offer = offer.id
+                self.publish(entry, q.OFFERED, offer=offer.id, reason=reason, now=now)
+            self.community.publish_presence()
+            self.server.audit('public_match_offered', match=offer.id, mode=mode,
+                              humans=[entry.profile for entry in members],
+                              tickets=[entry.ticket for entry in members],
+                              fallback=len(members) < len(q.MODES[mode][1]),
+                              command_scheduling=cohort.command_scheduling)
 
     async def launch(self, offer):
         from .dedicated_server import BotSeat, Room
@@ -203,6 +238,11 @@ class PublicMatchmaking:
             require(self.offers.get(offer.id) is offer and offer.phase == q.PREPARING, 'public proposal retired before launch')
             require(all(self.entries.get(entry.profile) is entry and not entry.session.peer.closed
                         and entry.session.peer.room is None for entry in offer.entries), 'public player left before setup')
+            require(offer.cohort.mode == offer.mode and all(entry.mode == offer.mode and entry.cohort == offer.cohort
+                    and self.admission_cohort(entry.session, entry.mode) == offer.cohort for entry in offer.entries),
+                    'public admission changed before launch')
+            require(not offer.cohort.command_scheduling or (offer.mode == 1 and len(offer.entries) == 1),
+                    'public arrival commands require one genuine solo human')
             count, human_slots = q.MODES[offer.mode]
             humans = dict(zip(human_slots, offer.entries))
             names, bots = {entry.session.peer.name for entry in offer.entries}, []
@@ -216,7 +256,8 @@ class PublicMatchmaking:
             name = 'public_' + offer.id
             require(name not in self.server.rooms, 'public match already launched')
             room = Room(self.server, name, bots=bots, mode=offer.mode, public_match=offer.id,
-                        feedback_peers={slot: entry.session.peer for slot, entry in humans.items()})
+                        feedback_peers={slot: entry.session.peer for slot, entry in humans.items()},
+                        command_scheduling=offer.cohort.command_scheduling)
             self.server.rooms[name], offer.room = room, room
             for slot, entry in humans.items():
                 peer = entry.session.peer

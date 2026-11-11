@@ -395,10 +395,11 @@ def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=Non
             if crypto:
                 files['program/crypto/Generate Certificate.exe']=crypto[0]
                 files['program/crypto/certificate-build.json']=crypto[1]
-        files['QUICKSTART.txt'] = (b'PRIVATE CUSTOM MOVEMENT PREDICTION TEST\r\n\r\n'
+        files['QUICKSTART.txt'] = (b'PRIVATE CUSTOM AND SERVER AI MOVEMENT PREDICTION TEST\r\n\r\n'
             b'Use an independent game copy and install the matching ordinary patch with the included installer.\r\n'
             b'Then use the Battle Aces Prediction Test desktop shortcut created by the installer.\r\n'
             b'Or open Start Prediction Client.cmd inside your selected test game folder.\r\n'
+            b'See PREDICTION-TEST.txt for public1v1 server AI and Custom1v1 setup.\r\n'
             b'Choose the game explicitly: Start Prediction Client.cmd --game "C:\\Games\\Battle Aces"\r\n'
             b'Use program\\runtime\\python.exe -I -B -m tools.prediction_client --help for check/prepare/start.\r\n'
             b'No original game files are included. Keep the normal client for ordinary play.\r\n'

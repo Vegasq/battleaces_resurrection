@@ -174,11 +174,14 @@ class Room:
                    {slot: configured_window for slot in sorted(human_slots)})
         self.input_windows = MappingProxyType(windows)
         self.input_window = max(windows.values())  # Aggregate cap; each human negotiates its own lead.
+        custom_arrival = community_lobby is not None and mode == 1 and not bots
+        public_solo_arrival = (public_match is not None and community_lobby is None and mode == 1 and
+                               self.slots == {0, 1} and human_slots == {0} and self.bots.keys() == {1})
         p.require(type(command_scheduling) is bool and (not command_scheduling or
-                  (server.experimental_command_scheduling and community_lobby is not None and mode == 1 and not bots and
-                   feedback_peers is not None and all(getattr(peer, 'authenticated_tls', False) and
-                   getattr(peer, 'command_scheduling', False) for peer in feedback_peers.values()))),
-                  'arrival command experiment requires negotiated TLS Custom peers')
+                  (server.experimental_command_scheduling and (custom_arrival or public_solo_arrival) and
+                   feedback_peers is not None and all(getattr(peer, 'authenticated_tls', False) is True and
+                   getattr(peer, 'command_scheduling', False) is True for peer in feedback_peers.values()))),
+                  'arrival command experiment requires negotiated TLS Custom peers or public solo AI human0/bot1')
         self.command_scheduling = command_scheduling
         self.command_scheduler, self.command_join_deadline = None, None
         self.command_ready = set()

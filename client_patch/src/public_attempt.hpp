@@ -66,5 +66,12 @@ struct Attempt {
         // retirement makes fallback safe for that same intent again.
         return !cancelled && !assigned && ((!readySent && !committed) || retired);
     }
+    bool ownsServerAiPrediction(uint64_t epoch,const std::string& matchId) const {
+        return epoch && connection==epoch && entered && readySent && committed && assigned &&
+            !cancelled && !retired && mode==1 && phase>=wire::Preparing && phase<=wire::Results &&
+            ticket && seat.ticket==ticket && !match.empty() && match==matchId && seat.match==match &&
+            seat.mode==1 && seat.count==2 && seat.slot==0 && seat.humanMask==1 && seat.deck==deck &&
+            seat.full==full && (!full || seat.cosmetics==cosmetics);
+    }
 };
 }

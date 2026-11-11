@@ -103,7 +103,7 @@ static bool movementRefreshDue(uint64_t generation,uint64_t nowUs,bool capacity)
     return movementRefreshRequests.due(generation,nowUs,capacity,movementOtherReplyUs);
 }
 static bool movementRefreshActive() {
-    return movementPacingRequested() && running && worldReady && !stopped && !matchEnded && !publicMatch &&
+    return movementPacingRequested() && running && worldReady && !stopped && !matchEnded &&
         !ba_community::abortPending && ba_community::online && originalCommands.ready() &&
         ba_prediction_movement::activeForRefresh();
 }
@@ -357,10 +357,9 @@ static void poll() {
                 ba_community::receive(message.type,message.payload);
             }
             originalDeferredBytes=0;
-            ba::log("Original command scheduling negotiated: version=1 customOnly=1 BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1");
+            ba::log("Original command scheduling negotiated: version=1 BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1");
         }
         else if(ba::community() && (type==62 || type==63 || type==67)) {
-            if(originalCommandScheduling())throw std::runtime_error("original command experiment supports Custom1v1 only");
             ba_public::receive(type,payload);
         }
         else if(ba::community() && ba_public::ignoreMatchData() && (type==12 || type==13 || type==14 || type==36 || type==64))continue;
@@ -381,7 +380,7 @@ static void poll() {
         else if(type==12){if(!bootstrap.empty() || payload.empty())throw std::runtime_error("duplicate or empty bootstrap");bootstrap=std::move(payload);if(ba::dedicated())saveReceivedBootstrap(bootstrap);auto h=sha(bootstrap);memcpy(&bootstrapHash,h.data(),8);ba::log("LAN canonical GameData received: %llu bytes hash-prefix=%016llx",static_cast<unsigned long long>(bootstrap.size()),bootstrapHash);}
         else if(type==13){if(!worldReady || !payload.empty() || running)throw std::runtime_error("unexpected LAN start");if(originalCommandScheduling())originalCommands.start(GetTickCount64());running=true;nextFrame=0;presentationClock.reset();if(movementPacingRequested())ba_prediction_movement::started();ba::log("LAN both players ready; synchronized start");}
         else if(type==14){if(!running || frames.size()>=(paceNativeFrames()?64u:ba::dedicated()?inputWindow+4:8))throw std::runtime_error("unexpected LAN frame");const int frame=static_cast<int>(u32(payload,0));if(movementPacingRequested())ba_prediction_movement::authorityReceived(frame,movementPacingNowUs());frames.push_back(std::move(payload));ba_frame_timing::arrival(frame,frames.size());}
-        else if(type==64){if(!publicMatch || !running || frames.size()>=(paceNativeFrames()?64u:inputWindow+4))throw std::runtime_error("unexpected public frame");ba_public_wire::frame(payload,static_cast<unsigned>(publicIdentities.size()));const int frame=static_cast<int>(u32(payload,0));frames.push_back(std::move(payload));ba_frame_timing::arrival(frame,frames.size());}
+        else if(type==64){if(!publicMatch || !running || frames.size()>=(paceNativeFrames()?64u:inputWindow+4))throw std::runtime_error("unexpected public frame");ba_public_wire::frame(payload,static_cast<unsigned>(publicIdentities.size()));const int frame=static_cast<int>(u32(payload,0));if(movementPacingRequested())ba_prediction_movement::authorityReceived(frame,movementPacingNowUs());frames.push_back(std::move(payload));ba_frame_timing::arrival(frame,frames.size());}
         else if(type==255){std::string message(payload.begin(),payload.end());
             if(ba_client_compat::state.serverError(message))ba::log("Client compatibility blocked: persistentOverlay=1 BA_RESURRECTION_CLIENT_REVISION_V1");
             throw std::runtime_error(message.c_str());}

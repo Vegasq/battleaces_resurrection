@@ -314,6 +314,7 @@ class NativeSession:
         self.api, self.arena, self.cooperative = api, arena, cooperative
         self.cooperative_factory = cooperative_factory
         self.worlds, self.next_world = {}, 1
+        self.world_bootstraps, self.canonical_rosters = {}, {}
         self.predictions, self.prediction_adapters, self.prepared_prediction = {}, {}, {}
         self.dirty_worlds = set()
         self.terminal_admitted, self.terminal_masked = {}, {}
@@ -481,6 +482,8 @@ class NativeSession:
             observer.record(key, frame, state, context=context)
 
     def _retire_prediction(self, key):
+        self.canonical_rosters.pop(key, None)
+        self.world_bootstraps.pop(key, None)
         prediction = self.predictions.pop(key, None)
         adapter = self.prediction_adapters.pop(key, None)
         self.prepared_prediction.pop(key, None)
@@ -659,6 +662,7 @@ class NativeSession:
                     key = self.next_world
                     self.next_world += 1
                     self.worlds[key] = world.value
+                    self.world_bootstraps[key] = args[0]
             self._after_call(code)
             if code != 0:
                 if world.value:
@@ -672,6 +676,13 @@ class NativeSession:
         if op == w.Op.SHUTDOWN:
             return 0, b''  # Stream owner performs cleanup before acknowledging.
         world = self._world(args[0])
+        if op == w.Op.CANONICAL_ROSTER:
+            key = args[0]
+            if key in self.dirty_worlds or key in self.predictions or key in self.canonical_rosters:
+                raise HostError('canonical roster must bind once,before prediction/native frames')
+            from .commands import CanonicalRoster
+            self.canonical_rosters[key] = CanonicalRoster.from_game_data(self.world_bootstraps[key])
+            return 0, b''
         if op == w.Op.PREDICTION_BEGIN:
             if args[0] in self.dirty_worlds or args[0] in self.predictions:
                 raise HostError('prediction must begin once,before first native frame')
@@ -703,6 +714,8 @@ class NativeSession:
             ledger = self.command_ledgers.get(key)
             if op == w.Op.LOCAL_BATCH:
                 slot = player_slot(args[2])
+                if key in self.canonical_rosters and slot != 0:
+                    raise CommandLedgerError('canonical AI roster requires local human slot0')
                 if ledger is None:
                     if prediction.received_frame != -1:
                         raise CommandLedgerError('first local batch must precede authority0')
@@ -748,7 +761,10 @@ class NativeSession:
                     from .commands import own_player_body
                     from .prediction import frame_number
                     staged = copy.copy(ledger)
-                    staged.observe_authority(frame_number(args[1]), own_player_body(args[1], ledger.slot))
+                    staged.observe_authority(frame_number(args[1]), own_player_body(
+                        args[1], ledger.slot, roster=self.canonical_rosters.get(args[0])))
+                elif args[0] in self.canonical_rosters:
+                    raise HostError('canonical AI authority requires first local human batch')
                 prediction.enqueue_authority(args[1])  # NO restore or native call here.
                 if ledger is not None:
                     self.command_ledgers[args[0]] = staged
@@ -908,6 +924,8 @@ class NativeSession:
         for world in reversed(tuple(self.worlds.values())):
             attempt('SimDestroyWorld', world)
         self.worlds.clear()
+        self.world_bootstraps.clear()
+        self.canonical_rosters.clear()
         self.dirty_worlds.clear()
         self.bootstrap_identity_views.clear()
         self.active_identity_histories.clear()

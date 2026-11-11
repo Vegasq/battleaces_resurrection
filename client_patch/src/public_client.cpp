@@ -67,6 +67,11 @@ static void finishMenu(Obj front,const char* reason,bool disconnect,bool error=f
 }
 static void fallback(Obj front) {
     require(current && current->intent.mayFallback() && !current->joining,"ambiguous public fallback after READY");
+    if(ba_lan::originalCommandScheduling()) {
+        ba::log("Server AI prediction unavailable: ticket=%llu reason=%s localFallback=0",
+            static_cast<unsigned long long>(current->intent.ticket),current->failure.c_str());
+        finishMenu(front,"server AI prediction requires its online authority",true,true);return;
+    }
     const auto ticket=current->intent.ticket;const int mode=static_cast<int>(current->intent.mode);
     Root controller(current->controller.get());
     Root deck(current->deckSnapshot.get());const auto appearance=current->appearance;
@@ -78,11 +83,11 @@ static void fallback(Obj front) {
 }
 static void start(Obj front,Obj controller,int mode) {
     require(ba::unified() && ba::flag(L"-public-queue-experimental"),"public queue adapter not enabled");
-    if(ba_lan::originalCommandScheduling()) {
-        ba_match_loading::dismissNotice(errorNotice,"Custom-only experiment notice replaced");
-        errorNotice=ba_match_loading::begin(ba_match_loading::Source::Dedicated,"original-command-custom-only",ba_match_loading::Stage::Preparing);
-        ba_match_loading::error(errorNotice,"This experiment supports Custom 1v1 only.");
-        ba::log("Original command public Play rejected: mode=%d customOnly=1 ticketCreated=0",mode);return;
+    if(ba_lan::originalCommandScheduling() && (mode!=1 || soloAiHost()!=ba_solo_ai::Host::Server)) {
+        ba_match_loading::dismissNotice(errorNotice,"Prediction route notice replaced");
+        errorNotice=ba_match_loading::begin(ba_match_loading::Source::Dedicated,"prediction-route",ba_match_loading::Stage::Preparing);
+        ba_match_loading::error(errorNotice,"Use Custom 1v1, or 1v1 with solo_ai_host set to server.");
+        ba::log("Original command public Play rejected: mode=%d supportedServerAI=0 ticketCreated=0",mode);return;
     }
     q::participants(mode);
     if(active() || ba_practice::active()){ba::log("Public Play duplicate ignored while an intent/world is active");return;}
@@ -129,6 +134,8 @@ static bool receive(unsigned char kind,const q::Bytes& bytes) {
     if(kind==q::StateKind) {
         const auto value=q::state(bytes);
         if(!current){require(value.ticket<=lastTicket,"unsolicited public state");return false;}
+        require(!ba_lan::originalCommandScheduling() ||
+            (current->intent.mode==1 && soloAiHost()==ba_solo_ai::Host::Server),"unsupported prediction public intent");
         if(!current->intent.state(ba_community::generation,value))return false;
         ba::log("Public authoritative state: ticket=%llu phase=%u mode=%u match=%s elapsedMs=%u",
             static_cast<unsigned long long>(value.ticket),value.phase,value.mode,value.match.c_str(),value.elapsedMs);
@@ -138,6 +145,12 @@ static bool receive(unsigned char kind,const q::Bytes& bytes) {
     const auto value=q::assignment(bytes,kind==c::MatchLoadout);
     if(!current){require(value.ticket<=lastTicket,"unsolicited public assignment");return false;}
     if(!current->intent.assignment(ba_community::generation,value))return false;
+    if(ba_lan::originalCommandScheduling()) {
+        require(soloAiHost()==ba_solo_ai::Host::Server &&
+            current->intent.ownsServerAiPrediction(ba_community::generation,value.match),
+            "prediction requires the committed human0/bot1 public assignment");
+        ba_lan::originalCommands.assign(value.match,GetTickCount64());
+    }
     require(!ba_lan::welcomed && ba_lan::bootstrap.empty() && ba_lan::dedicatedMatchId.empty(),"public assignment overlaps existing match");
     ba_lan::dedicatedMatchId=value.match;ba_lan::inputWindow=value.inputWindow;ba::dedicatedAssignedSlot=value.slot;
     ba_lan::dedicatedDeck.clear();for(auto unit:value.deck)ba_lan::append32(ba_lan::dedicatedDeck,unit);

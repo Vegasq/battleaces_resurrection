@@ -1,4 +1,5 @@
 #include "public_attempt.hpp"
+#include "../checkpoint/native_worker_wire.hpp"
 #include <cassert>
 #include <iostream>
 using ba_public_attempt::Attempt;
@@ -42,5 +43,37 @@ int main() {
     rejects([&]{appearance.assignment(6,assigned);});assigned.cosmetics=selection.cosmetics;
     auto other=assigned;other.cosmetics.catalog[0]=1;rejects([&]{appearance.assignment(6,other);});
     assert(appearance.assignment(6,assigned));
+    // Use the actual public ENTER/OFFER/READY/commit/assignment transitions.
+    Attempt solo(13,1,deck,0);solo.enter(7);
+    auto event=state(13,q::Offered,"solo");event.mode=1;
+    solo.state(7,event);solo.ready();event.phase=q::Preparing;solo.state(7,event);
+    q::Assignment bot;bot.ticket=13;bot.mode=1;bot.count=2;bot.slot=0;bot.humanMask=1;
+    bot.inputWindow=6;bot.match="solo";bot.deck=deck;
+    assert(!solo.ownsServerAiPrediction(7,"solo"));
+    assert(solo.assignment(7,bot) && solo.ownsServerAiPrediction(7,"solo"));
+    assert(!solo.ownsServerAiPrediction(8,"solo") && !solo.ownsServerAiPrediction(7,"old"));
+    for(unsigned variant=0;variant<17;++variant) {
+        auto changed=solo;
+        switch(variant) {
+            case 0:changed.cancelled=true;break;case 1:changed.retired=true;break;
+            case 2:changed.entered=false;break;case 3:changed.readySent=false;break;
+            case 4:changed.committed=false;break;case 5:changed.assigned=false;break;
+            case 6:changed.mode=5;break;case 7:changed.seat.mode=2;break;
+            case 8:changed.seat.count=4;break;case 9:changed.seat.slot=1;break;
+            case 10:changed.seat.humanMask=3;break;case 11:changed.seat.ticket=12;break;
+            case 12:changed.seat.match="old";break;case 13:changed.seat.deck[0]=99;break;
+            case 14:changed.phase=q::Offered;break;case 15:changed.ticket=0;break;
+            case 16:changed.seat.full=true;break;
+        }
+        assert(!changed.ownsServerAiPrediction(7,"solo"));
+    }
+    event.phase=q::Running;solo.state(7,event);assert(solo.ownsServerAiPrediction(7,"solo"));
+    event.phase=q::Results;solo.state(7,event);assert(solo.ownsServerAiPrediction(7,"solo"));
+    event.phase=q::Retired;solo.state(7,event);assert(!solo.ownsServerAiPrediction(7,"solo"));
+    namespace worker=ba_native_worker_wire;
+    worker::Bytes roster;worker::append64(roster,1);worker::append32(roster,0);
+    const auto request=worker::encodeRequest(76,1,roster);
+    assert(worker::decodeHeader(request.data(),16,false).opcode==76);
+    for(uint8_t op=72;op<76;++op)rejects([&]{worker::encodeRequest(op,1,roster);});
     std::cout << "public client ticket/connection, deadline, stale proposal, cancel and ambiguous READY tests passed\n";
 }

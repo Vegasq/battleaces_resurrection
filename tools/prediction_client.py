@@ -1,4 +1,4 @@
-"""Private portable Custom1v1 prediction client; ordinary launchers stay separate."""
+"""Private prediction for Custom1v1 and public mode1 server AI; separate settings."""
 from __future__ import annotations
 
 import asyncio
@@ -169,12 +169,14 @@ def settings(game):
             raise PackageError('Private prediction settings binding changed')
         return path,value
     value=dict(schema=4,game_directory=str(game),display_name=client.defaults(game)['display_name'],
-        local_profile=LOCAL_PROFILE,server_host=DEFAULT_SERVER,server_port=47623,room='community',fullscreen=True,solo_ai_host='local')
+        local_profile=LOCAL_PROFILE,server_host=DEFAULT_SERVER,server_port=47623,room='community',fullscreen=True,solo_ai_host='server')
     source=game/'.battleaces-resurrection/client-config.json'
     if source.exists():
         public=launcher.read_json(game_file(game,'.battleaces-resurrection/client-config.json'),32768)
         client.local_settings(public,source)
-        for key in ('display_name','server_host','server_port','room','fullscreen','solo_ai_host'):
+        # Fresh prediction settings use server AI independently of the ordinary
+        # client's local-AI preference. Existing private settings above persist.
+        for key in ('display_name','server_host','server_port','room','fullscreen'):
             if key in public:value[key]=public[key]
         if not value['server_host']:value['server_host']=DEFAULT_SERVER
     rc_setup.settings(value,path)
@@ -269,7 +271,7 @@ def check(package,game):
     launcher.native_storage_preflight(client.local_settings(value,path))
     return dict(ready=True,profile=PROFILE,game=str(checked['game']),config=str(path),
         patched_sha256=checked['hashes']['prediction_sha256'],helper_sha256=checked['manifest']['helper_sha256'],
-        server_host=value['server_host'],scope='private Custom1v1 movement prediction; no scripted gameplay')
+        server_host=value['server_host'],scope='private Custom1v1 or public mode1 server AI movement prediction; no scripted gameplay')
 
 
 def start(package,game):

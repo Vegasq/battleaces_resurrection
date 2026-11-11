@@ -1,9 +1,13 @@
-CUSTOM GAME - PRIVATE MOVEMENT PREDICTION TEST
+CUSTOM GAME AND SERVER AI - PRIVATE MOVEMENT PREDICTION TEST
 
-Both players must use this same private installer and its prediction shortcut.
-Use Custom Game -> Invite Friend -> Start. The public Play/1v1 queue is not
-part of this experiment. Try Deck vs AI uses local play and cannot measure
-the online improvement.
+For two-player tests,both players must use this same private installer and its
+prediction shortcut. Use Custom Game -> Invite Friend -> Start.
+For a solo test,use public Play/1v1 with solo_ai_host set to server. This
+private prediction queue waits for its queue deadline,then offers a match
+against server-hosted AI. It does not pair prediction testers with other
+queued humans. Ordinary public1v1 still searches for a human before falling
+back to AI;its existing matchmaking behavior is unchanged.
+Try Deck vs AI stays local. Prediction does not support public2vAI/team modes.
 
 Setup on another Windows PC
 1. Make a separate copy of your supported Battle Aces build37822 game folder.
@@ -14,18 +18,28 @@ Setup on another Windows PC
    The first launch prepares the prediction patch;later launches reuse it.
    The runtime is installed beside the game;the downloaded installer is no
    longer needed. Your existing ordinary desktop shortcut is preserved.
+4. Fresh private settings default to server-hosted solo AI. Existing private
+   settings are preserved. If you previously installed the test launcher,
+   close the game and open this file inside the selected test game folder:
+   .battleaces-resurrection\prediction-client\client-config.json
+   Set "solo_ai_host": "server",preserving the other settings,then launch
+   Battle Aces Prediction Test again. The ordinary client's separate config
+   is not the prediction config and its local-AI preference is unchanged.
 
 The separate server installer is for hosting your own server. It asks for a
 supported game folder and a new empty server folder,then creates Start Server.exe.
-Start that server and enter its reachable IP in BOTH client installers. The
-game port is TCP47623. For the community server,keep134.209.176.39;you do not
+Start it once to create config/host.json,then stop it. Add
+"experimental_command_scheduling": true to that JSON object and restart it
+before connecting prediction clients. Enter its reachable IP in BOTH client
+installers. The game port is TCP47623. For the community server,keep134.209.176.39;you do not
 need to install or start another server. This handoff does not deploy the live host.
 
 What to try
-Invite the other tester in Custom Game and start the match. Build some units,
-select them,and give repeated Move orders. Look for prompt movement after each
-click,steady travel,and any snap when the server catches up. Fight a small
-battle,finish the match,Continue,and try a rematch if convenient. Quit normally.
+Choose public Play/1v1 for a solo server-AI match,or invite the other tester in
+Custom Game and start. Build some units,select them,and give repeated Move and
+Hold orders. Look for prompt movement after each click,steady travel,and any
+snap when the server catches up. Fight a small battle,finish the match,
+Continue,and try another match if convenient. Quit normally.
 The launcher sends no automated gameplay commands and has no timed shutdown.
 
 What this changes

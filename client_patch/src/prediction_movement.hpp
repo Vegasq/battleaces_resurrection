@@ -12,7 +12,7 @@ struct MovementMetrics {int confirmed=-1,predicted=-1,received=-1;uint32_t flags
 struct MovementIdentity {uint32_t army=0,type=0;uint64_t incarnation=0;};
 struct MovementAdmission {int frame=-1;std::map<uint32_t,MovementIdentity> entities;};
 bool movementEnabled();
-void movementBegin(const std::string& match,unsigned slot);
+void movementBegin(const std::string& match,unsigned slot,bool serverAi=false);
 void movementAuthority(const MovementBytes& canonical,const std::string& wireSha);
 MovementMetrics movementMetrics();
 MovementAdmission movementAdmission();

@@ -1,0 +1,87 @@
+SERVER-HOSTED SOLO AI PREDICTION -2026-11-11
+
+Status:ACTUAL SERVER-AI MOVE/REPLAY PASS;PACKAGING/DEPLOYMENT IN PROGRESS.
+Nick's intended first test uses solo_ai_host=server so one human can exercise
+client/server prediction against the real server AI. The frozen19b5aa5 draft
+installers do not support this route;they remain two-human Custom1v1 only.
+The setting chooses AI hosting. It does not enable an unsupported prediction
+route in an older client/server pair.
+
+Implementation
+- Server freezes negotiated scheduling admission before saving loadout and
+  revalidates before launch. Publicmode1's experimental cohort waits the normal
+  fallback deadline and creates one genuine human0 plus native bot1. It never
+  mixes with ordinary queues. Existing ordinary2vAI still seeks a human ally.
+- Human Join/readiness and command scheduling use only the actual human seat.
+  The original native AI producer and exact bot command merge remain unchanged.
+- Client accepts only explicit server-hosted publicmode1 for this experiment,
+  binds the actual committed public ticket/connection/match and frozen roster,
+  and routes public64 through prediction with authority receipt timestamps.
+  Failure does not silently substitute a local-AI game for this online test.
+- Worker control76 freezes exact roster identities from original CreateWorld
+  bytes before prediction BEGIN. Canonical bot input is validated separately;
+  local submission/admission remains strictly human0. World destruction/close
+  retires the roster. The existing Custom path retains its human-only checks.
+
+Authored evidence only
+Server RED reproduced both former Custom-only refusals. New seven-case suite
+and existing public/Custom/AI-boundary tests:68 run,67 pass,one explicitly
+native opt-in skip. Private receipt:local/prediction-server-ai-route01/
+server-green01.json,sha0127e94052c378af1a90930a1814c2c7c92c50a7d3bed1262c2826e78ef2b9cd.
+Worker initial RED reproduced missing roster/opcode support.63 focused worker,
+ledger and reconciliation cases pass,including delayed bot action exact-byte
+replay after restore and changed canonical identity rejection without mutation.
+Private log:local/prediction-server-ai-route01/roster-green04.log.
+Helper89 built successfully with the new public assignment ownership tests.
+Helper90 adds the explicit observation-only publicAI diagnostic without
+activating Custom-only movement/actor fixtures;full build passes with unchanged
+sources,SHA17adebcde11062bf57175f2432538776ea4638981392591ac884508b3b6e2f0e.
+Another42 launcher/profile/public protocol regression tests pass. Exact source,
+test and build bindings:local/prediction-server-ai-route01/source-result01.json.
+
+Actual serverAI02 - PASS
+Helper91 c1b733f7376317908d7291bfc758fdd572f6de72c59bb0fdfc55d153c8c56ee6,
+owned ordinary mode1 map,one genuine human0/native AI1,475ms simulated RTT.
+All629 full parsed client states match the original server simulation. Native
+AI action131 causes one correction/replay10 followed by20 matching continuation
+frames. All prepared bot bytes/canonical/public64/native65 receipts join exactly.
+Nine frames contain non-Join AI actions. Original Build300,canonical build309,
+result/tail/Continue/menu Quit pass. Client/worker and authority exit naturally0;
+retained Jobs3/0/0 and2/0/0;no force;all sources/runtime files unchanged.
+Private report:local/prediction-runtime/server-ai02-receipts/run/verification.json.
+This proves the server-AI path and reconciliation,not human Move response.
+
+Earlier serverAI01 remains FAILED and unchanged. Its game/lifecycle/state parity
+completed,but native65 timestamps were absent because the observer still gated
+that logger to Custom diagnostics. The new explicit serverAI observation path
+now records every accepted65. Old report/raw captures/source snapshot/helper90
+are retained;failed01-preserved.json binds its reportSHA
+bb01d9e9d2032ed83b4fd04597a3fe99d241a90141435e52ba9b2a7b17fd8360.
+
+Actual serverAI03 - PASS
+Helper92 754bbe29f335f669d4eb0da7e83c349154932307d3e1cea1b23684d30a933490,
+same actual public human0/nativebot1 route at475ms simulated RTT. An original
+Move440 after Build300 produces visible Unity movement in63ms,437ms before
+both raw server delivery and accepted native65. Speculative/canonical command
+frames are441/441. Actual submitted72 bytes bind the original67 and unique
+canonical action;all629 full parsed native states match. Independent AI
+correction/replay and20 matching continuation frames also pass. Original
+result/Continue/menu Quit and every retained child/Job end naturally;no force,
+sources and runtime unchanged. The explicit smoke flag is diagnostic only;
+ordinary/private human launchers send no automated commands.
+Private report:local/prediction-runtime/server-ai03-move/run/verification.json.
+The verifier's17 authored controls pass. This is one scripted original Move,
+not physical input or Internet feel acceptance.
+
+Next acceptance
+Prepare the matching test artifacts and refresh the existing N35 handoff.
+Full N33 remains open;
+previous multi-unit and broader input/physical/Internet requirements persist.
+
+Deployment
+Requested upgrade target134.209.176.39. Old service explicitly stopped;observed
+MainPID0,empty ControlGroup,no47623 listener. Unit state failed,not clean Quit.
+No replacement upload/install or new owner-only firewall has been applied.
+Confirmed SSH owner address70.113.101.244. Preserve host data/config/assets/TLS
+when completing the pending deployment. Do not report new test readiness from
+source tests or installer packaging alone. Existing manual games stay reserved.

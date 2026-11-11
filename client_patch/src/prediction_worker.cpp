@@ -140,7 +140,18 @@ static void setup(HMODULE selected) {
         L"--cooperative",cooperative,L"--data-dir",data};
     const bool movementSmoke=ba::flag(L"-prediction-movement-smoke");
     const bool mobileSmoke=ba::flag(L"-prediction-mobile-correction-smoke");
-    if(movementSmoke || mobileSmoke)args.push_back(L"--movement-observe");
+    const bool serverAiObserve=ba::flag(L"-prediction-server-ai-observe");
+    const bool serverAiMove=ba::flag(L"-prediction-server-ai-move-smoke");
+    if(serverAiMove && !serverAiObserve)
+        throw std::runtime_error("server AI Move fixture requires its explicit state observer");
+    if(serverAiObserve && (!movementEnabled() || movementSmoke || mobileSmoke ||
+        !ba::flag(L"-original-command-scheduling-experimental") ||
+        !ba::flag(L"-public-queue-smoke") || ba::argument(L"-public-queue-smoke-mode=","")!="1" ||
+        ba::argument(L"-solo-ai-host=","")!="server"))
+        throw std::runtime_error("server AI state observation requires its explicit owned public mode1 fixture");
+    if(movementSmoke || mobileSmoke || serverAiObserve)args.push_back(L"--movement-observe");
+    if(serverAiObserve)ba::log("Server AI native state observation enabled: BA_RESURRECTION_SERVER_AI_PREDICTION_OBSERVE_V1");
+    if(serverAiMove)ba::log("Server AI original Move fixture enabled: BA_RESURRECTION_SERVER_AI_MOVEMENT_SMOKE_V1");
     std::wstring positionTrace;
     if(ba_command_line::value(ba::arguments(),L"-prediction-movement-observe-position=",positionTrace)) {
         if(!movementSmoke || positionTrace.empty() || positionTrace.size()>64)
@@ -306,12 +317,18 @@ const std::string& movementMatchId() {
     // destruction only changes the integer key;it never invalidates this ref.
     return !s.failed && !s.movementStopped && s.world && s.world==s.movementWorld?s.movementMatch:empty;
 }
-void movementBegin(const std::string& match,unsigned slot) {
+void movementBegin(const std::string& match,unsigned slot,bool serverAi) {
     auto& s=state();std::lock_guard<std::recursive_mutex> hold(s.gate);movementOwner(s,false);
-    if(slot>1 || match.size()!=32 || match.find_first_not_of("0123456789abcdef")!=std::string::npos ||
+    if(slot>1 || (serverAi && slot!=0) || match.size()!=32 || match.find_first_not_of("0123456789abcdef")!=std::string::npos ||
        !ba::flag(L"-original-command-scheduling-experimental") || s.movementWorld==s.world)
         throw std::runtime_error("invalid movement BEGIN context");
     requireActorHook();
+    if(ba::flag(L"-prediction-server-ai-observe") && !serverAi)
+        throw std::runtime_error("server AI state observation requires actual public assignment");
+    if(serverAi) {
+        wire::Bytes roster;wire::append64(roster,s.world);wire::append32(roster,slot);
+        if(!control(s,76,roster).data.empty())throw std::runtime_error("movement canonical roster response differs");
+    }
     wire::Bytes bytes;wire::append64(bytes,s.world);wire::append32(bytes,12);wire::append32(bytes,16u*1024u*1024u);
     const auto response=control(s,64,bytes,30000);
     if(!response.data.empty())throw std::runtime_error("movement BEGIN response differs");

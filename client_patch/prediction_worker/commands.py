@@ -39,11 +39,12 @@ def _integer(value, minimum, maximum, label):
     require(type(value) is int and minimum <= value <= maximum, label)
 
 
-def _identity(raw, slot):
+def _identity_role(raw, slot, *, human):
     named = get_bytes(raw, 1, required=True)
     handle = get_bytes(named, 1, required=True)
     require(get_uint(handle, 1, required=True) == slot + 1 and get_uint(handle, 2) == 1 and
-            get_uint(raw, 2) == 0, 'player identity differs from assigned human slot')
+            ((get_uint(raw, 2) == 0) if human else (0 < get_uint(raw, 2) <= 0xffffffff)),
+            'player identity differs from assigned slot/role')
     for number in (2, 4):
         name = get_bytes(named, number, required=True)
         require(0 < len(name) <= 96 and not any(ord(ch) < 32 for ch in name.decode('utf-8')),
@@ -51,15 +52,56 @@ def _identity(raw, slot):
     return raw
 
 
-def _player(raw, slot):
+def _identity(raw, slot):
+    return _identity_role(raw, slot, human=True)
+
+
+def _player_shape(raw):
     require(type(raw) is bytes and 1 <= len(raw) <= MAX_BODY, 'player body byte limit')
     fields = parse_fields(raw)
     require(all(field.number in (1, 2) and field.wire_type == 2 for field in fields),
             'player body may contain only identity and actions')
-    identity = _identity(get_bytes(raw, 1, required=True), slot)
+    identity = get_bytes(raw, 1, required=True)
     actions = get_repeated_bytes(raw, 2)
     require(len(actions) <= MAX_ACTIONS, 'player action count limit')
     return identity, actions
+
+
+def _player(raw, slot):
+    identity, actions = _player_shape(raw)
+    _identity(identity, slot)
+    return identity, actions
+
+
+@dataclass(frozen=True)
+class CanonicalRoster:
+    """Exact server-AI identities from this world's original CreateWorld bytes.
+
+    Canonical opponent AI input is replayed, never registered as local input.
+    Only the explicit two-army public mode1 human0/bot1 route is supported.
+    """
+    identities: tuple[bytes, bytes]
+
+    @classmethod
+    def from_game_data(cls, raw):
+        config = get_bytes(raw, 1, required=True)
+        require(get_uint(config, 36) == 1, 'canonical AI roster requires public mode1')
+        armies = get_repeated_bytes(config, 2)
+        require(len(armies) == 2, 'canonical AI roster requires two armies')
+        identities = []
+        for slot, army in enumerate(armies):
+            require(get_uint(army, 1) == slot and get_uint(army, 4) == slot,
+                    'canonical AI roster army/alliance differs from assigned slot')
+            players = get_repeated_bytes(army, 2)
+            require(len(players) == 1 and len(players[0]) <= MAX_BODY,
+                    'canonical AI roster requires one bounded identity per army')
+            identities.append(_identity_role(players[0], slot, human=(slot == 0)))
+        return cls(tuple(identities))
+
+    def player_slot(self, raw):
+        identity, _ = _player_shape(raw)
+        require(identity in self.identities, 'canonical identity differs from frozen bootstrap roster')
+        return self.identities.index(identity)
 
 
 def player_slot(raw):
@@ -75,14 +117,16 @@ def player_slot(raw):
     return slot
 
 
-def own_player_body(raw_frame, slot):
+def own_player_body(raw_frame, slot, *, roster=None):
     """Extract own canonical body; reject ambiguous/foreign human identities."""
     _integer(slot, 0, 1, 'Custom human slot must be0/1')
+    require(roster is None or (type(roster) is CanonicalRoster and slot == 0),
+            'canonical AI roster requires own human slot0')
     bodies = get_repeated_bytes(raw_frame, 6)
     require(len(bodies) <= 2, 'Custom authority may contain at most two human players')
     seen, own = set(), b''
     for raw in bodies:
-        current = player_slot(raw)
+        current = player_slot(raw) if roster is None else roster.player_slot(raw)
         require(current not in seen, 'duplicate canonical player identity')
         seen.add(current)
         if current == slot:

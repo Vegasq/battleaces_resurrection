@@ -1,6 +1,16 @@
 BATTLE ACES - CURRENT DELIVERY ROADMAP
 Updated:2026-11-11. ACTIVE. Single current work queue;final release is not accepted.
 
+CURRENT PRIORITY:Nick's first prediction test must run against server-hosted AI
+with solo_ai_host=server. The frozen19b5aa5 PR2 installers support only Custom1v1.
+Actual publicmode1 human0/nativebot1 now passes629full-state comparisons,
+AI correction/replay10+20 and natural lifecycle at475msRTT. Actual03's original
+Move responds in63ms,437ms before authority,with exact441/441 command phase.
+Refreshed installers/deployment are next. See prediction-server-ai.txt.
+The old live service was stopped on request2026-11-11;replacement deployment
+and new owner-only inbound restrictions are held pending this intended route.
+The0.4.0 deployment/reopening paragraph below records the earlier completed delivery.
+
 Nick's requested0.4.0 client/server release is PUBLISHED;matching host deployed
 at134.209.176.39 and game TCP47623 reopened publicly,durable across restart.
 Dashboard47624 remains owner-IP-only. Solo AI defaults to local after human

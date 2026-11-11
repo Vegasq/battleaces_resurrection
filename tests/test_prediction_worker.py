@@ -115,7 +115,8 @@ class CodecTests(unittest.TestCase):
                   64:struct.pack('<QII', 1, 12, 16*1024*1024),
                   65:struct.pack('<Q', 1)+b'frame',66:struct.pack('<Q',1),
                   67:struct.pack('<QQ',1,1)+b'player',68:struct.pack('<Q',1),
-                  69:struct.pack('<Qi',1,0),70:struct.pack('<Q',1),71:struct.pack('<Q',1),127:b''}
+                  69:struct.pack('<Qi',1,0),70:struct.pack('<Q',1),71:struct.pack('<Q',1),
+                  76:struct.pack('<QI',1,0),127:b''}
         self.assertEqual(set(bodies), {int(op) for op in w.WIRE_OPS})
         for op, body in bodies.items():
             encoded = w.encode_request(op, 1, body)

@@ -33,7 +33,7 @@ struct State {
 };
 static State& state(){static State* lifetime=new State;return *lifetime;}
 static void require(bool value,const char* why){actors::require(value,why);}
-static bool enabled(){return ba::flag(L"-prediction-movement-smoke");}
+static bool enabled(){return ba::flag(L"-prediction-movement-smoke") || ba::flag(L"-prediction-server-ai-move-smoke");}
 static int moveDistance() {
     const auto text=ba::argument(L"-prediction-movement-smoke-distance=","8");
     require(text=="8"||text=="48","movement feel distance must be8or48");
@@ -375,8 +375,11 @@ static void tick() {
         if(owner.world!=world||owner.match!=match||!owner.manager||!owner.simulation)return; // Before first publication.
         require(!owner.failed&&owner.thread==GetCurrentThreadId(),"movement feel actor owner is failed/foreign");
         if(ba_lan::matchEnded)return;
+        const bool serverAiMove=ba::flag(L"-prediction-server-ai-move-smoke");
         require(ba::unified()&&ba::community()&&ba::dedicated()&&ba::lan()&&ba_lan::originalCommandScheduling()&&
-            ba_lan::running&&!ba_lan::publicMatch,"movement feel smoke requires negotiated Custom remote match");
+            ba_lan::running && (serverAiMove ? (ba_lan::publicMatch && ba_prediction_movement::state.publicRoute &&
+                ba::flag(L"-prediction-server-ai-observe")) : !ba_lan::publicMatch),
+            "movement feel smoke requires its negotiated Custom or explicit server AI match");
         const auto slotText=ba::argument(L"-prediction-movement-smoke-slot=","0");
         require(slotText=="0"||slotText=="1","movement feel smoke slot must be0or1");
         const int captureEnd=moveDistance()==48?650:600;
@@ -454,15 +457,18 @@ static void registered(uint64_t sequence,int assigned,const std::vector<uint8_t>
 static void authoritative(const std::vector<uint8_t>& raw,const std::string& wireSha) {
     // The dedicated mobile fixture needs the actual accepted65 receipt too.
     // Generic command generation and FEEL state remain gated by enabled/bound.
-    if(!enabled()&&!ba::flag(L"-prediction-mobile-correction-smoke"))return;
+    const bool serverAiObserve=ba::flag(L"-prediction-server-ai-observe");
+    if(!enabled()&&!ba::flag(L"-prediction-mobile-correction-smoke")&&!serverAiObserve)return;
+    require(!serverAiObserve || ba_prediction_movement::state.publicRoute,
+        "server AI authority observation lost its actual public assignment");
     Root frame(ba_lan::parse("InputActions",raw));Obj players=ba::get<Obj>(frame.get(),"playerInputActions_");
-    const int count=ba_local::count(players);require(count>=0&&count<=2,"movement smoke canonical human count differs");
+    const int count=ba_local::count(players);require(count>=0&&count<=2,"movement smoke canonical participant count differs");
     int totalActions=0;
     for(int index=0;index<count;++index) {
         void* args[]={&index};Root player(ba::call(players,"get_Item",1,args));
         totalActions+=ba_local::count(ba::get<Obj>(player.get(),"actions_"));
     }
-    if(totalActions) {
+    if(totalActions || serverAiObserve) {
         require(wireSha.size()==64&&wireSha.find_first_not_of("0123456789abcdef")==std::string::npos,
             "movement smoke accepted authority lacks its actual wire fingerprint");
         // Actual accepted65, still under the same native bridge gate. This

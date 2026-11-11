@@ -292,9 +292,8 @@ class Community:
         require(not session.saving or kind == c.REFRESH, 'profile selection is still saving')
         from . import public_protocol as public
         if kind in public.COMMANDS:
-            require(kind not in (public.ENTER, loadout.ENTER_LOADOUT) or
-                    not getattr(session.peer, 'command_scheduling', False),
-                    'arrival command experiment supports Custom 1v1 only')
+            # Public admission freezes the negotiated cohort before saving the
+            # selection; only its explicit solo-AI cohort permits arrival input.
             return await self.public.apply(session, kind, command, now)
         require(not self.public.busy(profile) or kind == c.REFRESH, 'finish or cancel public matchmaking first')
         if kind == c.PRACTICE:
