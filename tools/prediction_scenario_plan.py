@@ -63,7 +63,9 @@ def validate_terminal_timeline_plan(plan):
 
 def command_extra(plan, index, run):
     from tools.prediction_close_formation_evidence import validate_plan as validate_close_plan
+    from tools.prediction_queued_orders_evidence import validate_plan as validate_queued_plan
     validate_close_plan(plan)
+    validate_queued_plan(plan)
     validate_cohort_survivor_plan(plan)
     validate_expired_click_plan(plan)
     validate_held_click_plan(plan)
@@ -89,6 +91,9 @@ def command_extra(plan, index, run):
             '-prediction-movement-smoke-start-frame='+str(440 if index==plan['move_slot']else 460)]
     if plan.get('close_formation'):
         result.append('-prediction-close-formation-smoke')
+        if index==1:result.append('-prediction-movement-observe-cohort='+plan['native_cohort_spec'])
+    if plan.get('queued_orders'):
+        result.append('-prediction-queued-orders-smoke')
         if index==1:result.append('-prediction-movement-observe-cohort='+plan['native_cohort_spec'])
     if plan.get('actor_correction'):
         result.append('-prediction-actor-correction-smoke')
@@ -146,7 +151,7 @@ def command_extra(plan, index, run):
         result.append('-prediction-movement-smoke-transition-gates='+str(run/'transition-gates'))
     if plan.get('native_position_trace') is not None and index == plan['move_slot']:
         result.append('-prediction-movement-observe-position='+plan['native_position_trace'])
-    if plan.get('publication_source')=='post-original-qpc' or plan.get('mobile_recovery_stall') or plan.get('multi_unit_move') or plan.get('cohort_survivor') or plan.get('close_formation'):
+    if plan.get('publication_source')=='post-original-qpc' or plan.get('mobile_recovery_stall') or plan.get('multi_unit_move') or plan.get('cohort_survivor') or plan.get('close_formation') or plan.get('queued_orders'):
         result.append('-frame-timing-worlds=2')
     if plan['lifecycle'] == 'natural':
         result += ['-native-quit-smoke', '-native-quit-mode=confirm', '-native-quit-gate-smoke',

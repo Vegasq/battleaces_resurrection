@@ -53,9 +53,12 @@ N35 kit/live server unchanged. Details:prediction-multi-unit-move.txt.
 The queued-Move dependency defect now has original native reproduction and a
 source/actual-worker repair:117 authored tests,one real ten-frame correction,
 363 full parsed-state comparisons through deferred command execution+20 and
-natural shutdown. Two-client original-command/render integration remains OPEN;
-this does not update the existing N35 kit or deployed host. Details:
-prediction-queued-orders.txt.
+natural shutdown. Actual72 now PASSES two original client rounds:no premature B,
+exact command/queued bytes,A-bound real replay,eventual B turn+20,continuous
+manual group4,all2888 full state/wire matches and natural lifecycle. This closes
+the named queued-order integration case;broader controls,forced retirement and
+human Internet acceptance remain open. The N35 kit/deployed host are unchanged.
+Details:prediction-queued-orders.txt.
 
 Acceptance is scoped to actual artifacts and observations. A user request may
 be complete without closing its entire parent gate. Historical failures remain

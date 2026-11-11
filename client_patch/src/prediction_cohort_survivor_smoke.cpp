@@ -30,7 +30,7 @@ void requireFlags() {
     if(!enabled())return;
     require(worker::movementEnabled()&&ba::flag(L"-prediction-mobile-correction-smoke")&&ba::flag(L"-lan-smoke")&&
         ba::flag(L"-original-command-scheduling-experimental"),"survivor diagnostic requires its explicit mobile/arrival fixture");
-    for(const auto* flag:{L"-prediction-close-formation-smoke",L"-prediction-cohort-smoke",L"-prediction-movement-smoke",L"-prediction-actor-correction-smoke",
+    for(const auto* flag:{L"-prediction-queued-orders-smoke",L"-prediction-close-formation-smoke",L"-prediction-cohort-smoke",L"-prediction-movement-smoke",L"-prediction-actor-correction-smoke",
         L"-prediction-actor-mirror-smoke",L"-prediction-expired-click-smoke",L"-prediction-held-click-smoke",
         L"-prediction-terminal-timeline-smoke",L"-prediction-mobile-group-intent-smoke",L"-prediction-mobile-group-user-edits-smoke",
         L"-prediction-mobile-recovery-stall-smoke",L"-prediction-mobile-recall-smoke",L"-prediction-mobile-focus-smoke",

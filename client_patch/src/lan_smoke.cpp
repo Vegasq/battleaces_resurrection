@@ -20,6 +20,11 @@ static uint32_t unitAt(Obj list,int index) {
 static void prepare(Obj gameData,int slot) {
     plan=Plan{};
     if((!ba::lan() && !ba::offlinePractice()) || !wcsstr(GetCommandLineW(),L"-lan-smoke"))return;
+    if(ba_prediction_queued_orders::enabled()) {
+        ba_prediction_queued_orders::requireFlags();
+        ba::log("LAN normal-build smoke skipped: queuedOrders=1 originalConcedeUntouched=1");
+        return;
+    }
     if(ba_prediction_close_formation::enabled()) {
         ba_prediction_close_formation::requireFlags();
         ba::log("LAN normal-build smoke skipped: closeFormation=1 originalConcedeUntouched=1");

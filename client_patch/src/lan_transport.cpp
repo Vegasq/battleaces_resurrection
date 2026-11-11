@@ -438,6 +438,8 @@ static Bytes playerInput(Obj server,int& count) {
             ba_prediction_survivor::serialized(command.get(),action.get(),originalCommands.sequence(),nextFrame,static_cast<unsigned>(count));
         if(ba_prediction_close_formation::enabled())
             ba_prediction_close_formation::serialized(command.get(),action.get(),originalCommands.sequence(),nextFrame,static_cast<unsigned>(count));
+        if(ba_prediction_queued_orders::enabled())
+            ba_prediction_queued_orders::serialized(command.get(),action.get(),originalCommands.sequence(),nextFrame,static_cast<unsigned>(count));
         normalizeAction(action.get());ba_local::addItem(output,action.get());++count;}
     while(count<256){Root action(ba_local::dequeue(ba::read<Obj>(server,0x188)));if(!action.get())break;normalizeAction(action.get());ba_local::addItem(output,action.get());++count;}
     Bytes body=serialize(player.get());if(body.size()>65536)throw std::runtime_error("LAN input batch exceeds 64KiB");return body;

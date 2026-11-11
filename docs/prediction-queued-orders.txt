@@ -1,5 +1,5 @@
 BATTLE ACES - QUEUED MOVEMENT DEPENDENCIES
-Reviewed:2026-11-11. N33 remains ACTIVE. Source and native-worker repair PASS;Unity pending.
+Reviewed:2026-11-11. N33 remains ACTIVE. Source, native-worker and two-client Unity repair PASS at the scope below.
 
 PROBLEM AND SOURCE REPAIR
 The local command ledger predicts Move12/Hold14 and waits for server authority
@@ -89,9 +89,59 @@ The parent's inherited generic harness preamble describes its older three-world
 test. The invocation and child define this actual one-world queued-order scope;
 the original report remains unchanged. No1200-frame or three-world claim follows.
 
+ORIGINAL TWO-CLIENT INTEGRATION - ACTUAL72 PASS
+Two real Custom rounds use the ordinary fixture,130/475ms simulated RTT and
+original scripted commands. At130 the guest selects11..14 and assigns group4;
+at290 it intentionally selects11 alone while manual group4 retains all four.
+At300 it freezes the original Single poses,constructs88/queued=false toward A,
+then constructs12/queued=true toward opposite B at302. Original ToProto,67/72,
+command pointers,source identities,target bits and canonical occurrences match.
+The host sends no movement order in this scope. Definitions/globals are unchanged.
+
+The important pending interval starts AFTER B's actual67 registration/assigned
+frame and ends BEFORE BOTH A's raw bridge and successful65 receipt. Seven/eight
+native query records and26/30 render samples prove no premature B movement.
+A is assigned/canonical301/301 in both rounds. B is303/304 in round1 and303/303
+in round2;the first round therefore also covers a real one-frame reschedule.
+A and B are confirmed separately rather than supplied as one complete prefix.
+
+A's own authority causes a genuine301..310 ten-frame replay at physical head310,
+with20 matching native continuations. Unit11's same-head correction is3.150002
+units toward A;the other three units have zero displacement. This is expected
+for deliberately nonpredicted88,not an immediate-response or no-jump claim.
+Both actual canonical/native/render trajectories then turn toward B at349,
+with sustained consecutive displacements through351. Another20 full confirmed
+native continuations follow351. The checker discovers the turn from consecutive
+motion;it does not hardcode the separate control's351 response label or measure
+progress from the old pre-A origin. A shifted authored356 turn is also accepted.
+
+All original actors/tokens/current typed caches/manual-group ownership remain
+continuous through130..420;only the two intentional original selections occur.
+All2888 closed parsed-state hashes and native65/raw-bridge/server wire triples
+match across both clients and both rounds (722 states per client per round).
+Result/Continue/rematch/Leave/original Quit complete. Every owned game/worker
+exits0,naturally,reaped;retained game handles close,game Jobs3/0/0 and authority
+Jobs2/0/0,no forced cleanup or errors. Elapsed217.375s. All1035 source bindings
+and66 runtime/asset files remain unchanged. Fresh global game inventory is empty.
+
+557 combined authored Python tests pass before this run,including eight queued
+evidence groups and ten controller cases. Missing semantic report fields and
+empty pre-A observations now fail the persistence gate. Full helper99 builds
+and runs39 C++ test executables with222 source hashes unchanged;its new standalone
+policy suite has24 positive/negative checks. Only the owned automation copy was
+updated;helper98 and its manifest are backed up.
+
+Original report:local/prediction-runtime/movement72-queued-orders/run/verification.json
+SHA25630091bbbce2ee64ea58bd72f2064baf0122b9bfad6e2157971eec36effde8c28
+Invocation SHA2565eb9edd627bdb3acff40fc94df5821840ee66b46f8fad9a8d19565838372637b
+Helper99 SHA256fca5a67a0dad9b787ac399f80b3141752ffe5b07982a56095e3a954daaca94d9
+Private build/preflight/test receipts:local/queued-move-dependency01/.
+This is an original scripted-constructor/client integration result. Physical
+Shift/button delivery,hidden queue completeness,collision-kernel correctness
+and human Internet feel are not accepted from it. Full N33 remains open.
+
 NEXT
-Qualify the original client command path in two real Unity rounds. Observe
-through400/420 to include the actual deferred B execution plus20frames;the old
-close-formation360 cutoff is insufficient. Reuse both completed native controls.
-Existing N35 installers,
+Reuse the completed queued-order control/worker/client cases. Remaining N33
+work includes forced group/type retirement,broader combined input and correction
+artifacts,plus the existing N35 human Internet feedback. The N35 installers,
 reserved manual games and live server remain unchanged. No new Nick action.

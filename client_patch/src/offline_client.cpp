@@ -25,6 +25,7 @@
 #include "prediction_cohort_smoke.hpp"
 #include "prediction_cohort_survivor_smoke.hpp"
 #include "prediction_close_formation_smoke.hpp"
+#include "prediction_queued_orders_smoke.hpp"
 
 namespace ba_catalog { static void exportOnce();static std::string utf8(void*);static std::string quote(const std::string&); }
 namespace ba_prediction_movement_smoke {
@@ -327,6 +328,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         ba_prediction_cohort::tick();
         ba_prediction_survivor::tick();
         ba_prediction_close_formation::tick();
+        ba_prediction_queued_orders::tick();
         ba_replay_menu::update(front);
         ba_cosmetics::update(front);
         ba_match_search::update(front);
@@ -409,6 +411,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "prediction_cohort_smoke.cpp"
 #include "prediction_cohort_survivor_smoke.cpp"
 #include "prediction_close_formation_smoke.cpp"
+#include "prediction_queued_orders_smoke.cpp"
 #include "lan_audit.cpp"
 #include "telemetry_audit.cpp"
 #include "player_cosmetics.cpp"

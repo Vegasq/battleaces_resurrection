@@ -33,14 +33,16 @@ raw authority,fresh phase301/301,continuous actors/groups/typed caches,real
 remote replay10+20,all2890 native/wire matches and two natural rounds. Original
 failed report stays preserved;the exact Single operand parser correction is
 documented. Reuse this close-group case and its361-frame native baseline.
-Next concrete N33 check:queued-order dependencies. Original engine control
-reproduces an omitted88 predecessor making queued12 start in the wrong direction,
-with up to5.580374units difference. The ledger repair passes117 authored checks;
-actual worker ten-frame replay and363 state comparisons through queued execution
-plus20frames now PASS with natural shutdown. Original client integration is next. See
-prediction-queued-orders.txt. Remaining forced group/type retirement and broader
-combined input stay open,alongside existing N35 Internet feedback. No collision-
-kernel or human feel acceptance follows from scripted close-formation evidence.
+Queued-order dependencies are now fixed and qualified through Actual72. The
+original engine reproduces the old5.580374unit wrong-direction difference;the
+repaired worker passes363 states/ten-frame replay. Two real client rounds now
+prove no premature B after registration and before both A receipts,exact original
+88false/12queued wire,A-bound replay,eventual B turn349..351+20,continuous actors/
+manual group4,all2888 native/wire matches and natural shutdown.557 Python checks
+and39 C++ test executables pass;prediction-queued-orders.txt. Reuse this case.
+Remaining forced group/type retirement,broader combined input/correction artifacts
+and existing N35 Internet feedback stay open. No collision-kernel or human feel
+acceptance follows from these scripted cases.
 
 Nick's requested0.4.0 client/server release is PUBLISHED;matching host deployed
 at134.209.176.39 and game TCP47623 reopened publicly,durable across restart.
@@ -272,10 +274,11 @@ These grouped rows summarize the detailed matrices;they are not a percentage or
 an exact count of every remaining test. DEV.txt remains the owner of user answers.
 
 COMPLETED
-[x] Queued-movement dependency source/worker repair:original native counterexample,
-    immediate Move/Hold controls,117 authored checks,actual ten-frame repair,
-    363 matching states including deferred execution+20,natural worker shutdown.
-    Original Unity command integration remains pending;prediction-queued-orders.txt.
+[x] Queued-movement dependency repair and original Unity integration (Actual72):
+    original counterexample and worker repair;two real client rounds preserve
+    original88/12queued order,no premature B,A-bound replay,eventual B turn+20,
+    continuous manual group4,all2888 state/wire matches and natural shutdown.
+    557 authored Python/39 C++ executable checks;prediction-queued-orders.txt.
 [x] Four-unit close-formation prediction (Actual71,separate file-only reanalysis01):
     every member moves before authority,original group/typed caches continuous
     through real remote replay+20,all2890 native/wire matches,two natural rounds.

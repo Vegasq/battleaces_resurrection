@@ -16,8 +16,11 @@ authority. Qualified cases include selected-actor restoration,group survival
 and canonical purge,original right-click/UI Hold,changing RTT,and four-unit
 close-formation movement through real remote replay. Actual71's separate
 file-only qualification matches2890 native states/wire comparisons and two
-natural rounds;its original parser failure stays preserved. Full source,
-artifact and scope details are in prediction-multi-unit-move.txt,
+natural rounds;its original parser failure stays preserved. Actual72 also closes
+the named queued-order dependency defect through two real clients:exact original
+command order,no premature B,real correction/eventual queued execution+20,
+all2888 state/wire matches and natural shutdown. See prediction-queued-orders.txt.
+Full source,artifact and scope details are in prediction-multi-unit-move.txt,
 prediction-server-ai.txt and the current REMAINING_DELIVERY_PLAN.txt.
 
 Remaining work includes forced group/type retirement,broader combined-input

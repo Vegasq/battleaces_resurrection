@@ -978,7 +978,7 @@ static void tick() {
 static void tick() {
     // The exclusive initial-pair fixture owns its selection and command stages;
     // entering singleton mobile::tick would overwrite that original selection.
-    if(ba_prediction_survivor::enabled()||ba_prediction_close_formation::enabled())return;
+    if(ba_prediction_survivor::enabled()||ba_prediction_close_formation::enabled()||ba_prediction_queued_orders::enabled())return;
     if(context_hold::originalOnly()) {
         try {
             context_hold::originalScope();mobile::tick();

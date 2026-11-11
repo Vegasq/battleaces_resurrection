@@ -10,8 +10,12 @@ causing up to5.580374units opposite-direction difference. Immediate Move/Hold
 replacement controls pass. The source repair preserves per-unit dependencies,
 exact wire/FIFO and whole actions;117 authored tests pass. The actual native
 worker now passes ten-frame repair and363 state comparisons,including deferred
-B execution+20frames,with natural shutdown/saved checkpoint bytes0. Original
-Unity command integration is next. N35/live/manual unchanged;prediction-queued-orders.txt.
+B execution+20frames,with natural shutdown/saved checkpoint bytes0. Actual72 now
+PASSES two original Unity rounds:no premature queued Move,exact88/12queued wire,
+A's genuine10-frame replay,eventual canonical/native/render B turn349..351+20,
+continuous actors/manual group4 and all2888 closed state/wire matches. Allchildren
+quit naturally;source/runtime unchanged.557 combined Python/39 C++ executable
+checks pass. N35/live/manual unchanged;prediction-queued-orders.txt.
 
 2026-11-11 close-formation progress:Actual71's separate file-only qualification
 PASSES all four ordinary Gunbots' original Move in two Custom rounds. Responses
