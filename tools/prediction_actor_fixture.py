@@ -25,15 +25,27 @@ METADATA=MappingProxyType(dict(
     safe_canonical_frames=(152,153,154),baseline_death_frame=155,seed=SEED,
     target=(-69.77999877929688,0.0,-80.8499984741211)))
 _CORE_POSITION=(-103.77999877929688,0.0,-80.8499984741211)
+MIRROR_SEED=20261112
+MIRROR_METADATA=MappingProxyType(dict(METADATA,
+    name='original-gunbot-core-move-mirror-v1',victim_slot=0,victim_core_id=0,
+    attacker_slot=1,escape_physical_frame=150,expected_canonical_frame=151,
+    safe_canonical_frames=(151,),baseline_first_damage_frame=142,baseline_death_frame=153,
+    seed=MIRROR_SEED,target=(69.77999877929688,0.0,80.8499984741211)))
 
 
 def _require(value,message):
     if not value:raise GameDataError('Actor fixture: '+message)
 
 
-def metadata():
+def metadata(mirror=False):
     """Return a fresh JSON-friendly description; no live/native observations."""
-    return {key:list(value)if isinstance(value,tuple)else value for key,value in METADATA.items()}
+    _require(type(mirror) is bool,'mirror option must be Boolean')
+    return {key:list(value)if isinstance(value,tuple)else value for key,value in
+            (MIRROR_METADATA if mirror else METADATA).items()}
+
+
+def mirror_metadata():
+    return metadata(True)
 
 
 def _float32(value):
@@ -58,20 +70,23 @@ class ActorFixtureTemplate(GameTemplate):
         # DedicatedServer supplies a random seed positionally. Override ONLY in
         # this explicit fixture, without changing caller-owned decks or roster.
         _require(kwargs.get('game_mode') in (None,1),'requires Custom1v1 topology')
-        match=super().build_match(roster,decks,SEED,game_name,**kwargs)
+        description=self.fixture_metadata
+        match=super().build_match(roster,decks,description['seed'],game_name,**kwargs)
         _require(all(player.army_id==player.slot and player.ai_profile_id==0 for player in match.roster),
                  'requires two human slots with their ordinary army assignments')
-        _require(1 in match.decks_by_slot[0],'slot0 must choose a legal deck containing Gunbot1')
+        attacker=description['attacker_slot']
+        _require(1 in match.decks_by_slot[attacker],f'slot{attacker} must choose a legal deck containing Gunbot1')
         return match
 
 
-def make_template(base:GameTemplate,assets:Path)->GameTemplate:
+def make_template(base:GameTemplate,assets:Path,*,mirror=False)->GameTemplate:
     """Build a separate explicit fixture; never change base or force a deck.
 
     A whole prepared MatchData, including its gzip/hash fields, comes from the
     normal builder so authority and both clients consume the same bootstrap.
     Assets are existing imported catalog/descriptor inputs, never copied here.
     """
+    _require(type(mirror) is bool,'mirror option must be Boolean')
     _require(isinstance(base,GameTemplate)and not isinstance(base,ActorFixtureTemplate),
              'requires an ordinary source GameTemplate, not an already transformed fixture')
     _require(base.game_mode==1 and base.player_count==2,'requires the original two-army map')
@@ -85,9 +100,11 @@ def make_template(base:GameTemplate,assets:Path)->GameTemplate:
         entity=get_bytes(action,2,required=True)
         _require(get_uint(entity,1)==(3 if index in (0,5) else 19) and
                  get_uint(entity,2)==(0 if index<5 else 1),'initial map entity IDs/types/armies differ')
-    victim=get_bytes(initial[5],2,required=True)
+    description=MIRROR_METADATA if mirror else METADATA
+    victim=get_bytes(initial[description['victim_core_id']],2,required=True)
     position=_position(get_bytes(victim,3,required=True))
-    _require(position==_CORE_POSITION,'original victim Core position differs from the qualified fixture')
+    expected=tuple(-value for value in _CORE_POSITION) if mirror else _CORE_POSITION
+    _require(position==expected,'original victim Core position differs from the qualified fixture')
     _require(get_uint(base.global_config,27)==6*2**32 and get_uint(base.global_config,29)==21474836400,
              'original reveal/delayed-command startup differs')
     entities=[];core_count=0
@@ -105,14 +122,15 @@ def make_template(base:GameTemplate,assets:Path)->GameTemplate:
     global_config=replace_fields(base.global_config,{4:[field_uint(4,7*2**32)],22:[]})
     config=replace_fields(base.game_config,{1:[field_bytes(1,value)for value in entities],
                                            3:[field_bytes(3,global_config)]})
-    spawn=(position[0]+4.0,position[1],position[2])
-    rotation=field_uint(2,int(-math.sqrt(.5)*2**32)&(2**64-1))+field_uint(4,int(math.sqrt(.5)*2**32))
-    create=field_uint(1,1)+field_bytes(3,_position_bytes(spawn))+field_bytes(4,rotation)
+    spawn=(position[0]+(-4.0 if mirror else 4.0),position[1],position[2])
+    rotation=field_uint(2,int((1 if mirror else -1)*math.sqrt(.5)*2**32)&(2**64-1))+field_uint(4,int(math.sqrt(.5)*2**32))
+    create=field_uint(1,1)+(field_uint(2,1)if mirror else b'')+field_bytes(3,_position_bytes(spawn))+field_bytes(4,rotation)
     # Army0 is the protobuf default, matching the proven original fixture bytes.
     extra=field_bytes(2,create)
     raw=replace_fields(base.raw_game_data,{1:[field_bytes(1,config)],
         2:[field_bytes(2,action)for action in (*initial,extra)]})
     fixture=ActorFixtureTemplate(raw,catalog_path=assets/'unit-catalog.json',descriptors_path=assets/'descriptors')
+    if mirror:fixture.fixture_metadata=MIRROR_METADATA
     fixture.set_allowed_entity_ids(base.allowed_entity_ids)
     return fixture
 

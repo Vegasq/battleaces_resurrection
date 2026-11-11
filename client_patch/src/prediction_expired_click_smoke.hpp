@@ -34,7 +34,7 @@ static State& state(){static State* value=new State;return *value;}
 static uint64_t& frontendOrdinal(){static uint64_t value=0;return value;}
 static void frontendUpdate(){require(frontendOrdinal()!=UINT64_MAX,"expired click callback ordinal overflow");++frontendOrdinal();}
 static uint32_t bits(float value){uint32_t result=0;std::memcpy(&result,&value,sizeof(result));return result;}
-static void owned(actors::State& owner,Obj selector) {
+static void owned(actors::State& owner,Obj selector,int victimSlot=1) {
     require(ba::initialThread && GetCurrentThreadId()==ba::initialThread &&
         GetCurrentThreadId()==ba_local::updateThread && owner.thread==GetCurrentThreadId() && !owner.failed &&
         owner.world && owner.world==ba_prediction_worker::movementWorldId() &&
@@ -43,7 +43,8 @@ static void owned(actors::State& owner,Obj selector) {
         "expired click fixture lost its frontend/presentation owner");
     actors::classIs(selector,"Uncapped","UnitSelector");
     actors::field(selector,"_unitManager",0x40);actors::field(selector,"_simulation",0x138);
-    require(ba::lanSlot()==1 && ba::read<Obj>(selector,0x40)==owner.manager->get() &&
+    require((victimSlot==1||(victimSlot==0&&ba_prediction_actor_fixture_smoke::mirrored()))&&
+        ba_prediction_actor_fixture_smoke::validScope()&&ba::lanSlot()==victimSlot && ba::read<Obj>(selector,0x40)==owner.manager->get() &&
         ba::read<Obj>(selector,0x138)==owner.simulation->get(),"expired click fixture selector graph differs");
 }
 static void validateHistory(Obj selector) {
@@ -132,9 +133,10 @@ static int screenDimension(const char* name,uint32_t token,uintptr_t rva,const c
     require(found!=nullptr,"expired click fixture Screen method missing");actors::guard(rva,entry,16);
     Root value(actors::invoke(found,nullptr));actors::classIs(value.get(),"System","Int32");return actors::unbox<int32_t>(value.get());
 }
-static std::pair<float,float> project(actors::State& owner,Obj selector,Obj core) {
-    owned(owner,selector);const auto identity=actors::resident(core);
-    require(identity.entityId==5&&identity.unitType==3&&identity.armyId==1&&
+static std::pair<float,float> project(actors::State& owner,Obj selector,Obj core,uint32_t coreId=5,int victimSlot=1) {
+    owned(owner,selector,victimSlot);const auto identity=actors::resident(core);
+    require(coreId==(victimSlot==0?0u:5u)&&identity.entityId==coreId&&identity.unitType==3&&
+        identity.armyId==static_cast<uint32_t>(victimSlot)&&
         ba_prediction_selection::Context(selector).admitted(core),"expired click fixture HQ target is not admitted");
     Root controller(reference(selector,"_cameraController",0x20,actors::type("Uncapped","CameraController")));
     actors::classIs(controller.get(),"Uncapped","CameraController");

@@ -1024,6 +1024,58 @@ Private evidence:local/prediction-checkpoint-20261111/held-side-generalization01
 held-adapter-side-red01/,held-adapter-side-green01/,held-side-native-control01/;
 local/prediction-runtime/movement51-held-identity-regression/.
 
+Explicit Core0 mirrored client fixture; retained terminal failure
+The test-only --actor-mirror option now reverses the victim/attacker roles and
+uses475/130ms RTT. Ordinary fixtures and Core5 schema1 remain unchanged. Mirror
+schema2 binds local Core0/army0 with exact generic raw-cache fields;it does not
+reinterpret old exact5 fields. The original command constructor retains its
+explicit Normal perspective and original ToProto serialization. The decoded
+target must equal the positive retained native target,and only canonical151 is
+qualified. The transformed full bootstrap matches the retained original-native
+control exactly:ac56c9c09ee2988cf3e504322e6128446c4e189d91c11b0b2ffa3ed0da451433.
+
+Legacy201 Python checks and21 new mirror groups pass. Full helper66 passes with
+201 unchanged source bindings;helper SHA256:
+c0297c31ce29b9d8711fdc9b1f0c756f7a12ad8e44ff7f9fcb55d843ea625945.
+Python source/test receipt109b69c7db6658d554f77990164f7abacbc687ae46e707b2109fa48162972641.
+Only the automated runtime was changed;the manual kit and live host remain as
+before. Static pinned-original ProtocolUtil3dc7430 independently shows that
+Normal0 bypasses both X/Z sign changes before serialization.
+
+Actual52 is FAILED and preserved. The first world's Core0 input log contains
+all14 phases:accepted original Down150,serial7/token1,retained death154,
+prepare/preserve161 and genuine Up/complete165. Those observations are partial
+evidence,not two-world acceptance. The later terminal Concede is submitted at
+physical700 for speculative/canonical709. Worker0's confirmed trace stops at709;
+worker1 reaches728 and returns to the menu. game-0.log records a managed
+NullReferenceException through TimelineEventConfig.Trigger,EventRunner state
+events and UnitManager.ProcessSimulationUpdate. The exact EventContext actor,
+state transition and null object are not observed;do not attribute it to Core0
+or the last logged group member75 merely from adjacent output.
+The frozen-source file-only audit matches1439 actual native state hashes and
+native65 joins,1458 bridge joins and729 complete journal frames;all8 submitted
+batches/actions are conserved. The original actor evaluator verifies the one
+actual canonical151/replay10+20 episode. The unchanged full held evaluator
+refuses the missing second world;only its per-world loop is checked separately.
+Partial proof/final audit SHA256:
+5b3f5f99a75a07ec9de30703d3a51a36bdcd488579f5d88c5d7649863ecd6b10 /
+44cac3976a0338b1f32d1bcbf8dd8c76e6f3f0af8ccd93ecd7d6061397aa2ba2.
+
+The241.281s bounded deadline triggers forced cleanup:games11428/45980 exit92,
+reaped/retained handles closed,Jobs inactive;authority3864 exits naturally0.
+Two private-bridge close attempts report WinError64. Source and installed inputs
+remain unchanged. No natural game/worker shutdown or full held/feel gate passes.
+Original FAILED report SHA256:
+6295230f53896d4589494f481e34e1cb79d1800ea34502f13ebe1f65d2df7ee7.
+File-only preservation source_updates_safe=true,1165 verified archive entries;
+receipt d5f53ac8cff94af9b1fe96338a0673254f4f59fc4a23e82d520a3181b1bdddd4.
+Next:observe the actual terminal timeline owner/transition/null boundary,repair
+the demonstrated lifetime defect,then repeat the changed mirror path. Core0's
+complete two-world Unity gate,naturally removed input,forced groups and broader
+input/render/physical/Internet acceptance remain OPEN. Private evidence:
+local/prediction-checkpoint-20261111/held-side-client-plan01/ and
+local/prediction-runtime/movement52-held-core0-mirror/.
+
 Changing latency
 Owned actual-source tests qualify bounded existing REFRESH/ACK sampling and
 expiry of old RTT samples. Movement05's separate file-only review matches1299

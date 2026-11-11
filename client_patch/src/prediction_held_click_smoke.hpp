@@ -10,6 +10,7 @@ struct State {
     uint64_t world=0,sequence=0,update=0,inputSequence=0,positionUpdate=0,pressUpdate=0,releaseUpdate=0;
     uint64_t originalToken=0,currentToken=0;
     std::string match;
+    int victimSlot=-1;uint32_t expectedCore=UINT32_MAX;
     std::unique_ptr<Root> selector,originalActor,restoredActor;
     unsigned stage=0;
     ULONGLONG focusedAt=0;
@@ -38,14 +39,15 @@ static uint64_t token(actors::State& owner,Obj actor) {
     const auto found=owner.identities.find(actor);return found==owner.identities.end()?0:found->second.incarnation;
 }
 static void owned(actors::State& owner,Obj selector) {
-    utility::owned(owner,selector);auto& s=state();
-    require(!s.failed&&s.world==owner.world&&s.match==owner.match&&s.selector&&s.selector->get()==selector&&
+    utility::owned(owner,selector,fixture_roles::victimSlot());auto& s=state();
+    require(s.victimSlot==fixture_roles::victimSlot()&&s.expectedCore==fixture_roles::coreId()&&
+        fixture_roles::validScope()&&!s.failed&&s.world==owner.world&&s.match==owner.match&&s.selector&&s.selector->get()==selector&&
         !utility::enabled()&&!ba::flag(L"-prediction-mobile-correction-smoke")&&
         ba::flag(L"-prediction-actor-correction-smoke"),"held click fixture owner/flag scope differs");
     require(ba::read<int32_t>(selector,0xa0)==-1&&!ba::read<Obj>(selector,0xa8)&&
         !ba::read<Obj>(selector,0x100),"held click fixture focus/caster became active");
     actors::field(selector,"_castingSet",0x98);
-    require(actors::clickSelectionShape(ba::read<Obj>(selector,0x98),5,3,false),"held click fixture casting scratch is not raw empty");
+    require(actors::clickSelectionShape(ba::read<Obj>(selector,0x98),s.expectedCore,3,false),"held click fixture casting scratch is not raw empty");
 }
 static void validatePositions(Obj selector) {
     Obj vector=actors::type("UnityEngine","Vector2");
@@ -55,7 +57,7 @@ static void validatePositions(Obj selector) {
 }
 static void held(actors::State& owner,Obj selector) {
     owned(owner,selector);auto& s=state();s.last=vm::observe();const auto h=utility::history(selector);
-    require(h.id==5&&h.mode==1&&h.primary&&!h.context&&!h.drag&&s.last.ownedButtonPressed&&
+    require(h.id==s.expectedCore&&h.mode==1&&h.primary&&!h.context&&!h.drag&&s.last.ownedButtonPressed&&
         s.last.selectorPrimaryHeld&&!s.last.selectorContextHeld&&s.last.queuedSequence==2&&
         utility::bits(h.lastUp)==s.lastUpBits&&utility::bits(h.window)==s.windowBits&&
         position(selector,0x14c)==s.currentPosition&&position(selector,0x164)==s.downPosition&&
@@ -72,8 +74,10 @@ static void record(actors::State& owner,Obj selector,int frame,const char* event
     const auto boolean=[](bool value){return value?"true":"false";};
     const auto accepted=owner.inputIntent.accepted();
     std::ostringstream out;
-    out<<"{\"schema\":1,\"event\":\""<<event<<"\",\"sequence\":"<<++s.sequence
-       <<",\"world\":"<<s.world<<",\"match\":\""<<s.match<<"\",\"slot\":1,\"entity\":5,\"unit_type\":3,\"frame\":"<<frame
+    out<<"{\"schema\":"<<(fixture_roles::mirrored()?2:1)<<",\"event\":\""<<event<<"\",\"sequence\":"<<++s.sequence
+       <<",\"world\":"<<s.world<<",\"match\":\""<<s.match<<"\",\"slot\":"<<s.victimSlot<<",\"entity\":"<<s.expectedCore<<",\"unit_type\":3";
+    if(fixture_roles::mirrored())out<<",\"army\":"<<s.victimSlot;
+    out<<",\"frame\":"<<frame
        <<",\"update\":"<<s.update<<",\"update_scope\":\"original_frontend_callback\",\"input_sequence\":"<<s.inputSequence
        <<",\"selector\":\""<<pointer(s.last.selector)<<"\",\"action\":\""<<pointer(s.last.action)
        <<"\",\"control\":\""<<pointer(s.last.control)<<"\",\"device\":\""<<pointer(s.last.device)
@@ -87,10 +91,10 @@ static void record(actors::State& owner,Obj selector,int frame,const char* event
        <<",\"down_position_bits\":"<<positionJson(position(selector,0x164))
        <<",\"reference_position_bits\":"<<positionJson(position(selector,0x12c))
        <<",\"current_ids\":"<<idsJson(selection::selectionIds(currentSet))<<",\"preview_ids\":"<<idsJson(selection::selectionIds(previewSet))
-       <<",\"current_exact5\":"<<boolean(actors::clickSelectionShape(currentSet,5,3,true))
-       <<",\"current_empty\":"<<boolean(actors::clickSelectionShape(currentSet,5,3,false))
-       <<",\"preview_exact5\":"<<boolean(actors::clickSelectionShape(previewSet,5,3,true))
-       <<",\"preview_empty\":"<<boolean(actors::clickSelectionShape(previewSet,5,3,false))
+       <<(fixture_roles::mirrored()?",\"current_exact_entity\":":",\"current_exact5\":")<<boolean(actors::clickSelectionShape(currentSet,s.expectedCore,3,true))
+       <<",\"current_empty\":"<<boolean(actors::clickSelectionShape(currentSet,s.expectedCore,3,false))
+       <<(fixture_roles::mirrored()?",\"preview_exact_entity\":":",\"preview_exact5\":")<<boolean(actors::clickSelectionShape(previewSet,s.expectedCore,3,true))
+       <<",\"preview_empty\":"<<boolean(actors::clickSelectionShape(previewSet,s.expectedCore,3,false))
        <<",\"original_actor\":\""<<pointer(s.originalActor->get())<<"\",\"current_actor\":\""<<pointer(current)
        <<"\",\"original_token\":"<<s.originalToken<<",\"current_token\":"<<currentToken
        <<",\"original_dead\":"<<boolean(ba::read<bool>(s.originalActor->get(),0x160))
@@ -123,24 +127,25 @@ static void tick() {
     require(ba::unified()&&ba::community()&&ba::dedicated()&&ba::lan()&&ba_lan::originalCommandScheduling()&&
         ba_lan::running&&!ba_lan::publicMatch,"held click fixture requires negotiated prediction Custom");
     const int frame=ba::read<int>(owner.simulation->get(),0xac);
-    if(ba::lanSlot()==0) {
-        if(fixture.escapeQueued||frame<152)return;
-        require(frame==152,"held click attacker missed original escape152");escape(owner,selectorFor(owner),frame);return;
+    if(ba::lanSlot()==fixture_roles::attackerSlot()) {
+        if(fixture.escapeQueued||frame<fixture_roles::escapeFrame())return;
+        require(frame==fixture_roles::escapeFrame(),"held click attacker missed original escape frame");escape(owner,selectorFor(owner),frame);return;
     }
-    require(ba::lanSlot()==1,"held click fixture requires exactly two human seats");if(frame<130)return;
+    require(ba::lanSlot()==fixture_roles::victimSlot(),"held click fixture victim seat differs");if(frame<130)return;
     Obj selector=selectorFor(owner);s.update=frontendOrdinal();require(s.update,"held click frontend ordinal missing");
     if(!fixture.setup) {
         require(frame==130,"held click fixture missed regular original setup130");setup(owner,selector,frame);
-        s.world=world;s.match=match;s.selector=std::make_unique<Root>(selector);
+        s.world=world;s.match=match;s.victimSlot=fixture_roles::victimSlot();s.expectedCore=fixture_roles::coreId();
+        s.selector=std::make_unique<Root>(selector);
         s.originalActor=std::make_unique<Root>(fixture.originalCore->get());s.originalToken=token(owner,s.originalActor->get());
         require(s.originalToken,"held click original actor lacks immutable token");
         utility::validateHistory(selector);validatePositions(selector);owned(owner,selector);
         const auto h=utility::history(selector);require(!h.primary&&!h.context&&!h.drag&&h.mode==0,
             "held click fixture starts with a live gesture");
         const Obj currentSet=ba::read<Obj>(selector,0x90),previewSet=ba::read<Obj>(selector,0x88);
-        const bool currentExact=actors::clickSelectionShape(currentSet,5,3,true);
-        const bool previewEmpty=actors::clickSelectionShape(previewSet,5,3,false);
-        const bool previewExact=actors::clickSelectionShape(previewSet,5,3,true);
+        const bool currentExact=actors::clickSelectionShape(currentSet,s.expectedCore,3,true);
+        const bool previewEmpty=actors::clickSelectionShape(previewSet,s.expectedCore,3,false);
+        const bool previewExact=actors::clickSelectionShape(previewSet,s.expectedCore,3,true);
         ba::log("Held setup precheck: world=%llu frame=%d currentExact5=%u previewEmpty=%u previewExact5=%u currentIds=%s previewIds=%s",
             static_cast<unsigned long long>(world),frame,currentExact?1u:0u,previewEmpty?1u:0u,previewExact?1u:0u,
             idsJson(selection::selectionIds(currentSet)).c_str(),idsJson(selection::selectionIds(previewSet)).c_str());
@@ -168,7 +173,7 @@ static void tick() {
             static_cast<unsigned long long>(world),frame,originalAllowed?1u:0u);
         require(originalAllowed,"held click camera refuses original user focus before projection");
         utility::focus(selector);
-        const auto point=utility::project(owner,selector,coreFor(owner));s.x=point.first;s.y=point.second;
+        const auto point=utility::project(owner,selector,coreFor(owner),s.expectedCore,s.victimSlot);s.x=point.first;s.y=point.second;
         const auto receipt=vm::queuePositionButton(s.x,s.y,false);require(receipt.sequence==1&&!receipt.held,"held click position queue differs");
         s.inputSequence=receipt.sequence;s.positionUpdate=s.update;s.last=vm::observe();record(owner,selector,frame,"position_queued");s.stage=2;return;
     }
@@ -184,9 +189,9 @@ static void tick() {
         s.inputSequence=receipt.sequence;s.last=vm::observe();record(owner,selector,frame,"press_queued");s.stage=3;return;
     }
     if(s.stage==3) {
-        s.last=vm::observe();require(frame<=154,"held click original Down missed consume154");
+        s.last=vm::observe();require(frame<=fixture_roles::consumedBy(),"held click original Down missed consume boundary");
         if(!s.last.selectorPrimaryHeld||!s.last.ownedButtonPressed)return;
-        const auto h=utility::history(selector);require(h.id==5&&h.mode==1&&h.primary&&!h.context&&!h.drag,
+        const auto h=utility::history(selector);require(h.id==s.expectedCore&&h.mode==1&&h.primary&&!h.context&&!h.drag,
             "held click original Down did not establish Single/id5");
         s.lastUpBits=utility::bits(h.lastUp);s.windowBits=utility::bits(h.window);
         s.currentPosition=position(selector,0x14c);s.downPosition=position(selector,0x164);s.referencePosition=position(selector,0x12c);
@@ -198,22 +203,22 @@ static void tick() {
         s.pressed=s.last;s.pressUpdate=s.update;held(owner,selector);record(owner,selector,frame,"pressed");s.stage=4;
     }
     if(s.stage==4) {
-        held(owner,selector);if(frame<154)return;require(frame==154,"held click missed hold checkpoint154");
-        require(actors::clickSelectionShape(ba::read<Obj>(selector,0x90),5,3,true)&&
-            actors::clickSelectionShape(ba::read<Obj>(selector,0x88),5,3,true),"held click pre-death raw selection differs");
+        held(owner,selector);if(frame<fixture_roles::heldCheckpoint())return;require(frame==fixture_roles::heldCheckpoint(),"held click missed pre-death hold checkpoint");
+        require(actors::clickSelectionShape(ba::read<Obj>(selector,0x90),s.expectedCore,3,true)&&
+            actors::clickSelectionShape(ba::read<Obj>(selector,0x88),s.expectedCore,3,true),"held click pre-death raw selection differs");
         record(owner,selector,frame,"held_checkpoint");s.stage=5;return;
     }
     if(s.stage==5) {
-        held(owner,selector);require(frame<=156,"held click missed original death156");
+        held(owner,selector);require(frame<=fixture_roles::deathFrame()+1,"held click missed original death boundary");
         Obj old=s.originalActor->get();if(!ba::read<bool>(old,0x160)||ba::read<Obj>(old,0x158))return;
-        require(frame>=155,"held click original death precedes fixture boundary");
+        require(frame>=fixture_roles::deathFrame(),"held click original death precedes fixture boundary");
         const auto retained=actors::units(ba::read<Obj>(owner.manager->get(),0xa0));
         const bool oldRetained=std::find(retained.begin(),retained.end(),old)!=retained.end();
         const Obj currentSet=ba::read<Obj>(selector,0x90),previewSet=ba::read<Obj>(selector,0x88);
-        const bool currentEmpty=actors::clickSelectionShape(currentSet,5,3,false);
-        const bool previewEmpty=actors::clickSelectionShape(previewSet,5,3,false);
-        const bool currentExact=actors::clickSelectionShape(currentSet,5,3,true);
-        const bool previewExact=actors::clickSelectionShape(previewSet,5,3,true);
+        const bool currentEmpty=actors::clickSelectionShape(currentSet,s.expectedCore,3,false);
+        const bool previewEmpty=actors::clickSelectionShape(previewSet,s.expectedCore,3,false);
+        const bool currentExact=actors::clickSelectionShape(currentSet,s.expectedCore,3,true);
+        const bool previewExact=actors::clickSelectionShape(previewSet,s.expectedCore,3,true);
         ba::log("Held death precheck: world=%llu frame=%d retained=%u retainedCount=%zu currentEmpty=%u previewEmpty=%u currentExact5=%u previewExact5=%u currentIds=%s previewIds=%s inputSerial=%llu provenancePhase=%u",
             static_cast<unsigned long long>(world),frame,oldRetained?1u:0u,retained.size(),currentEmpty?1u:0u,
             previewEmpty?1u:0u,currentExact?1u:0u,previewExact?1u:0u,
@@ -232,7 +237,7 @@ static void tick() {
         held(owner,selector);require(frame<=164,"held click restored actor missed164");
         Obj core=coreFor(owner);if(!core)return;
         selection::Context admission(selector);if(!admission.admitted(core))return;
-        require(frame>=158&&actors::resident(core).entityId==5,"held click restored HQ frame/identity differs");
+        require((fixture_roles::mirrored()?frame>fixture.firstDead:frame>=158)&&actors::resident(core).entityId==s.expectedCore,"held click restored HQ frame/identity differs");
         // Resident.incarnation is the canonical logical entity token. A false
         // death recreates presentation while preserving that same identity;
         // pool/recreation evidence, rather than pointer/token inequality, owns
@@ -244,25 +249,25 @@ static void tick() {
     }
     if(s.stage==7) {
         held(owner,selector);require(frame<=164,"held click restored preview missed164");
-        require(actors::clickSelectionShape(ba::read<Obj>(selector,0x90),5,3,s.deathSelectionPreserved),
+        require(actors::clickSelectionShape(ba::read<Obj>(selector,0x90),s.expectedCore,3,s.deathSelectionPreserved),
             "held click current changed its original retained/removal intent before Up");
-        if(!actors::clickSelectionShape(ba::read<Obj>(selector,0x88),5,3,true))return;
+        if(!actors::clickSelectionShape(ba::read<Obj>(selector,0x88),s.expectedCore,3,true))return;
         record(owner,selector,frame,"preview_ready");s.stage=8;return;
     }
     if(s.stage==8) {
         held(owner,selector);if(frame<(std::max)(165,fixture.firstRestored+2))return;
         require(frame<=166,"held click missed real Up queue165/166");
         require(coreFor(owner)==s.restoredActor->get()&&token(owner,s.restoredActor->get())==s.currentToken&&
-            actors::clickSelectionShape(ba::read<Obj>(selector,0x90),5,3,s.deathSelectionPreserved)&&
-            actors::clickSelectionShape(ba::read<Obj>(selector,0x88),5,3,true),"held click lost restored preview before real Up");
+            actors::clickSelectionShape(ba::read<Obj>(selector,0x90),s.expectedCore,3,s.deathSelectionPreserved)&&
+            actors::clickSelectionShape(ba::read<Obj>(selector,0x88),s.expectedCore,3,true),"held click lost restored preview before real Up");
         const auto receipt=vm::queuePositionButton(s.x,s.y,false);require(receipt.sequence==3&&!receipt.held,"held click release queue differs");
         s.inputSequence=receipt.sequence;s.last=vm::observe();record(owner,selector,frame,"release_queued");s.stage=9;return;
     }
     require(s.stage==9,"held click fixture stage differs");s.last=vm::observe();require(frame<=167,"held click actual Up missed167");
     if(s.last.selectorPrimaryHeld||s.last.ownedButtonPressed)return;
-    const auto h=utility::history(selector);require(s.update>s.pressUpdate&&!h.primary&&!h.context&&!h.drag&&h.mode==0&&h.id==5&&
-        actors::clickSelectionShape(ba::read<Obj>(selector,0x90),5,3,true)&&
-        actors::clickSelectionShape(ba::read<Obj>(selector,0x88),5,3,false),"held click real Up did not confirm restored HQ");
+    const auto h=utility::history(selector);require(s.update>s.pressUpdate&&!h.primary&&!h.context&&!h.drag&&h.mode==0&&h.id==s.expectedCore&&
+        actors::clickSelectionShape(ba::read<Obj>(selector,0x90),s.expectedCore,3,true)&&
+        actors::clickSelectionShape(ba::read<Obj>(selector,0x88),s.expectedCore,3,false),"held click real Up did not confirm restored HQ");
     s.released=s.last;s.releaseUpdate=s.update;record(owner,selector,frame,"released");
     vm::ReleaseObservation release;release.pressedSnapshot=s.pressed;release.releasedSnapshot=s.released;
     release.pressUpdate=s.pressUpdate;release.releaseUpdate=s.releaseUpdate;vm::close(release);s.closed=true;

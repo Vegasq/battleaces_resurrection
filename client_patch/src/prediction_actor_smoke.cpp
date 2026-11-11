@@ -5,6 +5,7 @@ namespace ba_prediction_actor_smoke {
 namespace actors=ba_prediction_actors;
 namespace selection=ba_prediction_selection;
 namespace worker=ba_prediction_worker;
+namespace fixture_roles=ba_prediction_actor_fixture_smoke;
 using ba::Obj;
 using ba_local::Root;
 struct State {
@@ -45,7 +46,7 @@ static Obj coreFor(actors::State& owner) {
 static void setup(actors::State& owner,Obj selector,int frame) {
     auto& s=state();Obj core=coreFor(owner);require(core,"actor fixture own Core missing");
     selection::Context admission(selector);require(admission.admitted(core),"actor fixture Core is not confirmed");
-    const auto identity=actors::resident(core);require(identity.entityId==5,"actor fixture victim Core ID differs");
+    const auto identity=actors::resident(core);require(identity.entityId==fixture_roles::coreId(),"actor fixture victim Core ID differs");
     s.entity=identity.entityId;s.originalCore=std::make_unique<Root>(core);
     actors::field(core,"_entityConfig",0x168);
     Obj config=ba::read<Obj>(core,0x168);actors::field(config,"IsHQ",0x2c);
@@ -99,9 +100,13 @@ static void escape(actors::State& owner,Obj selector,int frame) {
     auto& s=state();selection::Context admission(selector);
     auto found=admission.live.find(10);require(found!=admission.live.end(),"actor fixture initial Gunbot10 missing");
     Obj actor=found->second;const auto identity=actors::resident(actor);
-    require(identity.armyId==0&&identity.unitType==1&&admission.admitted(actor),"actor fixture escape source is not confirmed Gunbot1");
+    require(identity.armyId==static_cast<uint32_t>(fixture_roles::attackerSlot())&&identity.unitType==1&&admission.admitted(actor),"actor fixture escape source is not confirmed Gunbot1");
     uint32_t id=identity.entityId,ability=12,unitType=identity.unitType;
-    original::Vec3 target{-69.77999877929688f,0.f,-80.8499984741211f};original::finite(target);
+    original::Vec3 target{-69.77999877929688f,0.f,-80.8499984741211f};
+    // The original ctor stores the explicit Normal perspective; original ToProto
+    // owns serialization. This scripted escape uses canonical map coordinates.
+    if(fixture_roles::mirrored())target={69.77999877929688f,0.f,80.8499984741211f};
+    original::finite(target);
     Root ids(ba::api<Obj(*)(Obj,uintptr_t)>("il2cpp_array_new")(actors::type("System","UInt32"),1));
     require(ids.get(),"actor fixture escape ID array missing");
     std::memcpy(static_cast<unsigned char*>(ids.get())+0x20,&id,sizeof(id));
@@ -130,8 +135,8 @@ static void escape(actors::State& owner,Obj selector,int frame) {
     Obj enqueue=actors::method(server,"EnqueueInputCommand",1,0x06001115,0x3e53530);
     void* commandArgs[]={command.get()};actors::invoke(enqueue,server,commandArgs);
     require(ba_local::count(queue)==before+1,"actor fixture original escape enqueue delta differs");s.escapeQueued=true;
-    ba::log("ACTOR ORDER {\"schema\":1,\"event\":\"original_escape_move\",\"world\":%llu,\"match\":\"%s\",\"army\":0,\"entity\":10,\"unit_type\":1,\"ability\":12,\"frame\":%d,\"tick_ms\":%llu,\"action_sha256\":\"%s\",\"originalCtor\":true,\"physicalUI\":false}",
-        static_cast<unsigned long long>(s.world),s.match.c_str(),frame,static_cast<unsigned long long>(GetTickCount64()),hash.c_str());
+    ba::log("ACTOR ORDER {\"schema\":1,\"event\":\"original_escape_move\",\"world\":%llu,\"match\":\"%s\",\"army\":%d,\"entity\":10,\"unit_type\":1,\"ability\":12,\"frame\":%d,\"tick_ms\":%llu,\"action_sha256\":\"%s\",\"originalCtor\":true,\"physicalUI\":false}",
+        static_cast<unsigned long long>(s.world),s.match.c_str(),fixture_roles::attackerSlot(),frame,static_cast<unsigned long long>(GetTickCount64()),hash.c_str());
 }
 #include "prediction_held_click_smoke.hpp"
 // Separate first-slice mobile fixture. Empty casting scratch/no active caster is
@@ -969,6 +974,7 @@ static void tick() {
 static void tick() {
     if(held_click::enabled()) {
         try {
+            require(fixture_roles::validScope(),"held click mirror flag scope differs");
             require(!expired_click::enabled()&&!ba::flag(L"-prediction-mobile-correction-smoke")&&
                 ba::flag(L"-prediction-actor-correction-smoke"),"held click fixture flags are mutually exclusive");
             held_click::frontendUpdate();held_click::tick();

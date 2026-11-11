@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "prediction_actor_fixture_smoke.hpp"
 
 // Owned-process diagnostic borrowing the Mouse already bound to the owner's
 // original actions. No device is added, removed, made current or reconfigured;
@@ -160,7 +161,8 @@ static Obj ownerGraph(actors::State& owner,Obj selector) {
     require((expired!=held)&&ba::initialThread&&GetCurrentThreadId()==ba::initialThread&&
         GetCurrentThreadId()==ba_local::updateThread&&owner.thread==GetCurrentThreadId()&&!owner.failed&&owner.world&&
         owner.world==ba_prediction_worker::movementWorldId()&&owner.match==ba_prediction_worker::movementMatchId()&&
-        owner.match.size()==32&&owner.manager&&owner.simulation&&ba_prediction_movement::ownsPresentation(owner.simulation->get())&&ba::lanSlot()==1,
+        owner.match.size()==32&&owner.manager&&owner.simulation&&ba_prediction_movement::ownsPresentation(owner.simulation->get())&&
+        ba_prediction_actor_fixture_smoke::validScope()&&ba::lanSlot()==ba_prediction_actor_fixture_smoke::victimSlot(),
         "virtual mouse lost its original frontend/presentation owner");
     actors::classIs(selector,"Uncapped","UnitSelector");Obj server=ba_local::server();actors::classIs(server,"Uncapped","GameServerIntegration");
     require(ba_local::isTarget(server)&&referenceField(server,"_gameSimulation",0x140,actors::type("Uncapped","Simulation"))==owner.simulation->get()&&
@@ -230,6 +232,7 @@ static bool includes(Obj action,Obj expected,ControlScan* scan=nullptr,unsigned 
 }
 struct Session {
     actors::State* owner=nullptr;uint64_t world=0,sequence=0;std::string match;
+    int victimSlot=-1;bool mirror=false;
     bool active=false,closed=false,failed=false,queueUncertain=false,lastHeld=false,sawPress=false,sawRelease=false;
     std::unique_ptr<Root> selector,handler,server,manager,simulation,device,controls[3],references[3],actions[3];
 };
@@ -292,7 +295,9 @@ static void bindingRequire(bool value,unsigned index,const char* condition) {
 }
 static void live(bool audit=false) {
     auto& s=session();require(s.active&&!s.closed&&!s.failed&&s.owner&&s.selector&&s.device,"virtual mouse session unavailable");
-    require(ownerGraph(*s.owner,s.selector->get())==s.handler->get()&&s.owner->world==s.world&&s.owner->match==s.match&&
+    require(s.victimSlot==ba_prediction_actor_fixture_smoke::victimSlot()&&
+        s.mirror==ba_prediction_actor_fixture_smoke::mirrored()&&
+        ownerGraph(*s.owner,s.selector->get())==s.handler->get()&&s.owner->world==s.world&&s.owner->match==s.match&&
         s.owner->manager->get()==s.manager->get()&&s.owner->simulation->get()==s.simulation->get()&&ba_local::server()==s.server->get()&&
         instanceOf(s.device->get(),api().mouse),"virtual mouse retained owner changed");
     // Re-resolve the unique qualifying original Mouse and its getter controls at
@@ -336,6 +341,7 @@ static void begin(actors::State& owner,Obj selector) {
     auto& s=session();require(!s.active&&!s.failed&&(!s.world||s.closed),"virtual mouse previous session was not legally closed");
     Obj handler=ownerGraph(owner,selector);resolve();auto choice=choose(handler);released(selector,choice);
     s=Session{};s.owner=&owner;s.world=owner.world;s.match=owner.match;s.active=true;
+    s.victimSlot=ba_prediction_actor_fixture_smoke::victimSlot();s.mirror=ba_prediction_actor_fixture_smoke::mirrored();
     try {
         s.selector=root(selector);s.handler=root(ownerGraph(owner,selector));s.server=root(ba_local::server());
         s.manager=root(owner.manager->get());s.simulation=root(owner.simulation->get());s.device=std::move(choice.device);

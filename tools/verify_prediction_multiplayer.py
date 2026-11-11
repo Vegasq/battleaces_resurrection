@@ -180,6 +180,9 @@ def prepare(args):
     require(type(expired_click) is bool, 'expired click option must be Boolean')
     held_click = getattr(args, 'held_click', False)
     require(type(held_click) is bool, 'held click option must be Boolean')
+    actor_mirror = getattr(args, 'actor_mirror', False)
+    require(type(actor_mirror) is bool, 'actor mirror option must be Boolean')
+    require(not actor_mirror or held_click, 'actor mirror requires explicit held click')
     require(not (held_click and expired_click), 'held and expired click fixtures are mutually exclusive')
     frames = args.frames if args.frames is not None else (650 if changing_rtt or expired_click or held_click or args.scenario == 'mobile' else 200 if args.scenario == 'startup' else 600)
     actor_correction = bool(getattr(args, 'actor_correction', False))
@@ -200,7 +203,7 @@ def prepare(args):
             move_slot=args.move_slot, rtt_ms=list(args.rtt_ms), changing_rtt=changing_rtt, transition_orders=transition_orders,
             native_position_trace=position_trace, **{key: getattr(args, key, False) for key in EXPIRED_CLICK_MOBILE_FLAGS}))
     if held_click:
-        validate_held_click_plan(dict(held_click=True, actor_correction=actor_correction,
+        validate_held_click_plan(dict(held_click=True, actor_mirror=actor_mirror, actor_correction=actor_correction,
             scenario=args.scenario, lifecycle=args.lifecycle, frames=frames, expected_matches=2 if args.lifecycle == 'natural' else 1,
             move_slot=args.move_slot, rtt_ms=list(args.rtt_ms), changing_rtt=changing_rtt, transition_orders=transition_orders,
             native_position_trace=position_trace, **{key: getattr(args, key, False) for key in EXPIRED_CLICK_MOBILE_FLAGS}))
@@ -278,7 +281,8 @@ def prepare(args):
                          (mobile_caster_lifetime,'-prediction-mobile-caster-lifetime-smoke'),
                          (mobile_ui_cast,'-prediction-mobile-ui-cast-smoke'),
                          (expired_click,'-prediction-expired-click-smoke'),
-                         (held_click,'-prediction-held-click-smoke')):
+                         (held_click,'-prediction-held-click-smoke'),
+                         (actor_mirror,'-prediction-actor-mirror-smoke')):
         require(not enabled or flag.encode('utf-16-le') in helper, 'helper lacks explicit ' + flag)
     required_hooks = prediction_worker.CALL_HOOKS + prediction_actor_repair.CALL_HOOKS
     required_tails = prediction_actor_repair.TAIL_HOOKS
@@ -369,7 +373,7 @@ def prepare(args):
         transition_phase_source='decision' if transition_orders else None,
         changing_pose_clock='sampled_us' if changing_rtt else None,
         publication_source='post-original-qpc' if changing_rtt else None,
-        actor_fixture=mobile_fixture_metadata() if mobile_correction else actor_fixture_metadata() if actor_correction else None,
+        actor_fixture=mobile_fixture_metadata() if mobile_correction else actor_fixture_metadata(actor_mirror) if actor_correction else None,
         rtt_ms=list(args.rtt_ms), surrender_frame=260 if args.scenario == 'startup' else 700,
         move_slot=args.move_slot, expected_matches=2 if args.lifecycle == 'natural' else 1,
         endpoint_scope='ephemeral loopback TLS only; no production endpoint',
@@ -379,6 +383,7 @@ def prepare(args):
         validate_expired_click_plan(invocation)
     if held_click:
         invocation['held_click'] = True
+        if actor_mirror:invocation['actor_mirror'] = True
         validate_held_click_plan(invocation)
     if args.scenario == 'mobile':
         invocation.update(generic_movement_not_exercised=True,
@@ -453,12 +458,28 @@ def validate_expired_click_plan(plan):
 
 
 def validate_held_click_plan(plan):
+    require('actor_mirror' not in plan or type(plan['actor_mirror']) is bool,
+            'prepared actor mirror option must be Boolean')
+    require(not plan.get('actor_mirror') or plan.get('held_click') is True,
+            'actor mirror requires explicit held click')
     require('held_click' not in plan or type(plan['held_click']) is bool,
             'prepared held click option must be Boolean')
     if not plan.get('held_click'):
         return
     require(not plan.get('expired_click'), 'held and expired click fixtures are mutually exclusive')
-    validate_expired_click_plan(dict(plan, expired_click=True))
+    if plan.get('actor_mirror'):
+        require(plan.get('actor_correction') is True and plan.get('scenario') == 'movement' and
+            plan.get('lifecycle') == 'natural' and type(plan.get('frames')) is int and plan['frames'] == 650 and
+            type(plan.get('expected_matches')) is int and plan['expected_matches'] == 2 and
+            type(plan.get('move_slot')) is int and plan['move_slot'] == 0 and plan.get('rtt_ms') == [475,130] and
+            all(type(plan.get(key, False)) is bool and not plan.get(key, False) for key in
+                (*EXPIRED_CLICK_MOBILE_FLAGS, 'changing_rtt', 'transition_orders')) and
+            plan.get('native_position_trace') is None,
+            'actor mirror requires held HQ natural movement650, slot0,475/130ms and no other fixture')
+        require('actor_fixture' not in plan or plan['actor_fixture'] == actor_fixture_metadata(True),
+                'prepared actor mirror metadata changed')
+    else:
+        validate_expired_click_plan(dict(plan, expired_click=True))
 
 
 def verify_prepared(output):
@@ -501,6 +522,8 @@ def command_extra(plan, index, run):
             '-prediction-movement-smoke-start-frame='+str(440 if index==plan['move_slot']else 460)]
     if plan.get('actor_correction'):
         result.append('-prediction-actor-correction-smoke')
+    if plan.get('actor_mirror'):
+        result.append('-prediction-actor-mirror-smoke')
     if plan.get('expired_click'):
         result.append('-prediction-expired-click-smoke')
     if plan.get('held_click'):
@@ -1427,9 +1450,9 @@ def timing_prefix_counts(prefix, frames, *, prediction, complete_delivery_proven
                 complete_delivery_proven=True, synthetic_timing_rows=0)
 
 
-def actor_fixture_metadata():
+def actor_fixture_metadata(mirror=False):
     from tools.prediction_actor_fixture import metadata
-    return metadata()
+    return metadata(mirror)
 
 
 def mobile_fixture_metadata():
@@ -1437,16 +1460,32 @@ def mobile_fixture_metadata():
     return mobile_metadata()
 
 
-def match_template(base, assets, *, actor_correction, mobile_correction=False):
+def match_template(base, assets, *, actor_correction, mobile_correction=False, actor_mirror=False):
     """Transform before DedicatedServer/ProfileStore build any MatchData."""
     require(not (actor_correction and mobile_correction), 'HQ and mobile fixtures are mutually exclusive')
+    require(type(actor_mirror) is bool and (not actor_mirror or actor_correction),
+            'actor mirror requires explicit HQ fixture')
     if mobile_correction:
         from tools.prediction_actor_fixture import make_mobile_template
         return make_mobile_template(base,assets)
     if not actor_correction:
         return base
     from tools.prediction_actor_fixture import make_template
-    return make_template(base, assets)
+    return make_template(base, assets, mirror=True) if actor_mirror else make_template(base, assets)
+
+
+def actor_context_for_match(plan, clients, *, match, events, raw_bodies, run, states, native_states):
+    """Bind the explicit fixture roles to actual client log/wire ownership."""
+    from tools.verify_original_command_scheduling import read_journal
+    fixture=actor_fixture_metadata(plan.get('actor_mirror',False))
+    require(plan.get('actor_fixture') == fixture, 'prepared actor fixture metadata changed')
+    victim,attacker=fixture['victim_slot'],fixture['attacker_slot']
+    return dict(log=clients[victim]['log'],attacker_log=clients[attacker]['log'],match=match,
+        commits=events,raw_bodies=raw_bodies,journal=read_journal(run,match,plan['frames']),
+        bridge_frames=clients[victim]['wire'],canonical_payloads={r['frame']:r['frame_payload_sha256']
+            for r in events if r['event']=='frame_queued' and r.get('match')==match},
+        canonical_states=states[match],native_states=native_states[match],
+        **({'fixture':fixture} if plan.get('actor_mirror') else {}))
 
 
 def actor_native_observation(state, parsed_hash, *, fixture=None):
@@ -1542,9 +1581,10 @@ def actor_escape_evidence(log, *, match, commits, raw_bodies, journal, fixture=N
 
 
 def actor_correction_evidence(log, *, attacker_log, match, commits, raw_bodies, journal,
-                              bridge_frames, canonical_payloads, canonical_states, native_states, worker_states):
-    metadata = actor_fixture_metadata()
-    escape = actor_escape_evidence(attacker_log, match=match, commits=commits, raw_bodies=raw_bodies, journal=journal)
+                              bridge_frames, canonical_payloads, canonical_states, native_states, worker_states, fixture=None):
+    metadata = actor_fixture_metadata() if fixture is None else fixture
+    require(metadata in (actor_fixture_metadata(),actor_fixture_metadata(True)), 'unqualified actor fixture metadata')
+    escape = actor_escape_evidence(attacker_log, match=match, commits=commits, raw_bodies=raw_bodies, journal=journal,fixture=metadata)
     rows = []
     for line in log.splitlines():
         if 'ACTOR CORRECTION ' in line:
@@ -1606,9 +1646,9 @@ def actor_correction_evidence(log, *, attacker_log, match, commits, raw_bodies, 
     for row in native_states:
         core, attacker = row['core'], row['attacker']
         require(row['parsed_state_sha256'] == canonical_states.get(row['frame']) and type(core) is dict and
-                (core.get('id'), core.get('army'), core.get('type')) == (5, 1, 3) and core.get('max_health') == 100 and
-                core.get('current_damage') == (0 if row['frame'] < 144 else 50) and
-                type(attacker) is dict and (attacker.get('id'), attacker.get('army'), attacker.get('type')) == (10, 0, 1) and
+                (core.get('id'), core.get('army'), core.get('type')) == (metadata['victim_core_id'], metadata['victim_slot'], metadata['core_type']) and core.get('max_health') == 100 and
+                core.get('current_damage') == (0 if row['frame'] < metadata.get('baseline_first_damage_frame',144) else 50) and
+                type(attacker) is dict and (attacker.get('id'), attacker.get('army'), attacker.get('type')) == (metadata['attacker_id'], metadata['attacker_slot'], metadata['attacker_type']) and
                 row['game_state'].get('complete') is False,
                 'actual canonical actor timeline does not preserve living victim/Core native identity')
     focus = [re.match(r'^\[(\d+)\] Prediction actor focus cancelled: group=4 ', line) for line in log.splitlines()]
@@ -1620,12 +1660,12 @@ def actor_correction_evidence(log, *, attacker_log, match, commits, raw_bodies, 
         if not stamp:
             continue
         fields = dict(re.findall(r'(\w+)=([^\s]+)', line))
-        if fields.get('match') != match or fields.get('world') != str(world) or fields.get('entity') != '5':
+        if fields.get('match') != match or fields.get('world') != str(world) or fields.get('entity') != str(metadata['victim_core_id']):
             continue
         require(fields.get('actor') is not None and valid_pointer(fields['actor']) and
                 int(fields['actor'], 16) == int(rows[0]['original_actor'], 16) and
                 all(fields.get(key) == value for key, value in {
-                    'oldType':'3', 'oldArmy':'1', 'selectionBatch':'1', 'originalPool':'1',
+                    'oldType':str(metadata['core_type']), 'oldArmy':str(metadata['victim_slot']), 'selectionBatch':'1', 'originalPool':'1',
                     'oldMembershipRemoved':'1', 'retainedHQ':'1'}.items()) and
                 rows[1]['tick_ms'] <= int(stamp[1]) <= rows[2]['tick_ms'],
                 'original retained-HQ pool repair binding differs')
@@ -1688,7 +1728,8 @@ def finalize_held_click_observation(report, plan, *, contexts, worker_states):
             'held click lacks both original actor contexts and the unchanged primary gate')
     episodes = [dict(match=context['match'], **actor_correction_evidence(**context, worker_states=worker_states))
                 for context in contexts]
-    proof = evaluate(contexts[0]['log'], actor_episodes=episodes, expected_matches=matches)
+    proof = evaluate(contexts[0]['log'], actor_episodes=episodes, expected_matches=matches,
+        **({'fixture':plan['actor_fixture']} if plan.get('actor_mirror') else {}))
     proof['actor_correction_episodes'] = episodes
     report['held_click'] = proof
     report['held_click_witness_passed'] = proof['passed']
@@ -1702,6 +1743,7 @@ def held_click_final_gate(plan, report):
     matches = [row.get('match') for row in report.get('matches', [])]
     episodes, actors = proof.get('episodes', []), proof.get('actor_correction_episodes', [])
     return bool(report.get('held_click_witness_passed') is True and proof.get('passed') is True and
+        (not plan.get('actor_mirror') or proof.get('fixture') == actor_fixture_metadata(True)) and
         report.get('actor_correction', {}).get('passed') is True and
         proof.get('original_actor_gate_passed') is True and proof.get('expected_refusal_is_pass') is False and
         proof.get('physical_input_exercised') is False and proof.get('inputsystem_update_serial_observed') is False and
@@ -2446,9 +2488,10 @@ async def run_prepared(output):
         template = GameTemplate.load(assets / 'map-1v1.pb.gz', catalog_path=assets / 'unit-catalog.json',
                                      descriptors_path=assets / 'descriptors')
         template = match_template(template, assets, actor_correction=plan.get('actor_correction', False),
-                                  mobile_correction=plan.get('mobile_correction',False))
+                                  mobile_correction=plan.get('mobile_correction',False),
+                                  **({'actor_mirror':True} if plan.get('actor_mirror') else {}))
         if fixture_active:
-            expected_fixture = mobile_fixture_metadata() if plan.get('mobile_correction') else actor_fixture_metadata()
+            expected_fixture = mobile_fixture_metadata() if plan.get('mobile_correction') else actor_fixture_metadata(plan.get('actor_mirror',False))
             require(plan.get('actor_fixture') == expected_fixture, 'prepared actor fixture metadata changed')
             write(run / 'actor-fixture.json', plan['actor_fixture'])
         server = DedicatedServer(template, ProfileStore(run / 'profiles', template, catalog=CosmeticCatalog(assets)),
@@ -2593,11 +2636,8 @@ async def run_prepared(output):
                             if row['event']=='frame_queued'and row.get('match')==match},bridge_frames=clients[slot]['wire'],
                         native_receipts=native_receipt_rows[slot,match]))
             if plan.get('actor_correction'):
-                actor_context = dict(log=clients[1]['log'], attacker_log=clients[0]['log'], match=first,
-                    commits=events, raw_bodies=raw_bodies, journal=read_journal(run, first, plan['frames']),
-                    bridge_frames=clients[1]['wire'], canonical_payloads={r['frame']:r['frame_payload_sha256']
-                        for r in events if r['event']=='frame_queued' and r.get('match')==first},
-                    canonical_states=states[first], native_states=actor_states[first])
+                actor_context = actor_context_for_match(plan,clients,match=first,events=events,
+                    raw_bodies=raw_bodies,run=run,states=states,native_states=actor_states)
                 if plan.get('expired_click') or plan.get('held_click'):
                     for match in created:
                         click_actor_contexts.append(dict(actor_context, match=match,
@@ -2860,14 +2900,15 @@ async def run_prepared(output):
         if plan['scenario'] == 'movement' and feel_context is not None and 'error' not in report:
             try:
                 if plan.get('actor_correction'):
-                    require(actor_context is not None and 1 in worker_state_rows, 'victim actor native-state file unavailable')
-                    report['actor_correction'] = actor_correction_evidence(**actor_context, worker_states=worker_state_rows[1])
+                    victim=plan['actor_fixture']['victim_slot']
+                    require(actor_context is not None and victim in worker_state_rows, 'victim actor native-state file unavailable')
+                    report['actor_correction'] = actor_correction_evidence(**actor_context, worker_states=worker_state_rows[victim])
                     if plan.get('expired_click'):
                         finalize_expired_click_observation(report, plan, contexts=click_actor_contexts,
-                                                          worker_states=worker_state_rows[1])
+                                                          worker_states=worker_state_rows[victim])
                     if plan.get('held_click'):
                         finalize_held_click_observation(report, plan, contexts=click_actor_contexts,
-                                                       worker_states=worker_state_rows[1])
+                                                       worker_states=worker_state_rows[victim])
                 require(plan['move_slot'] in worker_state_rows, 'selected closed worker native-state file unavailable')
                 report['command_phase']=command_phase(feel_context['rows'],match=feel_context['match'],
                     slot=feel_context['slot'],commits=events)
@@ -3163,6 +3204,8 @@ def main(argv=None):
     parser.add_argument('--move-slot', type=int, choices=(0, 1), default=0)
     parser.add_argument('--actor-correction', action='store_true',
                         help='Explicit original Gunbot Move12/Core5 fixture; both clients use the same authored bootstrap')
+    parser.add_argument('--actor-mirror', action='store_true',
+                        help='With held HQ correction only: explicit Core0 victim/army1 Gunbot10,475/130ms,canonical Move151')
     parser.add_argument('--expired-click', action='store_true',
                         help='With explicit HQ actor correction: already-bound Mouse inside owned process; Single-expired history through both natural650-frame rounds')
     parser.add_argument('--held-click', action='store_true',

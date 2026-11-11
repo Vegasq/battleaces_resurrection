@@ -119,9 +119,12 @@ army1 checks now carry the verified captured local Core identity.16 policy and
 75 actual-source held cases pass;full helper65 binds200 unchanged sources.
 Actual51 requalifies the existing Core5 held episode in both real rounds,
 all2888 native hashes/wire joins and natural shutdown. A separate original-
-native Core0 control proves death153/Move151 escape,but Core0 Unity input/
-recovery remains OPEN. Next:integrate/qualify that mirrored client fixture,
-then the remaining group paths,naturally removed/empty-preview held input and
+native Core0 control proves death153/Move151 escape. Its explicit mirror fixture
+is integrated;Actual52 observes the first fourteen-phase Core0 episode but
+remains FAILED:terminal Concede709 triggers a Unity timeline exception and the
+bounded deadline requires forced cleanup. Core0's two-world gate remains OPEN.
+Next:trace/fix that terminal state-event lifetime path,then qualify both mirror
+rounds,the remaining group paths,naturally removed/empty-preview held input and
 broader input/render behavior. Detailed scopes:prediction-actor-correction.txt.
 Physical/Internet acceptance is open.
 Prediction eligibility remains

@@ -27,6 +27,8 @@ FIELDS = set(('schema', 'event', 'sequence', 'world', 'match', 'slot', 'entity',
     'original_token', 'current_token', 'original_dead', 'original_component', 'focus_group',
     'focus_actor', 'active_caster', 'input_serial', 'accepted_down_serial', 'provenance_phase',
     'originalClockSingle', 'selectionWritesAfterPress', 'physicalUI'))
+MIRROR_FIELDS = (FIELDS - {'current_exact5', 'preview_exact5'}) | {
+    'current_exact_entity', 'preview_exact_entity', 'army'}
 UINT32, UINT64 = 2**32 - 1, 2**64 - 1
 
 
@@ -84,8 +86,16 @@ def records(log):
     return clicks, actors
 
 
-def evaluate(log, *, actor_episodes, expected_matches):
+def evaluate(log, *, actor_episodes, expected_matches, fixture=None):
     """Require both full HQ replay proofs and a balanced real-callback held input."""
+    mirror=False
+    if fixture is not None:
+        from tools.prediction_actor_fixture import metadata
+        require(fixture in (metadata(),metadata(True)), 'unqualified fixture metadata')
+        mirror=fixture==metadata(True)
+    entity,slot=(0,0) if mirror else (5,1)
+    exact='exact_entity' if mirror else 'exact5'
+    fields=MIRROR_FIELDS if mirror else FIELDS
     require(type(expected_matches) is list and len(expected_matches) == 2 and
         all(type(match) is str and re.fullmatch('[a-f0-9]{32}', match) for match in expected_matches) and
         len(set(expected_matches)) == 2, 'two ordered actual matches required')
@@ -109,12 +119,14 @@ def evaluate(log, *, actor_episodes, expected_matches):
             'missing, duplicate or reordered held-click phase')
         require([row.get('event') for _, row in actor] == list(ACTOR_EVENTS) and
             [row for _, row in actor] == episode.get('rows') and
-            all(row.get('world') == world and row.get('match') == match for _, row in actor),
+            all(row.get('world') == world and row.get('match') == match and
+                row.get('entity') == entity and row.get('army') == slot and row.get('unit_type') == 3 for _, row in actor),
             'full HQ proof differs from retained source/world')
         for row in rows:
-            require(set(row) == FIELDS and integer(row['schema'], 1, 1) and
+            require(set(row) == fields and integer(row['schema'], 2 if mirror else 1, 2 if mirror else 1) and
                 integer(row['world'], world, world) and row['match'] == match and
-                integer(row['slot'], 1, 1) and integer(row['entity'], 5, 5) and integer(row['unit_type'], 3, 3) and
+                integer(row['slot'], slot, slot) and integer(row['entity'], entity, entity) and integer(row['unit_type'], 3, 3) and
+                (not mirror or integer(row['army'],0,0)) and
                 integer(row['frame'], 130, 167) and integer(row['update'], 1) and
                 integer(row['input_sequence'], 0, 3) and row['update_scope'] == 'original_frontend_callback' and
                 row['input_source'] == 'bound_existing_mouse' and row['physicalUI'] is False and
@@ -122,7 +134,7 @@ def evaluate(log, *, actor_episodes, expected_matches):
                 'typed source/schema or no-reselection receipt differs')
             require(integer(row['click_id'], 0, UINT32) and integer(row['mode'], 0, 2) and
                 all(type(row[key]) is bool for key in ('primary', 'context', 'drag', 'input_closed',
-                    'current_exact5', 'current_empty', 'preview_exact5', 'preview_empty',
+                    'current_'+exact, 'current_empty', 'preview_'+exact, 'preview_empty',
                     'original_dead', 'original_component')),
                 'typed original state differs')
             require(integer(row['original_token'], 1) and integer(row['current_token']) and
@@ -141,22 +153,31 @@ def evaluate(log, *, actor_episodes, expected_matches):
                 require(type(row[key]) is list and len(row[key]) <= 1 and
                     all(integer(value, 0, UINT32) for value in row[key]), 'raw membership ID shape differs')
                 stem = key[:-4]
-                require((row[key] == [5] and row[stem + '_exact5'] is True and row[stem + '_empty'] is False) or
-                    (row[key] == [] and row[stem + '_exact5'] is False and row[stem + '_empty'] is True),
+                require((row[key] == [entity] and row[stem + '_'+exact] is True and row[stem + '_empty'] is False) or
+                    (row[key] == [] and row[stem + '_'+exact] is False and row[stem + '_empty'] is True),
                     'raw membership lacks exact all+typed cache proof')
             now, last, _ = (single(row[key]) for key in ('now_bits', 'last_up_bits', 'window_bits'))
             require(now >= last and row['update'] >= previous_update and now >= previous_time,
                 'original frontend ordinal/Single clock regressed')
             previous_update, previous_time = row['update'], now
         require(all(b['frame'] >= a['frame'] for a, b in zip(rows, rows[1:])), 'native frame regressed')
-        require(rows[0]['frame'] == rows[1]['frame'] == 130 and rows[2]['frame'] in (148,149) and
+        if mirror:
+            finite=(rows[0]['frame'] == rows[1]['frame'] == 130 and rows[2]['frame'] in (148,149) and
+                rows[3]['frame'] == rows[4]['frame'] in (150,151) and rows[4]['frame'] <= rows[5]['frame'] <= 152 and
+                rows[6]['frame'] == 152 and rows[7]['frame'] in (153,154) and rows[7]['frame'] < rows[8]['frame'] <= 164 and
+                rows[8]['frame'] <= rows[9]['frame'] <= 164 and rows[10]['frame'] in (165,166) and
+                rows[10]['frame'] >= rows[8]['frame'] + 2 and rows[10]['frame'] <= rows[11]['frame'] <= 167 and
+                rows[11]['frame'] == rows[12]['frame'] == rows[13]['frame'] and rows[13]['frame'] >= rows[8]['frame'] + 2)
+        else:
+            finite=(rows[0]['frame'] == rows[1]['frame'] == 130 and rows[2]['frame'] in (148,149) and
             rows[3]['frame'] == rows[4]['frame'] in (150,151) and rows[4]['frame'] <= rows[5]['frame'] <= 154 and
             rows[6]['frame'] == 154 and rows[7]['frame'] in (155,156) and 158 <= rows[8]['frame'] <= 164 and
             rows[8]['frame'] <= rows[9]['frame'] <= 164 and rows[10]['frame'] in (165,166) and
             rows[10]['frame'] >= rows[8]['frame'] + 2 and
             rows[10]['frame'] <= rows[11]['frame'] <= 167 and
             rows[11]['frame'] == rows[12]['frame'] == rows[13]['frame'] and
-            rows[13]['frame'] >= rows[8]['frame'] + 2, 'finite setup/press/death/restore/real-Up frame contract differs')
+            rows[13]['frame'] >= rows[8]['frame'] + 2)
+        require(finite, 'finite setup/press/death/restore/real-Up frame contract differs')
         require([row['input_sequence'] for row in rows] == [0,0,1,1,2,2,2,2,2,2,3,3,3,3] and
             rows[3]['update'] > rows[2]['update'] and rows[5]['update'] > rows[4]['update'] and
             rows[11]['update'] > rows[10]['update'] and rows[11]['update'] == rows[12]['update'] == rows[13]['update'],
@@ -169,9 +190,9 @@ def evaluate(log, *, actor_episodes, expected_matches):
             all(row['owned_button'] is None and row['ownership_scope'] == 'retained_scalar' and
                 row['input_closed'] is True for row in rows[12:]), 'actual borrowed-button/close boundary differs')
         require(all(row['primary'] is False and row['mode'] == 0 for row in rows[:5] + rows[11:]) and
-            all(row['primary'] is True and row['mode'] == 1 and row['click_id'] == 5 for row in rows[5:11]) and
+            all(row['primary'] is True and row['mode'] == 1 and row['click_id'] == entity for row in rows[5:11]) and
             all(row['context'] is False and row['drag'] is False for row in rows) and
-            all(row['click_id'] == 5 for row in rows[11:]), 'original held Single/id5 or final Up differs')
+            all(row['click_id'] == entity for row in rows[11:]), 'original held Single/identity or final Up differs')
         history = tuple(rows[5][key] for key in ('click_id','mode','last_up_bits','window_bits'))
         require(all(tuple(row[key] for key in ('click_id','mode','last_up_bits','window_bits')) == history
             for row in rows[5:11]), 'held history was cleared/refreshed before real Up')
@@ -184,20 +205,20 @@ def evaluate(log, *, actor_episodes, expected_matches):
         # already preview this HQ before the new position event is delivered.
         # Every raw preview still needs exact all+typed empty-or-HQ proof above;
         # the observed new position and every press require HQ, never empty.
-        require(all(row['current_ids'] == [5] for row in rows[:3]) and
-            all(row['current_ids'] == row['preview_ids'] == [5] for row in rows[3:5]) and
-            all(row['current_ids'] == row['preview_ids'] == [5] for row in rows[5:7]) and
-            all(row['current_ids'] == [5] and row['preview_ids'] == [] for row in rows[11:]),
+        require(all(row['current_ids'] == [entity] for row in rows[:3]) and
+            all(row['current_ids'] == row['preview_ids'] == [entity] for row in rows[3:5]) and
+            all(row['current_ids'] == row['preview_ids'] == [entity] for row in rows[5:7]) and
+            all(row['current_ids'] == [entity] and row['preview_ids'] == [] for row in rows[11:]),
             'raw hover/press/real-Up selection stages differ')
         death = rows[7]
-        if death['current_ids'] == death['preview_ids'] == [5] and death['provenance_phase'] == 1:
+        if death['current_ids'] == death['preview_ids'] == [entity] and death['provenance_phase'] == 1:
             variant = PRESERVED
-            require(all(row['current_ids'] == row['preview_ids'] == [5] and row['provenance_phase'] == 1
+            require(all(row['current_ids'] == row['preview_ids'] == [entity] and row['provenance_phase'] == 1
                 for row in rows[7:11]), 'preserved-set variant changed numeric sets or held provenance')
         elif death['current_ids'] == death['preview_ids'] == [] and death['provenance_phase'] == 3:
             variant = NATURAL_REMOVED
             require(all(row['current_ids'] == [] and row['provenance_phase'] == 3 for row in rows[7:11]) and
-                all(row['preview_ids'] == [5] for row in rows[9:11]),
+                all(row['preview_ids'] == [entity] for row in rows[9:11]),
                 'tracked-removal variant reselected current before real Up or lost removal provenance')
         else:
             require(False, 'death needs both preserved typed sets/Held or both empty sets/tracked natural removal')
@@ -231,5 +252,5 @@ def evaluate(log, *, actor_episodes, expected_matches):
             original_token=original_token, restored_token=restored_token))
     return dict(passed=True, episodes=result, original_actor_gate_passed=True,
         physical_input_exercised=False, inputsystem_update_serial_observed=False,
-        expected_refusal_is_pass=False,
+        expected_refusal_is_pass=False, **({'fixture':fixture} if mirror else {}),
         scope='Bound existing process Mouse held through original HQ death/recreation and real Up in both independently qualified HQ correction episodes. Each world retains either intact numeric sets with Held provenance or exact tracked natural removal followed by preview recovery; this evaluator grants no permission for unqualified input and does not accept physical/Internet feel.')

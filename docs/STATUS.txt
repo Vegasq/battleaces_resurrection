@@ -150,7 +150,12 @@ using the exact accepted local-Core identity,raw caches and canonical token.
 16 policy/75 actual-source held cases and full helper65 pass,with200 unchanged
 bindings. Actual51 requalifies Core5 through both real held episodes and Up,
 all2888 native hashes/wire joins and natural shutdown. Original-native Core0
-control proves death153/Move151 escape;actual Core0 Unity is still pending.
+control proves death153/Move151 escape. Explicit mirror support,21 new Python
+groups and full201-binding helper66 pass. Actual52 observes one complete Core0
+held episode,but remainsFAILED:terminal Concede709 hits a Unity timeline
+NullReferenceException,then the241.281s deadline forces cleanup. Sources/inputs
+are unchanged;the exact failing timeline owner/null object is not yet observed.
+Two-world Core0 and normal terminal shutdown remain unqualified in that run.
 No full-feature or physical/Internet closure from these scoped results.
 Full_feature_accepted remainsfalse. See
 prediction-multiplayer-movement.txt. Live/usual-client files remain unchanged.
