@@ -1,5 +1,5 @@
 BATTLE ACES - RELEASE ACCEPTANCE
-Reviewed:2026-11-08. FINAL RELEASE:NOT ACCEPTED.
+Reviewed:2026-11-11. FINAL RELEASE:NOT ACCEPTED.
 Work queue:REMAINING_DELIVERY_PLAN.txt. Latest results:STATUS.txt.
 Exact prior checklist/history:history/2026-10-24/RELEASE_ACCEPTANCE.txt.
 
@@ -21,6 +21,13 @@ group/cache continuity through real late replay. All2890native/wire matches
 and two natural rounds pass. Original67/68 remainFAILED;this scripted scope
 does not close physical/Internet or broader group/type/collision gates.
 Details:prediction-multi-unit-move.txt. The N35 kit/live host are unchanged.
+
+Actual69 also PASSES selected-pair continuity through one member's false death
+and restoration,with a continuous surviving actor and no reselection. Both
+members respond in53..63ms,437..438ms before authority;all2892 native
+state/wire comparisons,two rounds and natural shutdown pass. This adds the
+named selected-survivor case;forced retirement/type-change,collision,physical
+input and human Internet acceptance remain open. Same focused evidence file.
 
 Acceptance is scoped to actual artifacts and observations. A user request may
 be complete without closing its entire parent gate. Historical failures remain

@@ -16,6 +16,10 @@ continuity through a later10-frame replay+20continuations. All2890native hashes
 and wire triples match;two rounds/natural Quit. Original67/68 reports remain
 FAILED and preserved. See prediction-multi-unit-move.txt. Close-formation
 collision,forced group/type retirement,broader input and human feel remain open.
+Actual69 now passes the selected-survivor case:one selection/group11+12 through
+11's false death/release/restoration,continuous12 and original pair Move without
+reselection. Both respond53..63ms,437..438ms before authority;all2892 state/wire
+comparisons and two natural rounds pass. Same focused evidence file.
 The0.4.0 deployment/reopening paragraph below records the earlier completed delivery.
 
 Nick's requested0.4.0 client/server release is PUBLISHED;matching host deployed
@@ -248,6 +252,11 @@ These grouped rows summarize the detailed matrices;they are not a percentage or
 an exact count of every remaining test. DEV.txt remains the owner of user answers.
 
 COMPLETED
+[x] Selected pair through one member's false death/restoration (Actual69):
+    survivor actor/token continuous,original Count2->1->2,retained raw caches,
+    original two-ID Move without reselection,pre-authority response,all2892
+    state/wire matches and two natural rounds. Remaining forced group/type,
+    collision and physical-input scopes stay open;prediction-multi-unit-move.txt.
 [x] Two-unit original Move and group/cache continuity (Actual68,separate file-only
     reanalysis04):per-unit native/render response before authority,late replay,
     all2890 state/wire matches and two natural rounds. Original failures stay

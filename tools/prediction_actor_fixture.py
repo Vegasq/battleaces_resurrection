@@ -226,3 +226,43 @@ def make_mobile_template(base:GameTemplate,assets:Path)->GameTemplate:
     fixture=MobileFixtureTemplate(raw,catalog_path=assets/'unit-catalog.json',descriptors_path=assets/'descriptors')
     fixture.set_allowed_entity_ids(base.allowed_entity_ids)
     return fixture
+
+
+MOBILE_SURVIVOR_METADATA=MappingProxyType(dict(MOBILE_METADATA,
+    name='original-mobile-selected-survivor-v1',survivor_id=12,survivor_slot=1,
+    survivor_type=1,initial_survivor=(-80.0,0.0,-60.0),initial_entity_count=13,
+    selected_ids=(11,12),selection_is_preactivation=True))
+
+
+def mobile_survivor_metadata():
+    """Explicit initial-unit fixture contract, not client selection acceptance."""
+    return {key:list(value)if isinstance(value,tuple)else value
+            for key,value in MOBILE_SURVIVOR_METADATA.items()}
+
+
+class MobileSurvivorFixtureTemplate(MobileFixtureTemplate):
+    fixture_metadata=MOBILE_SURVIVOR_METADATA
+
+
+def make_mobile_survivor_template(base:GameTemplate,assets:Path)->GameTemplate:
+    """Append one initial friendly unit away from the qualified mobile duel.
+
+    The changed native fixture is qualified separately. It does not represent
+    ordinary production or prove Unity group/lifetime behavior. Existing mobile
+    and HQ templates remain byte-identical; composed transformations refuse.
+    """
+    mobile=make_mobile_template(base,assets)
+    initial=get_repeated_bytes(mobile.raw_game_data,2)
+    _mobile_require(len(initial)==12,'survivor variant requires exactly the original mobile initial list')
+    rotation=(field_uint(2,int(-math.sqrt(.5)*2**32)&(2**64-1))+
+              field_uint(4,int(math.sqrt(.5)*2**32)))
+    create=(field_uint(1,1)+field_uint(2,1)+
+            field_bytes(3,_position_bytes(MOBILE_SURVIVOR_METADATA['initial_survivor']))+
+            field_bytes(4,rotation))
+    raw=replace_fields(mobile.raw_game_data,
+        {2:[field_bytes(2,action)for action in (*initial,field_bytes(2,create))]})
+    assets=Path(assets)
+    fixture=MobileSurvivorFixtureTemplate(raw,catalog_path=assets/'unit-catalog.json',
+                                         descriptors_path=assets/'descriptors')
+    fixture.set_allowed_entity_ids(mobile.allowed_entity_ids)
+    return fixture

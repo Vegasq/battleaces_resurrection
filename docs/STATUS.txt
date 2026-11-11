@@ -4,6 +4,15 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+2026-11-11 selected-survivor progress:Actual69 PASSES both Custom rounds. One
+selection/manual group11+12 survives11's false death/release/restoration while
+12 retains its actor/token. Original Count2->1->2,raw group/type IDs retained;
+fresh two-ID Move needs no reselection. Responses53.090..62.668ms precede both
+authority receipts by437..438ms;both command phases181/181. Real replay10+20,
+all2892 native hashes/wire triples and natural shutdown pass.395 affected Python
+tests,22 fixture-suite tests and helper96 build pass. No installer/live change;
+physical/Internet,type-retirement/collision remain open. See prediction-multi-unit-move.txt.
+
 2026-11-11 multi-unit progress:Actual68's separate file-only reanalysis04 passes
 two ready selected Gunbots' original Move and group/cache continuity through a
 later10-frame replay+20continuations. Both respond53.156..53.676ms,437..485ms

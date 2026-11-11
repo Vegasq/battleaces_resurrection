@@ -976,6 +976,9 @@ static void tick() {
 #include "prediction_context_move_smoke.hpp"
 #include "prediction_context_hold_smoke.hpp"
 static void tick() {
+    // The exclusive initial-pair fixture owns its selection and command stages;
+    // entering singleton mobile::tick would overwrite that original selection.
+    if(ba_prediction_survivor::enabled())return;
     if(context_hold::originalOnly()) {
         try {
             context_hold::originalScope();mobile::tick();

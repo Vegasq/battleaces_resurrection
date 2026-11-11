@@ -13,6 +13,7 @@ def validate_mobile_plan(plan):
     validate_mobile_context_move_plan(plan)
     validate_mobile_context_hold_plan(plan)
     validate_mobile_original_hold_plan(plan)
+    validate_cohort_survivor_plan(plan)
     require(plan.get('scenario') == 'mobile' and plan.get('mobile_correction') is True and
             plan.get('lifecycle') == 'natural' and plan.get('frames') == 650 and plan.get('expected_matches') == 2 and
             plan.get('move_slot') == 0 and plan.get('rtt_ms') == [130,475] and
@@ -44,7 +45,7 @@ EXPIRED_CLICK_MOBILE_FLAGS = ('mobile_correction', 'mobile_group_intent', 'mobil
     'mobile_caster_survey', 'mobile_caster_lifetime', 'mobile_ui_cast', 'mobile_held_click', 'mobile_context_move', 'mobile_context_hold', 'mobile_original_hold')
 
 MOBILE_HELD_EXCLUSIONS = ('actor_correction', 'actor_mirror', 'terminal_timeline', 'held_click',
-    'expired_click', 'changing_rtt', 'transition_orders', 'multi_unit_move', 'mobile_group_intent', 'mobile_group_user_edits',
+    'expired_click', 'changing_rtt', 'transition_orders', 'cohort_survivor', 'multi_unit_move', 'mobile_group_intent', 'mobile_group_user_edits',
     'mobile_recovery_stall', 'mobile_recall', 'mobile_focus', 'mobile_focus_no_start', 'mobile_focus_restart',
     'mobile_caster_survey', 'mobile_caster_lifetime', 'mobile_ui_cast', 'mobile_context_move', 'mobile_context_hold', 'mobile_original_hold')
 
@@ -101,3 +102,22 @@ def validate_mobile_held_click_plan(plan):
             plan.get('native_position_trace') is None and all(type(plan.get(key,False)) is bool and
                 not plan.get(key,False) for key in MOBILE_HELD_EXCLUSIONS),
             'mobile held click requires explicit mobile correction, natural650, slot0,130/475ms and no other fixture')
+
+
+def validate_cohort_survivor_plan(plan):
+    require('cohort_survivor'not in plan or type(plan['cohort_survivor'])is bool,'survivor option must be Boolean')
+    if not plan.get('cohort_survivor'):return
+    exclusions=tuple(k for k in MOBILE_HELD_EXCLUSIONS if k!='cohort_survivor')+('mobile_held_click',)
+    require(plan.get('scenario')=='mobile'and plan.get('mobile_correction')is True and plan.get('lifecycle')=='natural'and
+        type(plan.get('frames'))is int and plan['frames']==650 and type(plan.get('expected_matches'))is int and plan['expected_matches']==2 and
+        type(plan.get('move_slot'))is int and plan['move_slot']==0 and plan.get('rtt_ms')==[130,475]and plan.get('native_position_trace')is None and
+        all(type(plan.get(k,False))is bool and not plan.get(k,False)for k in exclusions),'survivor requires exclusive mobile natural650/two worlds/130475/slot0')
+    require('native_cohort_spec'not in plan or plan['native_cohort_spec']=='1:1:130:220:8','survivor native cohort spec differs')
+
+def survivor_option(args,frames,position_trace):
+    value=getattr(args,'cohort_survivor',False)
+    validate_cohort_survivor_plan(dict(cohort_survivor=value,scenario=args.scenario,mobile_correction=getattr(args,'mobile_correction',False),
+        lifecycle=args.lifecycle,frames=frames,expected_matches=2 if args.lifecycle=='natural'else 1,move_slot=args.move_slot,
+        rtt_ms=list(args.rtt_ms),native_position_trace=position_trace,**{k:getattr(args,k,False)for k in
+            tuple(x for x in MOBILE_HELD_EXCLUSIONS if x!='cohort_survivor')+('mobile_held_click',)}))
+    return value

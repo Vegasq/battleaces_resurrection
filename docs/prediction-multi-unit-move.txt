@@ -1,6 +1,57 @@
 BATTLE ACES - MULTI-UNIT MOVEMENT PREDICTION
 Reviewed:2026-11-11. N33 remains ACTIVE;full feature/Internet acceptance OPEN.
 
+SELECTED PAIR THROUGH ONE MEMBER'S FALSE DEATH - ACTUAL69 PASS
+Both actual Custom rounds preserve one original selection/manual group4 of
+IDs11/12 through11's predicted DEAD153,release154 and restoration161. Unit12
+keeps its original actor and confirmed token throughout. Unit11 returns as a
+different actor with its original confirmed token. No reselection,recall or
+Focus call repairs the group. Original current/group Count changes2->1->2;
+raw all/type1 IDs remain11/12 even while11 is unavailable. Actual per-ID
+UnitSelectionSet.HasType distinguishes retained intent from usable membership.
+The unavailable member has no invented Transform observation.
+
+The original two-ID Move180 goes through normal serialization/native67 and
+canonical execution181. Assigned/canonical is181/181 in both worlds. W1 unit11
+and12 render responses are53.090/53.154ms;W2 responses62.589/62.668ms. They precede
+both raw bridge and native65 authority by438ms(W1)/437ms(W2). Both original
+native units move at181,453/469ms before authority. Each has16 quiet render
+baseline samples. The earlier real escape correction replays10 frames and
+has20 matching continuations;the fresh pair command has20 matching continuations.
+All2892 closed full parsed native hashes and2892 native65/rawbridge/serverwire
+triples match. Two rounds complete;games exit0/reaped/handlesclosed/Jobs3/0/0,
+authority workers0/Jobs2/0/0,and both local workers shut down naturally.
+Elapsed172.141s;source/files unchanged,no force or cleanup errors.
+
+This exclusive --cohort-survivor fixture appends one INITIAL friendly Gunbot12
+far from the unchanged mobile duel. Selection130 precedes activation readiness;
+both members are actually ready before Move180. A separate original-native
+preflight proves12 remains stationary/undamaged through180 and10/11 match the
+retained mobile control at every0..180 frame. The public fixture bootstrap is
+byte-identical to both retained preflight bootstraps. Ordinary templates and
+the earlier --multi-unit-move case remain unchanged. This qualifies selected
+survivor continuity through false death,not forced group/type retirement,
+close-formation collision,physical input or human Internet comfort.
+
+Original successful report:
+local/prediction-runtime/movement69-cohort-survivor/run/verification.json
+SHA2566b99ba1d1be79e0dc0100eeca382d62a2ece69093bcb68bb7839c9e460f7885d
+Original-native preflight:
+local/mixed-group-correction-route01/native-control01/verification.json
+SHA25697961eb47efcb19191a9de6196bd50ebe2567305148b0e8547aaf4248d08d0bd
+Public fixture equivalence:
+local/mixed-group-correction-route01/public-fixture01/verification.json
+SHA25622779970248c0f4c65e48bfffc1d0992e6bc5103cd6e398b656d6e99410f6ba0
+Authored controls:395 affected Python tests plus22 fixture-suite tests pass;
+helper96 builds37 authored test executables with216 unchanged source bindings.
+The new C++ policy has22 positive/refusal checks;no policy test loads the game.
+Verifier receipt:local/mixed-group-correction-route01/verifier-freeze01/verification.json
+SHA256f76e5027160e6396501db232e17f4d344c13427147e7467065cf1531bb0454e1
+Helper96 SHA256dcbf3fe68be08d25f8ea4da36f03358d351030548471821ab87e28d88bd3feaf
+Manifest SHA256f01dd2e8f210e2e338cfee2f52f372f17a5db1c8bf5799bfda7bf1357b8af47c
+Only the automated runtime received helper96. N35 installers/live deployment,
+usual client and reserved manual games remain unchanged. Full N33 stays OPEN.
+
 BOUNDED RESULT
 Actual68's separate file-only parser-reanalysis04 passes the two-unit movement,
 group continuity,native-state,wire,lifecycle and original final gates. The

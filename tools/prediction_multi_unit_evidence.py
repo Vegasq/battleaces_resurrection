@@ -1,4 +1,4 @@
-﻿"""Pure evidence for the exclusive two-born-Gunbot RouteA experiment.
+"""Pure evidence for the exclusive two-born-Gunbot RouteA experiment.
 
 No native query/process/input. Unity leases/tokens are supplied only by actual
 client observations; native cohort rows contain native identities only.
@@ -14,7 +14,7 @@ MAX_ROWS=20000
 EXCLUSIONS=('actor_correction','actor_mirror','terminal_timeline','expired_click','held_click','changing_rtt','transition_orders',
  'mobile_group_intent','mobile_group_user_edits','mobile_recovery_stall','mobile_recall','mobile_focus','mobile_focus_no_start',
  'mobile_focus_restart','mobile_caster_survey','mobile_caster_lifetime','mobile_ui_cast','mobile_held_click',
- 'mobile_context_move','mobile_context_hold','mobile_original_hold')
+ 'mobile_context_move','mobile_context_hold','mobile_original_hold','cohort_survivor')
 def require(ok,why):
     if not ok:raise AssertionError('multi-unit evidence: '+why)
 def integer(v,lo=0,hi=2**64-1):return type(v)is int and lo<=v<=hi
@@ -91,9 +91,10 @@ def bind_move(log,order,*,slot,match,raw_bodies,commits,journal):
       assigned_minus_canonical=regs[0][1]-frame,native67_tick_ms=regs[0][2],native72_tick_ms=int(sends[0][4]),
       protocol_target=mapped,protocol_target_q32=raw,target_quantization='original float32 target mapped by runtime Map Perspective; exact or adjacent Q32 quantum')
 
-def validate_native_trace(rows):
+def validate_native_trace(rows, *, spec=None):
     """Validate copied query provenance; cached pre-restore rows are not queries."""
     require(type(rows)is list and 0<len(rows)<=8192,'native cohort count bound')
+    expected=spec or dict(type=1,army=1,first_frame=420,last_frame=520,max_entities=8)
     previous_world=None;seen_worlds=[];revision=0;end_us=end_tick=-1;records={}
     fields={'schema','event','world','frame','revision','query_revision','checkpoint_base','first_divergent_frame','cohort_spec',
       'context_source','stage','head','confirmed','received','corrections','replayed_frames','query_begin_us','query_end_us',
@@ -104,7 +105,7 @@ def validate_native_trace(rows):
         require(set(r)==fields|({'cached_from_record','cached_physical_head'}if before else set()),'native cohort exact fields differ')
         if r['world']!=previous_world:
             require(r['world']not in seen_worlds and len(seen_worlds)<2,'native world interleaved/overflow');seen_worlds.append(r['world']);previous_world=r['world'];revision=0
-        require(r['cohort_spec']==dict(type=1,army=1,first_frame=420,last_frame=520,max_entities=8)and
+        require(r['cohort_spec']==expected and
           r['clock_source']=='python.perf_counter_ns//1000'and r['query_scope']=='existing-native-make-get-and-decode','native source/spec differs')
         require(integer(r['frame'],-1,2**31-1)and integer(r['revision'])and integer(r['count'],0,8)and
           type(r['entities'])is list and r['count']==len(r['entities']),'native count/frame invalid')
@@ -125,7 +126,7 @@ def validate_native_trace(rows):
             else:require(not ids,'unavailable cache invented positions')
         else:
             require(r['event']in('native_cohort_positions','after_replay_same_head')and r['context_source']=='same_decoded_native_query'and
-              r['status']in('present','empty')and 420<=r['frame']<=520 and r['revision']==r['query_revision']==revision,'native actual query/event/revision differs')
+              r['status']in('present','empty')and expected['first_frame']<=r['frame']<=expected['last_frame']and r['revision']==r['query_revision']==revision,'native actual query/event/revision differs')
             require(r['stage']in('ordinary','replay')and all(integer(r[k],-1,2**31-1)for k in ('head','confirmed','received'))and
               r['confirmed']<=r['received']and (r['frame']==r['head']+1 if r['stage']=='ordinary'else integer(r['checkpoint_base'],-1)and
               r['checkpoint_base']<r['frame']<=r['head']),'native context/frame differs')

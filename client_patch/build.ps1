@@ -105,6 +105,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Prediction cohort diagnostic policy test build failed.' }
     & (Join-Path $OutputDirectory 'prediction_cohort_smoke_tests.exe')
     if ($LASTEXITCODE -ne 0) { throw 'Prediction cohort diagnostic policy tests failed.' }
+    & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /WX /std:c++17 (Join-Path $PSScriptRoot 'src/prediction_cohort_survivor_smoke_tests.cpp') "/Fe:$OutputDirectory/prediction_cohort_survivor_smoke_tests.exe"
+    if ($LASTEXITCODE -ne 0) { throw 'Prediction survivor cohort diagnostic policy test build failed.' }
+    & (Join-Path $OutputDirectory 'prediction_cohort_survivor_smoke_tests.exe')
+    if ($LASTEXITCODE -ne 0) { throw 'Prediction survivor cohort diagnostic policy tests failed.' }
     # The original layout cache is immutable for a loaded game image. Check
     # deliberately malformed layouts in separate processes before cache reuse.
     foreach ($heldLayoutFlag in @('--bad-selector-layout','--bad-helper-layout')) {
