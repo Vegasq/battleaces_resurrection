@@ -973,7 +973,14 @@ static void tick() {
 }
 }
 #include "prediction_mobile_held_smoke.hpp"
+#include "prediction_context_move_smoke.hpp"
 static void tick() {
+    if(context_move::enabled()) {
+        try {context_move::frontendUpdate();context_move::tick();}
+        catch(const std::exception& error){context_move::markFailed();ba::log("Context Move smoke failed: reason=%s physicalUI=0",error.what());worker::movementFail(error.what());}
+        catch(...){context_move::markFailed();ba::log("Context Move smoke failed: reason=unknown physicalUI=0");worker::movementFail("unknown context Move fixture exception");}
+        return;
+    }
     if(mobile_held::enabled()) {
         try {mobile_held::frontendUpdate();mobile_held::tick();}
         catch(const std::exception& error){mobile_held::markFailed();ba::log("Mobile held click smoke failed: reason=%s physicalUI=0",error.what());worker::movementFail(error.what());}
@@ -1051,6 +1058,21 @@ static void tick() {
         if(expired_click::enabled())expired_click::markFailed();
         state().failed=true;ba::log("Actor correction smoke failed: reason=%s physicalUI=0",error.what());
         worker::movementFail(error.what());
+    }
+}
+}
+
+namespace ba_prediction_context_move {
+void serialized(void* command,void* action,uint64_t sequence,int sourceNextFrame) noexcept {
+    try {ba_prediction_actor_smoke::context_move::serialized(command,action,sequence,sourceNextFrame);}
+    catch(const std::exception& error) {
+        ba_prediction_actor_smoke::context_move::markFailed();
+        ba::log("Context Move normal serializer observer failed: reason=%s physicalUI=0",error.what());
+        ba_prediction_worker::movementFail(error.what());
+    } catch(...) {
+        ba_prediction_actor_smoke::context_move::markFailed();
+        ba::log("Context Move normal serializer observer failed: reason=unknown physicalUI=0");
+        ba_prediction_worker::movementFail("unknown context Move normal serializer observer exception");
     }
 }
 }

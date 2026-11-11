@@ -133,10 +133,13 @@ static int screenDimension(const char* name,uint32_t token,uintptr_t rva,const c
     require(found!=nullptr,"expired click fixture Screen method missing");actors::guard(rva,entry,16);
     Root value(actors::invoke(found,nullptr));actors::classIs(value.get(),"System","Int32");return actors::unbox<int32_t>(value.get());
 }
-static std::pair<float,float> project(actors::State& owner,Obj selector,Obj core,uint32_t coreId=5,int victimSlot=1,uint32_t unitType=3) {
+static std::pair<float,float> project(actors::State& owner,Obj selector,Obj core,uint32_t coreId=5,int victimSlot=1,uint32_t unitType=3,
+                                    const float* groundPoint=nullptr) {
     owned(owner,selector,victimSlot);const auto identity=actors::resident(core);
-    const bool mobile=ba::flag(L"-prediction-mobile-held-click-smoke")&&ba::flag(L"-prediction-mobile-correction-smoke")&&
+    const bool contextMove=ba::flag(L"-prediction-mobile-context-move-smoke");
+    const bool mobile=(ba::flag(L"-prediction-mobile-held-click-smoke")||contextMove)&&ba::flag(L"-prediction-mobile-correction-smoke")&&
         !ba_prediction_actor_fixture_smoke::mirrored()&&victimSlot==1&&coreId==11&&unitType==1;
+    require(!groundPoint||(contextMove&&mobile),"ground projection requires the explicit context Move fixture");
     require((mobile||(unitType==3&&coreId==(victimSlot==0?0u:5u)))&&identity.entityId==coreId&&identity.unitType==unitType&&
         identity.armyId==static_cast<uint32_t>(victimSlot)&&
         ba_prediction_selection::Context(selector).admitted(core),"expired click fixture HQ target is not admitted");
@@ -162,9 +165,12 @@ static std::pair<float,float> project(actors::State& owner,Obj selector,Obj core
         ba::api<Obj(*)(Obj,uint32_t)>("il2cpp_method_get_param")(projection,0))==vector,
         "expired click fixture projection parameter differs");
     actors::guard(0x50280c0,"\x48\x89\x5c\x24\x08\x57\x48\x83\xec\x40\xf2\x41\x0f\x10\x00\x33",16);
-    void* args[]={ba::api<void*(*)(Obj)>("il2cpp_object_unbox")(position.get())};
+    struct Point {float x,y,z;};Point supplied{};
+    if(groundPoint){std::memcpy(&supplied,groundPoint,sizeof(supplied));require(std::isfinite(supplied.x)&&
+        std::isfinite(supplied.y)&&std::isfinite(supplied.z),"context Move ground projection is not finite");}
+    void* args[]={groundPoint?static_cast<void*>(&supplied):ba::api<void*(*)(Obj)>("il2cpp_object_unbox")(position.get())};
     Root projected(actors::invoke(projection,camera.get(),args));actors::classIs(projected.get(),"UnityEngine","Vector3");
-    struct Point {float x,y,z;};const auto point=actors::unbox<Point>(projected.get());
+    const auto point=actors::unbox<Point>(projected.get());
     const auto width=screenDimension("get_width",0x06000479,0x5038860,"\x48\x83\xec\x28\x48\x8b\x05\x45\xa1\xe2\x01\x48\x85\xc0\x75\x18");
     const auto height=screenDimension("get_height",0x0600047a,0x50388b0,"\x48\x83\xec\x28\x48\x8b\x05\xfd\xa0\xe2\x01\x48\x85\xc0\x75\x18");
     ba::log("Click target projection: world=%llu frame=%d x=%.9g y=%.9g z=%.9g width=%d height=%d",

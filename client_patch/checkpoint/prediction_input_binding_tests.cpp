@@ -48,7 +48,7 @@ static std::function<void(size_t)> originalBody;
 static std::function<void(Obj,Obj)> processBody;
 static Obj selected=nullptr;
 static bool active=true,stopped=false,presentationOwned=true;
-static bool mobileDiagnostic=false;
+static bool mobileDiagnostic=false,contextDiagnostic=false;
 static uint64_t world=91;
 static std::string match(32,'a'),lastFailure;
 static unsigned failures=0,processCalls=0;
@@ -101,8 +101,10 @@ using Obj=void*;
 static DWORD initialThread=0;
 static void init(){}
 static bool flag(const wchar_t* name) {
-    host::check(name&&std::wstring(name)==L"-prediction-mobile-held-click-smoke","unexpected authored input flag");
-    return host::mobileDiagnostic;
+    host::check(name,"null authored input flag");
+    if(std::wstring(name)==L"-prediction-mobile-held-click-smoke")return host::mobileDiagnostic;
+    if(std::wstring(name)==L"-prediction-mobile-context-move-smoke")return host::contextDiagnostic;
+    throw std::runtime_error("unexpected authored input flag");
 }
 template<class T>T read(Obj value,size_t offset){return host::read<T>(value,offset);}
 static void log(const char* format,...) {
@@ -196,7 +198,9 @@ static void reset() {
     originals.fill(0);calls.clear();logs.clear();originalBody={};processBody=&single;
     failures=0;processCalls=0;processSelector=nullptr;processInfo=nullptr;lastFailure.clear();
     active=true;stopped=false;presentationOwned=true;world=91;match.assign(32,'a');
-    mobileDiagnostic=false;ba_prediction_input::mobileReturnedInput.reset();
+    mobileDiagnostic=false;contextDiagnostic=false;ba_prediction_input::mobileReturnedInput.reset();
+    ba_prediction_input::contextPrimaryReturnedInput.reset();ba_prediction_input::contextReturnedInput.reset();
+    ba_prediction_input::contextProbe=nullptr;
     memories.clear();selector=Node{};otherSelector=Node{};manager=Node{};simulation=Node{};
     for(auto* node:{&selector,&otherSelector,&manager,&simulation})memories.emplace(node,&node->bytes);
     auto* selectorType=type("Uncapped","UnitSelector");auto* contextType=type("Authored","CallbackContext");
@@ -409,6 +413,99 @@ static void nestedCallbackReturnDoesNotReplaceItsNewerChildWitness() {
     check(originals[9]==2&&originals[8]==1&&!failures&&!ba_prediction_input::currentDispatch,
         "callback return observation changed nested forwarding or leaked its dispatch");
 }
+struct ProbeEvent {
+    bool before=false,completed=false;
+    ba_prediction_input_observer::Ticket ticket;
+    uint64_t ledgerSerial=0;
+};
+static std::vector<ProbeEvent> probeEvents;
+static int probeThrow=0;
+static void contextProbe(bool before,const ba_prediction_input_observer::Ticket& ticket,
+                         Obj instance,bool completed,uint64_t serial) {
+    check(instance==&selector,"context probe received another selector");
+    check(ba_prediction_input::currentDispatch&&
+        ba_prediction_input::currentDispatch->ticket.serial==ticket.serial,
+        "context probe lost the actual original callback dispatch");
+    probeEvents.push_back({before,completed,ticket,serial});
+    if(probeThrow==(before?1:2))throw std::runtime_error("authored context probe fault");
+}
+static void startContextDiagnostic() {
+    reset();probeEvents.clear();probeThrow=0;contextDiagnostic=true;
+    ba_prediction_input::contextProbe=&contextProbe;
+}
+static void contextObservationIsExclusiveAndNeverAuthorizesSingle() {
+    reset();probeEvents.clear();ba_prediction_input::contextProbe=&contextProbe;
+    invoke(11);invoke(12);
+    check(probeEvents.empty()&&!ba_prediction_input::contextReturnedInput&&
+        !ba_prediction_input::contextPrimaryReturnedInput,"default-off context diagnostic observed input");
+    startContextDiagnostic();const auto bytes=selector.bytes;const auto contextBytes=context.bytes;
+    invoke(11);invoke(12);
+    check(probeEvents.size()==4&&probeEvents[0].before&&!probeEvents[1].before&&
+        probeEvents[2].before&&!probeEvents[3].before&&
+        probeEvents[0].ticket.kind==ba_prediction_input_observer::Kind::ContextDown&&
+        probeEvents[2].ticket.kind==ba_prediction_input_observer::Kind::ContextUp&&
+        probeEvents[1].completed&&probeEvents[3].completed,
+        "context probes did not surround each actual original callback once");
+    check(originals[11]==1&&originals[12]==1&&!failures&&
+        !ba_prediction_actors::state().inputIntent.accepted()&&
+        !ba_prediction_input::mobileReturnedInput&&!ba_prediction_input::contextPrimaryReturnedInput&&
+        ba_prediction_input::contextReturnedInput->ticket.serial==2&&
+        selector.bytes==bytes&&context.bytes==contextBytes&&!ba_prediction_input::currentDispatch,
+        "context observation mutated input, authorized Single or contaminated primary evidence");
+    originalBody=[](size_t){OfflinePredictionClickDownAccepted(&selector,nullptr);};invoke(11);
+    check(processCalls==1&&!failures&&!ba_prediction_actors::state().inputIntent.accepted(),
+        "context original marker fabricated primary Single authorization");
+}
+static void contextReturnSurvivesOriginalInvalidationWithoutGrantingAuthorization() {
+    startContextDiagnostic();
+    originalBody=[](size_t){ba_prediction_actors::state().inputIntent.invalidate();};
+    invoke(11);exact(11,&selector,&context,&methods[11]);
+    const auto returned=ba_prediction_input::contextReturnedInput;
+    check(returned&&returned->ticket.serial==1&&!returned->ledgerCompleted&&returned->ledgerSerial==2&&
+        probeEvents.size()==2&&!probeEvents[1].completed&&probeEvents[1].ledgerSerial==2&&
+        !ba_prediction_actors::state().inputIntent.accepted()&&!failures,
+        "context callback return was confused with invalidated ledger authorization");
+    originalBody={};invoke(8);invoke(9);invoke(10);
+    check(ba_prediction_input::contextReturnedInput->ticket.serial==1&&probeEvents.size()==2&&
+        ba_prediction_input::contextPrimaryReturnedInput->ticket.serial==5&&
+        ba_prediction_input::contextPrimaryReturnedInput->ticket.kind==ba_prediction_input_observer::Kind::Up&&
+        !ba_prediction_input::mobileReturnedInput,
+        "Position/primary returns replaced context provenance or reused old held diagnostic");
+}
+static void contextOriginalExceptionPropagatesAndNeverCreatesReturn() {
+    startContextDiagnostic();originalBody=[](size_t){throw OriginalError{57};};bool propagated=false;
+    try{invoke(11);}catch(const OriginalError& error){propagated=error.tag==57;}
+    exact(11,&selector,&context,&methods[11]);
+    check(propagated&&probeEvents.size()==1&&probeEvents[0].before&&
+        !ba_prediction_input::contextReturnedInput&&!failures&&
+        !ba_prediction_actors::state().inputIntent.accepted(),
+        "throwing original context callback was retried, swallowed or observed as returned");
+}
+static void contextProbeFailuresCannotSkipOrRetryOriginal() {
+    for(int phase:{1,2}) {
+        startContextDiagnostic();probeThrow=phase;invoke(11);exact(11,&selector,&context,&methods[11]);
+        check(failures==1&&stopped&&probeEvents.size()==static_cast<size_t>(phase)&&
+            !ba_prediction_actors::state().inputIntent.accepted(),
+            "context diagnostic fault changed exactly-once original forwarding");
+    }
+    startContextDiagnostic();originalBody=[](size_t){ba_prediction_input::contextProbe=nullptr;};
+    invoke(11);exact(11,&selector,&context,&methods[11]);
+    check(failures==1&&probeEvents.size()==1,"context probe replacement fabricated after-return evidence");
+}
+static void nestedContextCallbackKeepsNewestReturnAndCorrectDispatch() {
+    startContextDiagnostic();
+    originalBody=[](size_t index){if(index==11&&originals[11]==1){invoke(8);invoke(12);}};
+    invoke(11);
+    const auto returned=ba_prediction_input::contextReturnedInput;
+    check(returned&&returned->ticket.serial==3&&
+        returned->ticket.kind==ba_prediction_input_observer::Kind::ContextUp&&
+        returned->ledgerCompleted&&returned->ledgerSerial==3&&probeEvents.size()==4&&
+        probeEvents[0].ticket.serial==1&&probeEvents[1].ticket.serial==3&&
+        probeEvents[2].ticket.serial==3&&probeEvents[3].ticket.serial==1&&
+        !probeEvents[3].completed&&!failures&&originals[11]==1&&originals[12]==1&&originals[8]==1&&
+        !ba_prediction_input::currentDispatch&&!ba_prediction_actors::state().inputIntent.accepted(),
+        "older ContextDown return replaced its newer child or leaked nested dispatch");
+}
 }
 int main(){try{
     host::allRoutesPreserveActualOriginalArgumentsAndContext();
@@ -419,7 +516,12 @@ int main(){try{
     host::diagnosticCompletionDoesNotAuthorizeUpOrObserveFailedCallbacks();
     host::originalUpSelectionCommitCannotEraseItsReturnObservation();
     host::nestedCallbackReturnDoesNotReplaceItsNewerChildWitness();
-    std::cout<<"input binding:11 authored actual-source groups PASS; real delegate dispatch and held-click repair remain unqualified\n";
+    host::contextObservationIsExclusiveAndNeverAuthorizesSingle();
+    host::contextReturnSurvivesOriginalInvalidationWithoutGrantingAuthorization();
+    host::contextOriginalExceptionPropagatesAndNeverCreatesReturn();
+    host::contextProbeFailuresCannotSkipOrRetryOriginal();
+    host::nestedContextCallbackKeepsNewestReturnAndCorrectDispatch();
+    std::cout<<"input binding:16 authored actual-source groups PASS; real context dispatch remains unqualified\n";
     return 0;
 }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 catch(...){std::cerr<<"unexpected authored input exception\n";return 1;}}

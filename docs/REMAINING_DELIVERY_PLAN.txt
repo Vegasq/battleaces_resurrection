@@ -153,8 +153,12 @@ A bounded original Mortar9 control now exercises both real timed Setup21/22
 transitions without changing observed full ID/type/army/token. A separate strict
 file-only proof qualifies its retained capture;original reader failures stay
 FAILED. This rules out the proposed setup-morph route,not forced-group coverage.
-Next:genuine context/right-button Move through original input,remaining group/
-type paths and broader input/render behavior.
+Actual63 PASSES genuine original ContextDown -> Move12 -> normal serialization
+and movement before authority in both rounds. Primary selection and later real
+ContextUp close naturally;phases187->187,response60.699/62.188ms,438/468ms before
+raw bridge. All2890 native hashes match and every child quits naturally0/no
+force. This closes the named original right-click path;remaining group/type
+paths and broader input/render behavior are next. See prediction-context-move.txt.
 Natural-removal/empty-preview-held repair remains unqualified.
 Detailed scopes:prediction-actor-correction.txt.
 Physical/Internet acceptance is open.
@@ -221,6 +225,10 @@ These grouped rows summarize the detailed matrices;they are not a percentage or
 an exact count of every remaining test. DEV.txt remains the owner of user answers.
 
 COMPLETED
+[x] Original right-click Move through normal serialization/prediction (actual63):
+    real bound-Mouse primary selection/ContextDown/ContextUp,two native rounds,
+    pre-authority response,phase0,matching states and natural Quit. Physical
+    input/Internet and remaining controls stay open;prediction-context-move.txt.
 [x] Mirrored Core0 held correction and later terminal animation after old-director
     cancellation (actual58):both worlds,original Stop/pool/recreation,real Up,
     ready-unit Move before authority,remote correction and natural Quit. Actual57

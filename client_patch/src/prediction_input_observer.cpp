@@ -75,6 +75,17 @@ struct ReturnedInput {
     uint64_t ledgerSerial=0;
 };
 static std::optional<ReturnedInput> mobileReturnedInput;
+// Context diagnostics are disjoint from the accepted Single-Down ledger and
+// from the previously qualified primary-only held-click witness.
+static std::optional<ReturnedInput> contextPrimaryReturnedInput,contextReturnedInput;
+using ContextProbe=void(*)(bool,const observer::Ticket&,Obj,bool,uint64_t);
+static ContextProbe contextProbe=nullptr;
+static bool contextEnabled(){return ba::flag(L"-prediction-mobile-context-move-smoke");}
+static bool contextKind(Kind kind){return kind==Kind::ContextDown||kind==Kind::ContextUp;}
+static void remember(std::optional<ReturnedInput>& target,const observer::Ticket& ticket,bool completed,uint64_t serial) {
+    if(!target||!(target->ticket.owner==ticket.owner)||ticket.serial>target->ticket.serial)
+        target=ReturnedInput{ticket,completed,serial};
+}
 struct Dispatch {
     const Route& route;
     Obj selector;
@@ -84,6 +95,7 @@ struct Dispatch {
     observer::Ticket ticket;
     Dispatch* previous=nullptr;
     bool entered=false;
+    ContextProbe retainedContextProbe=nullptr;
     explicit Dispatch(const Route& value,Obj instance,const void* input,Obj method)
         :route(value),selector(instance),context(input),info(method){}
     ~Dispatch(){leave();}
@@ -105,7 +117,12 @@ struct Dispatch {
         const auto current=owner(selector);ledger=&actors::state().inputIntent;
         signature(route,selector,context,info);
         ticket=ledger->begin(current,route.kind);
-        previous=currentDispatch;currentDispatch=this;entered=true;return true;
+        previous=currentDispatch;currentDispatch=this;entered=true;
+        if(contextEnabled()&&contextKind(ticket.kind)&&contextProbe) {
+            retainedContextProbe=contextProbe;
+            retainedContextProbe(true,ticket,selector,false,ledger->serial());
+        }
+        return true;
     }
     void original(){ba::native<Callback>(route.rva)(selector,context,info);}
     void complete() {
@@ -129,6 +146,17 @@ struct Dispatch {
            (!mobileReturnedInput||!(mobileReturnedInput->ticket.owner==ticket.owner)||
             ticket.serial>mobileReturnedInput->ticket.serial))
             mobileReturnedInput=ReturnedInput{ticket,completed,ledger->serial()};
+        if(contextEnabled()) {
+            if(ticket.kind==Kind::Down||ticket.kind==Kind::Up)
+                remember(contextPrimaryReturnedInput,ticket,completed,ledger->serial());
+            if(contextKind(ticket.kind)) {
+                remember(contextReturnedInput,ticket,completed,ledger->serial());
+                if(retainedContextProbe) {
+                    actors::require(retainedContextProbe==contextProbe,"context diagnostic probe changed during original callback");
+                    retainedContextProbe(false,ticket,selector,completed,ledger->serial());
+                }
+            }
+        }
         leave();
     }
     void abandon() noexcept {if(ledger)ledger->abandon(ticket);leave();}

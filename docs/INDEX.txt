@@ -1,5 +1,5 @@
 BATTLE ACES - DOCUMENTATION INDEX
-Updated:2026-11-10. Paths below are relative to docs/.
+Updated:2026-11-11. Paths below are relative to docs/.
 
 START WITH THREE FILES
   REMAINING_DELIVERY_PLAN.txt - what is next and which D1-D9 gates remain
@@ -20,6 +20,7 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
+  prediction-context-move.txt - N33 original right-click Move,normal serialization and pre-authority response in two actual rounds
   prediction-actor-correction.txt - N33 selected-HQ correction regression,original callback lifetime and mobile/RTT qualification
   prediction-multiplayer-movement.txt - N33 actual Unity Move-before-authority,clock regression/fix and scoped two-client correction proof
   prediction-test-guide.txt - private Custom prediction kit installation,special launcher and useful human test

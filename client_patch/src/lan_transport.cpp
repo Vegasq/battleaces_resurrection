@@ -5,6 +5,7 @@
 #include "online_frame_clock.hpp"
 #include "original_command_scheduling.hpp"
 #include "prediction_pacing.hpp"
+#include "prediction_context_move_observer.hpp"
 // Experimental loopback transport. All IL2CPP work stays on Unity's main thread.
 namespace ba_lan {
 using ba::Obj; using ba_local::Root;
@@ -429,7 +430,9 @@ static void normalizeAction(Obj action) {
 static Bytes playerInput(Obj server,int& count) {
     Root player(ba::make("GamePb","InputActionsByPlayer"));ba::set<Obj>(player.get(),"playerHandle_",ba::read<Obj>(server,0x1a8));
     Obj output=ba::get<Obj>(player.get(),"actions_");count=0;
-    while(count<256){Root command(ba_local::dequeue(ba::read<Obj>(server,0x180)));if(!command.get())break;Root action(ba_local::toProto(command.get()));normalizeAction(action.get());ba_local::addItem(output,action.get());++count;}
+    while(count<256){Root command(ba_local::dequeue(ba::read<Obj>(server,0x180)));if(!command.get())break;Root action(ba_local::toProto(command.get()));
+        if(ba::flag(L"-prediction-mobile-context-move-smoke"))ba_prediction_context_move::serialized(command.get(),action.get(),originalCommands.sequence(),nextFrame);
+        normalizeAction(action.get());ba_local::addItem(output,action.get());++count;}
     while(count<256){Root action(ba_local::dequeue(ba::read<Obj>(server,0x188)));if(!action.get())break;normalizeAction(action.get());ba_local::addItem(output,action.get());++count;}
     Bytes body=serialize(player.get());if(body.size()>65536)throw std::runtime_error("LAN input batch exceeds 64KiB");return body;
 }

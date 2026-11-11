@@ -1,0 +1,96 @@
+BATTLE ACES - ORIGINAL RIGHT-CLICK MOVEMENT PREDICTION
+Reviewed:2026-11-11. Named case COMPLETE;full N33/D8 remains OPEN.
+
+Actual63 proves that ordinary original ContextDown creates a Move12 command,
+the normal client serializes/sends it once,and local movement starts before
+either authoritative receipt. This replaces the missing fresh-input evidence
+from earlier fixtures that constructed their fresh Move directly.
+
+The bounded subject is a restored Gunbot11/type1/army1,selected by genuine
+original primary input. The process-owned test queues events on the Mouse
+already bound to the original actions. It is not physical OS mouse input or
+real Internet/human acceptance. No new installer or live deployment is made.
+
+RESULT
+Two actual Custom rounds at130/475ms RTT complete through Continue/rematch,
+Leave and original Quit. Original false death153,physical component release154
+and corrected admission161 precede the fresh selection and context input.
+Primary position178/Down180/Up182 establishes original selection11. Context
+position184/Down186 creates the real ExecuteTargetGroundCommand. A separately
+observed later frontend queues Up;the original canceled callback releases it.
+Both context episodes close at physical186 on distinct frontend ordinals.
+
+                         World1             World2
+Original command frame   186                186
+Local/canonical phase    187 ->187           187 ->187
+Response after enqueue   60.699ms           62.188ms
+Before native65 receipt  438ms              468ms
+Before raw bridge        438ms              468ms
+Baseline position drift  0                  0
+Normal command sequence  2                  2
+
+All2890 closed parsed native state hashes match authority. The independent
+remote escape at151 requires ten replayed frames and20 matching continuations
+in each world. Fresh command confirmation also has20 matching continuations.
+Both games and their workers quit naturally0;retained Jobs have active0 and
+terminated0,no force or cleanup errors. Sources/runtime files remain unchanged
+during the run. The source snapshot binds992 files;helper85 binds207 C++ inputs.
+
+IMPLEMENTATION AND PROOF BOUNDARIES
+- New diagnostic flag:-prediction-mobile-context-move-smoke. Its controller
+  accepts only the explicit mobile/natural650/two-round130/475ms fixture.
+- Original InputAction subscriptions and loaded dispatch pointers are checked.
+  Observer failures still forward the original callback exactly once. Context
+  return observations remain distinct from primary Single-Down authorization.
+- A read-only original Queue.Peek observes the actual command after Down adds
+  it. No fresh fixture command constructor/enqueue or extra ToProto is called.
+- A passive witness at the normal ToProto result binds command pointer,
+  callback serial and normal batch sequence. Raw native67/72 and canonical
+  command bytes prove ability12/type1/ID11 and the original map target.
+- Terrain raycast output is authoritative. Perspective1 flips X/Z in the
+  original serializer;captured float bits match actual signed Q32.32 targets.
+  The projected requested point is not substituted for the real terrain hit.
+- Position observations continue during press/release,so session completion
+  cannot hide or delay the measured first response. The diagnostic makes no
+  direct selector/history,camera,device-binding or native-state writes.
+- Context casting residue is observed only after the original Down. This run
+  does not exercise casting through a new correction or extend prediction
+  beyond the existing Move12/Hold14 eligibility.
+
+VALIDATION AND RETAINED IDENTITIES
+Full helper build85 and34 authored test executables pass. The actual-source
+input adapter has16 groups,including disabled mode,nested callback ownership,
+original exception propagation and observer-fault exactly-once forwarding.
+The focused controller/mobile/context Python suite passes235 tests.
+An independent file-only audit reproduces both complete proofs unchanged.
+Wrong ICommand pointer,normal sequence/body association,and raw target body
+are each rejected in both worlds (six negative checks);no native rerun occurs.
+
+Helper85 SHA256:
+7edc6c6f5ae0ef9f16e6665f9844e4ddfcbe502d6c56f51340927ed988a4537c
+Installed GameAssembly SHA256 (unchanged):
+742dc59d0063873a618f407e23cc5b93e7aee374483eb1f9dfdc46533f0999f3
+Installed manifest SHA256:
+68211792ac2fe65986d6be570b4db99551ac7db6675d50bcaac96ff5a8ece3f3
+Actual report SHA256:
+a2bc2989e77178a5ed250685d528a5b6d8d952516b2052c66b67a707ac390316
+
+Private retained evidence (excluded from Git/packages):
+local/prediction-runtime/movement63-context-move/run/verification.json
+local/prediction-runtime/movement63-context-move/source-at-prepare/
+local/context-move-route01/plan.json
+local/context-move-route01/python-freeze01.json
+local/context-move-route01/install85.json
+local/context-move-route01/actual-file-audit01.json
+local/helper85-context-move/helper-build.json
+Independent file-only audit SHA256:
+5eb6fa0093636e2dbfaca58d82f6cbed474da276c05ead9634e39f4f33e6ce3a
+Earlier helper84 was built/installed but never launched;its source/build and
+runtime-before-helper85 remain retained. Helper85 adds response sampling during
+the live right-button episode before the first actual run.
+
+NEXT
+Reuse this named case. Remaining group/type retirement paths,other live input
+and casting interactions,and physical/Internet feel remain in the current
+roadmap. N35's already handed-off kit stays frozen and reserved. Keep the live
+host,usual client and all user-owned game sessions unchanged.
