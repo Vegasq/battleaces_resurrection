@@ -22,6 +22,7 @@
 #include "cosmetics_loadout.hpp"
 #include "remote_profile_smoke.hpp"
 #include "custom_transition_smoke.hpp"
+#include "prediction_cohort_smoke.hpp"
 
 namespace ba_catalog { static void exportOnce();static std::string utf8(void*);static std::string quote(const std::string&); }
 namespace ba_prediction_movement_smoke {
@@ -321,6 +322,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         else if(lan())lanFrontUpdate(front);
         ba_prediction_movement_smoke::tick();
         ba_prediction_actor_smoke::tick();
+        ba_prediction_cohort::tick();
         ba_replay_menu::update(front);
         ba_cosmetics::update(front);
         ba_match_search::update(front);
@@ -400,6 +402,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "prediction_input_observer.cpp"
 #include "prediction_movement_smoke.cpp"
 #include "prediction_actor_smoke.cpp"
+#include "prediction_cohort_smoke.cpp"
 #include "lan_audit.cpp"
 #include "telemetry_audit.cpp"
 #include "player_cosmetics.cpp"

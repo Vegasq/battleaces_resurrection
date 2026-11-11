@@ -142,6 +142,7 @@ static void setup(HMODULE selected) {
     const bool mobileSmoke=ba::flag(L"-prediction-mobile-correction-smoke");
     const bool serverAiObserve=ba::flag(L"-prediction-server-ai-observe");
     const bool serverAiMove=ba::flag(L"-prediction-server-ai-move-smoke");
+    if(ba_prediction_cohort::enabled())ba_prediction_cohort::requireFlags();
     if(serverAiMove && !serverAiObserve)
         throw std::runtime_error("server AI Move fixture requires its explicit state observer");
     if(serverAiObserve && (!movementEnabled() || movementSmoke || mobileSmoke ||
@@ -152,6 +153,14 @@ static void setup(HMODULE selected) {
     if(movementSmoke || mobileSmoke || serverAiObserve)args.push_back(L"--movement-observe");
     if(serverAiObserve)ba::log("Server AI native state observation enabled: BA_RESURRECTION_SERVER_AI_PREDICTION_OBSERVE_V1");
     if(serverAiMove)ba::log("Server AI original Move fixture enabled: BA_RESURRECTION_SERVER_AI_MOVEMENT_SMOKE_V1");
+    std::wstring cohortTrace;
+    if(ba_command_line::value(ba::arguments(),L"-prediction-movement-observe-cohort=",cohortTrace)) {
+        if(!ba_prediction_cohort::enabled()||cohortTrace.empty()||cohortTrace.size()>64)
+            throw std::runtime_error("native cohort observation requires its explicit cohort fixture");
+        for(const auto ch:cohortTrace)if((ch<L'0'||ch>L'9')&&ch!=L':')
+            throw std::runtime_error("native cohort diagnostic is not canonical ASCII decimal");
+        args.push_back(L"--movement-observe-cohort");args.push_back(cohortTrace);
+    }
     std::wstring positionTrace;
     if(ba_command_line::value(ba::arguments(),L"-prediction-movement-observe-position=",positionTrace)) {
         if(!movementSmoke || positionTrace.empty() || positionTrace.size()>64)
@@ -345,6 +354,7 @@ void movementAuthority(const MovementBytes& canonical,const std::string& wireSha
         throw std::runtime_error("movement authority outside match bounds");
     wire::Bytes bytes;wire::append64(bytes,s.world);bytes.insert(bytes.end(),canonical.begin(),canonical.end());
     if(!control(s,65,bytes).data.empty())throw std::runtime_error("movement authority response differs");
+    ba_prediction_cohort::authoritative(canonical,wireSha);
     ba_prediction_movement_smoke::authoritative(canonical,wireSha);
 }
 MovementMetrics movementMetrics() {
@@ -393,6 +403,7 @@ void movementBatch(uint64_t sequence,const MovementBytes& body) {
     ba::log("Movement local batch registered: sequence=%llu speculativeFrame=%d tick=%llu match=%s",
         static_cast<unsigned long long>(sequence),assigned,static_cast<unsigned long long>(GetTickCount64()),s.movementMatch.c_str());
     ba_prediction_movement_smoke::registered(sequence,assigned,body);
+    ba_prediction_cohort::registered(sequence,assigned,body);
 }
 void movementEnd(int finalInputFrame) {
     auto& s=state();std::lock_guard<std::recursive_mutex> hold(s.gate);movementOwner(s);

@@ -18,6 +18,14 @@ def _position_trace_spec(value):
         raise argparse.ArgumentTypeError(str(error)) from error
 
 
+def _cohort_trace_spec(value):
+    from .observation import parse_cohort_trace_spec
+    try:
+        return parse_cohort_trace_spec(value)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError(str(error)) from error
+
+
 def run_streams(source, sink, backend):
     """Synthetic tests inject streams/backend; product supplies original DLLs."""
     expected, closed = 1, False
@@ -74,9 +82,14 @@ def main(argv=None):
     parser.add_argument('--movement-observe-position', type=_position_trace_spec,
                         metavar='ID:TYPE:ARMY:FIRST:LAST',
                         help='diagnostic-only native position copies from the existing state query; requires --movement-observe')
+    parser.add_argument('--movement-observe-cohort', type=_cohort_trace_spec,
+                        metavar='TYPE:ARMY:FIRST:LAST:MAX',
+                        help='diagnostic-only bounded native type/army position census; requires --movement-observe')
     args = parser.parse_args(argv)
     if args.movement_observe_position is not None and not args.movement_observe:
         parser.error('--movement-observe-position requires --movement-observe')
+    if args.movement_observe_cohort is not None and not args.movement_observe:
+        parser.error('--movement-observe-cohort requires --movement-observe')
     # Preserve the private protocol pipe before any DLL initializer/CRT output.
     from server.simulation_worker import isolate_protocol_stdout
     sink = isolate_protocol_stdout()
@@ -86,10 +99,12 @@ def main(argv=None):
         session = NativeSession.open(original_dll=args.original_dll, heap_helper=args.heap_helper,
                                      cooperative=args.cooperative, data_dir=args.data_dir)
         if observation_path is not None:
-            if args.movement_observe_position is None:
-                session.enable_movement_observation(observation_path)
-            else:
-                session.enable_movement_observation(observation_path, position_trace=args.movement_observe_position)
+            options = {}
+            if args.movement_observe_position is not None:
+                options['position_trace'] = args.movement_observe_position
+            if args.movement_observe_cohort is not None:
+                options['cohort_trace'] = args.movement_observe_cohort
+            session.enable_movement_observation(observation_path, **options)
     except Exception as error:
         if session is not None:
             try:session.close()

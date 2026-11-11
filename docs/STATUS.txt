@@ -4,6 +4,16 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+2026-11-11 multi-unit progress:Actual68's separate file-only reanalysis04 passes
+two ready selected Gunbots' original Move and group/cache continuity through a
+later10-frame replay+20continuations. Both respond53.156..53.676ms,437..485ms
+before raw authority. All2890full native hashes and native/wire triples match;
+two actual Custom rounds/normal Quit,all owned children natural0/no force.
+Original67/68 reports remainFAILED;fixture scope/observer forwarding and strict
+parser corrections have retained evidence.389 affected Python tests and full
+helper95 build pass. Physical/Internet,close-formation and remaining group/type
+paths stay open. No new installer/live change;prediction-multi-unit-move.txt.
+
 2026-11-11 current priority:server-hosted solo AI prediction for Nick's initial
 test. Source now admits negotiated publicmode1 human0/bot1 and validates/replays
 canonical AI against the frozen world roster.63 focused worker tests pass;

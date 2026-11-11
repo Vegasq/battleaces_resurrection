@@ -432,6 +432,8 @@ static Bytes playerInput(Obj server,int& count) {
     while(count<256){Root command(ba_local::dequeue(ba::read<Obj>(server,0x180)));if(!command.get())break;Root action(ba_local::toProto(command.get()));
         if(ba::flag(L"-prediction-mobile-context-move-smoke")||ba::flag(L"-prediction-mobile-original-hold-smoke"))
             ba_prediction_context_move::serialized(command.get(),action.get(),originalCommands.sequence(),nextFrame);
+        if(ba_prediction_cohort::enabled())
+            ba_prediction_cohort::serialized(command.get(),action.get(),originalCommands.sequence(),nextFrame,static_cast<unsigned>(count));
         normalizeAction(action.get());ba_local::addItem(output,action.get());++count;}
     while(count<256){Root action(ba_local::dequeue(ba::read<Obj>(server,0x188)));if(!action.get())break;normalizeAction(action.get());ba_local::addItem(output,action.get());++count;}
     Bytes body=serialize(player.get());if(body.size()>65536)throw std::runtime_error("LAN input batch exceeds 64KiB");return body;

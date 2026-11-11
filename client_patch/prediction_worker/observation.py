@@ -51,13 +51,43 @@ def parse_position_trace_spec(value):
     return PositionTraceSpec(*(int(field) for field in value.split(':')))
 
 
+@dataclass(frozen=True)
+class CohortTraceSpec:
+    """A bounded native type/army census; IDs are discovered, never predicted."""
+    unit_type: int
+    army: int
+    first_frame: int
+    last_frame: int
+    max_entities: int
+
+    def __post_init__(self):
+        if (type(self.unit_type) is not int or not 1 <= self.unit_type <= 0xffffffff or
+                type(self.army) is not int or not 0 <= self.army <= 0xffffffff):
+            raise ObservationError('invalid native cohort type/army')
+        if (type(self.first_frame) is not int or type(self.last_frame) is not int or
+                not 0 <= self.first_frame <= self.last_frame <= 0x7fffffff or
+                self.last_frame-self.first_frame >= 4096):
+            raise ObservationError('invalid native cohort frame window')
+        if type(self.max_entities) is not int or not 1 <= self.max_entities <= 8:
+            raise ObservationError('native cohort entity budget must be 1..8')
+
+
+def parse_cohort_trace_spec(value):
+    if (type(value) is not str or len(value) > 64 or
+            re.fullmatch(r'(?:0|[1-9][0-9]*)(?::(?:0|[1-9][0-9]*)){4}', value) is None):
+        raise ObservationError('expected TYPE:ARMY:FIRST:LAST:MAX in canonical ASCII decimal')
+    return CohortTraceSpec(*(int(field) for field in value.split(':')))
+
+
 class _PositionTrace:
     """External Python-owned copies; never part of restored native memory."""
     context_fields = {'stage', 'head', 'confirmed', 'received', 'corrections',
                       'replayed_frames', 'query_begin_us', 'query_end_us'}
+    spec_type = PositionTraceSpec
+    sample_event = 'native_position'
 
     def __init__(self, path, spec, maximum):
-        if type(spec) is not PositionTraceSpec or type(maximum) is not int or not 1 <= maximum <= 8192:
+        if type(spec) is not self.spec_type or type(maximum) is not int or not 1 <= maximum <= 8192:
             raise ObservationError('invalid selected native trace budget/specification')
         self.spec, self.maximum = spec, maximum
         self.stream = path.open('x', encoding='utf-8')
@@ -90,6 +120,20 @@ class _PositionTrace:
         row['query_scope'] = 'existing-native-make-get-and-decode'
         self.buffer.append(row)
         self.total += 1
+
+    def _selection(self):
+        return dict(watched_identity=dict(id=self.spec.entity_id, type=self.spec.unit_type, army=self.spec.army))
+
+    def _unavailable(self, status):
+        return dict(status=status, position=None, position_bits=None,
+                    observed_identity=None, missing_components=[])
+
+    def _clear_position(self, row, status):
+        row.update(status=status, position=None, position_bits=None)
+
+    def _empty_context(self):
+        return dict(stage=None, head=None, confirmed=None, received=None, corrections=None,
+                    replayed_frames=None, query_begin_us=None, query_end_us=None)
 
     def _entity(self, state):
         matches = []
@@ -160,10 +204,10 @@ class _PositionTrace:
             raise ObservationError('selected native query clock/metrics regressed')
         entity = self._entity(state)
         after = context['stage'] == 'replay' and self.same_head is not None and frame == self.same_head
-        row = dict(schema=1, event='after_replay_same_head' if after else 'native_position',
+        row = dict(schema=1, event='after_replay_same_head' if after else self.sample_event,
             world=self.world, frame=frame, revision=self.revision, query_revision=self.revision,
             checkpoint_base=self.restore_base, first_divergent_frame=None if self.restore_base is None else self.restore_base+1,
-            watched_identity=dict(id=self.spec.entity_id, type=self.spec.unit_type, army=self.spec.army),
+            **self._selection(),
             context_source='same_decoded_native_query', **context, **entity)
         self._append(row)
         self.latest, self.last_frame = row, frame
@@ -177,17 +221,16 @@ class _PositionTrace:
         self._budget()
         revision = self.revision+1
         if self.latest is None:
-            row = dict(schema=1, world=self.world, frame=self.last_frame, status='outside_window' if self.last_frame >= 0 else 'no_cached_state',
-                position=None, position_bits=None, observed_identity=None, missing_components=[],
-                watched_identity=dict(id=self.spec.entity_id, type=self.spec.unit_type, army=self.spec.army),
-                stage=None, head=None, confirmed=None, received=None, corrections=None, replayed_frames=None,
-                query_begin_us=None, query_end_us=None, query_revision=None, cached_from_record=None)
+            row = dict(schema=1, world=self.world, frame=self.last_frame,
+                **self._unavailable('outside_window' if self.last_frame >= 0 else 'no_cached_state'),
+                **self._selection(),
+                **self._empty_context(), query_revision=None, cached_from_record=None)
         else:
             row = dict(self.latest, cached_from_record=self.latest['record'])
         cached_is_head = self.latest is not None and (self.latest['stage'] == 'ordinary' or self.latest['head'] == self.last_frame)
         row['cached_physical_head'] = self.last_frame if cached_is_head else None
         if self.latest is not None and not cached_is_head:
-            row.update(status='cached_frame_not_head', position=None, position_bits=None)
+            self._clear_position(row, 'cached_frame_not_head')
         row.update(event='before_restore_cached_head', revision=revision, checkpoint_base=frame,
                    first_divergent_frame=frame+1, context_source='cached_query_before_restore')
         self._append(row)
@@ -223,6 +266,80 @@ class _PositionTrace:
             self.stream.close()
 
 
+class _CohortTrace(_PositionTrace):
+    spec_type = CohortTraceSpec
+    sample_event = 'native_cohort_positions'
+    context_fields = _PositionTrace.context_fields | {'query_begin_tick_ms', 'query_end_tick_ms'}
+
+    def __init__(self, path, spec, maximum):
+        super().__init__(path, spec, maximum)
+        self.last_end_tick = -1
+
+    def _empty_context(self):
+        return dict(super()._empty_context(), query_begin_tick_ms=None, query_end_tick_ms=None)
+
+    def record(self, frame, state, context):
+        if self.active(frame):
+            if (type(context) is not dict or
+                    any(type(context.get(name)) is not int or not 0 <= context[name] <= 0xffffffffffffffff
+                        for name in ('query_begin_tick_ms', 'query_end_tick_ms')) or
+                    context['query_begin_tick_ms'] < self.last_end_tick or
+                    context['query_end_tick_ms'] < context['query_begin_tick_ms']):
+                raise ObservationError('native cohort query Windows tick clock is incomplete/regressed')
+        super().record(frame, state, context)
+        if self.active(frame):
+            self.last_end_tick = context['query_end_tick_ms']
+
+    def _selection(self):
+        return dict(cohort_spec=dict(type=self.spec.unit_type, army=self.spec.army,
+                    first_frame=self.spec.first_frame, last_frame=self.spec.last_frame,
+                    max_entities=self.spec.max_entities))
+
+    def _unavailable(self, status):
+        return dict(status=status, count=0, entities=[])
+
+    def _clear_position(self, row, status):
+        row.update(self._unavailable(status))
+
+    def _entity(self, state):
+        entities, seen = [], set()
+        for entity in state['entities']:
+            if type(entity) is not dict or type(entity.get('id')) is not int or not 0 <= entity['id'] <= 0xffffffff:
+                raise ObservationError('native cohort entity ID is incomplete/invalid')
+            if entity['id'] in seen:
+                raise ObservationError('ambiguous native cohort entity ID')
+            seen.add(entity['id'])
+            for name in ('army', 'type'):
+                if name in entity and (type(entity[name]) is not int or not 0 <= entity[name] <= 0xffffffff):
+                    raise ObservationError('native cohort identity component is invalid')
+            # The decoded census is a union of component buffers. A known
+            # different type/army rules out membership even if another
+            # component is absent. Never infer a matching missing identity.
+            if ('type' in entity and entity['type'] != self.spec.unit_type or
+                    'army' in entity and entity['army'] != self.spec.army):
+                continue
+            if not {'army', 'type', 'position'} <= entity.keys():
+                raise ObservationError('native cohort candidate has incomplete identity/position')
+            vector = entity['position']
+            if type(vector) is not list or len(vector) != 3:
+                raise ObservationError('native cohort position is not Vec3')
+            try:
+                if not all(type(value) in (int, float) and math.isfinite(value) for value in vector):
+                    raise ObservationError('native cohort position is nonfinite/invalid')
+                raw = struct.pack('<fff', *vector)
+            except (OverflowError, struct.error) as error:
+                raise ObservationError('native cohort position is not finite float32') from error
+            copied = list(struct.unpack('<fff', raw))
+            if copied != vector or not all(math.isfinite(value) for value in copied):
+                raise ObservationError('native cohort position is not the decoded float32 value')
+            entities.append(dict(id=entity['id'], type=entity['type'], army=entity['army'],
+                                 position=copied, position_bits=list(struct.unpack('<III', raw))))
+            if len(entities) > self.spec.max_entities:
+                raise ObservationError('native cohort entity budget reached; census is not truncated')
+        entities.sort(key=lambda entity: entity['id'])
+        return dict(status='present' if entities else 'empty', count=len(entities), entities=entities)
+
+
 def state_digest(state):
     # Exactly tools.verify_high_latency_clients.state_digest's normalization.
     canonical = {key: value for key, value in state.items() if key != 'raw_sha256'}
@@ -237,7 +354,8 @@ def windows_tick():
 
 class CanonicalStateObserver:
     def __init__(self, path, *, tick=None, max_pending=32, max_rows=4096,
-                 position_trace=None, max_position_records=8192):
+                 position_trace=None, max_position_records=8192,
+                 cohort_trace=None, max_cohort_records=8192):
         if (type(max_pending) is not int or not 1 <= max_pending <= 32 or
                 type(max_rows) is not int or not 1 <= max_rows <= 4096):
             raise ObservationError('invalid diagnostic state observation budget')
@@ -247,13 +365,18 @@ class CanonicalStateObserver:
         self.owner = _thread.get_ident()
         self.stream = self.path.open('x', encoding='utf-8')
         self.position_trace = position_trace
-        self._positions = None
-        if position_trace is not None:
-            try:
+        self.cohort_trace = cohort_trace
+        self._positions = self._cohorts = None
+        try:
+            if position_trace is not None:
                 self._positions = _PositionTrace(self.path.with_name('native-positions.jsonl'), position_trace, max_position_records)
-            except BaseException:
-                self.stream.close()
-                raise
+            if cohort_trace is not None:
+                self._cohorts = _CohortTrace(self.path.with_name('native-cohort-positions.jsonl'), cohort_trace, max_cohort_records)
+        except BaseException:
+            self.stream.close()
+            if self._positions is not None:
+                self._positions.close()
+            raise
         self.world = None
         self.pending = {}
         self.published = -1
@@ -270,6 +393,8 @@ class CanonicalStateObserver:
             raise ObservationError('diagnostic state world lifecycle differs')
         if self._positions is not None:
             self._positions.begin(world)
+        if self._cohorts is not None:
+            self._cohorts.begin(world)
         self.world, self.pending, self.published = world, {}, -1
         self.last_replayed = self.last_corrections = 0
 
@@ -290,7 +415,13 @@ class CanonicalStateObserver:
         self._world(world)
         if type(frame) is not int or not 0 <= frame <= 0x7fffffff:
             raise ObservationError('selected native frame is invalid')
-        return self._positions is not None and self._positions.active(frame)
+        return any(trace is not None and trace.active(frame) for trace in (self._positions, self._cohorts))
+
+    def cohort_active(self, world, frame):
+        self._world(world)
+        if type(frame) is not int or not 0 <= frame <= 0x7fffffff:
+            raise ObservationError('native cohort frame is invalid')
+        return self._cohorts is not None and self._cohorts.active(frame)
 
     def record(self, world, frame, state, *, context=None):
         self.prepare_frame(world, frame)
@@ -301,7 +432,13 @@ class CanonicalStateObserver:
         if frame in self.pending and self.pending[frame] != value:
             raise ObservationError('diagnostic candidate changed without checkpoint invalidation')
         if self._positions is not None:
-            self._positions.record(frame, state, context)
+            position_context = context
+            if self._cohorts is not None and type(context) is dict:
+                position_context = {key: value for key, value in context.items()
+                                    if key not in ('query_begin_tick_ms', 'query_end_tick_ms')}
+            self._positions.record(frame, state, position_context)
+        if self._cohorts is not None:
+            self._cohorts.record(frame, state, context)
         self.pending[frame] = value
 
     def invalidate_after(self, world, frame):
@@ -310,6 +447,8 @@ class CanonicalStateObserver:
             raise ObservationError('cannot invalidate published diagnostic native state')
         if self._positions is not None:
             self._positions.invalidate(frame)
+        if self._cohorts is not None:
+            self._cohorts.invalidate(frame)
         self.pending = {number: value for number, value in self.pending.items() if number <= frame}
 
     def promote(self, world, frontier, metrics):
@@ -354,6 +493,8 @@ class CanonicalStateObserver:
         self._world(world)
         if self._positions is not None:
             self._positions.finish()
+        if self._cohorts is not None:
+            self._cohorts.finish()
         self.pending.clear()  # Never publish unconfirmed physical/replay tails.
         self.world, self.published = None, -1
 
@@ -368,5 +509,9 @@ class CanonicalStateObserver:
         finally:
             self.closed = True
             self.stream.close()
-            if self._positions is not None:
-                self._positions.close()
+            try:
+                if self._positions is not None:
+                    self._positions.close()
+            finally:
+                if self._cohorts is not None:
+                    self._cohorts.close()

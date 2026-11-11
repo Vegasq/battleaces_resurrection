@@ -25,7 +25,9 @@ static void prepare(Obj gameData,int slot) {
         if(slot<0 || slot>(publicTeam?3:1))throw std::runtime_error("smoke army slot outside supported roster");
         // All four public seats use an ordinary opening unit. Army number is
         // independent of its selected deck slot; slots2/3 are tech units.
-        const int deckSlot=slot%2;
+        const bool cohort=ba_prediction_cohort::enabled();
+        if(cohort)ba_prediction_cohort::requireFlags();
+        const int deckSlot=cohort?0:slot%2;
         Obj config=require(ba::get<Obj>(gameData,"gameConfig_"),"smoke GameConfig missing");
         Obj armies=require(ba::get<Obj>(config,"armies_"),"smoke armies missing");
         Obj army=require(item(armies,slot),"smoke local army missing");
@@ -33,6 +35,7 @@ static void prepare(Obj gameData,int slot) {
         Obj deck=require(ba::get<Obj>(army,"deck_"),"smoke assigned deck missing");
         const uint32_t unit=unitAt(ba::get<Obj>(deck,"units_"),deckSlot);
         if(!unit)throw std::runtime_error("smoke opening deck slot is empty");
+        if(cohort&&unit!=1)throw std::runtime_error("cohort requires the unchanged legal Gunbot deckslot0");
         Obj abilities=require(ba::get<Obj>(config,"abilities_"),"smoke ability list missing");
         int matches=0;uint32_t key=0;
         for(int index=0;index<ba_local::count(abilities);++index) {
@@ -52,7 +55,7 @@ static void prepare(Obj gameData,int slot) {
         const bool mirror=ba::flag(L"-prediction-movement-experimental")&&
             ba::flag(L"-prediction-actor-correction-smoke")&&ba::flag(L"-prediction-actor-mirror-smoke")&&
             ba::flag(L"-prediction-held-click-smoke");
-        plan.buildAt=mirror&&slot==0?250:300+100*slot;
+        plan.buildAt=cohort||(mirror&&slot==0)?250:300+100*slot;
         ba::log("LAN smoke prepared: slot%d will request normal deckSlot%d unitType=%u ability=%u at input frame%d",slot,deckSlot,unit,key,plan.buildAt);
     } catch(const std::exception& e) {ba::log("LAN normal-build smoke disabled during preparation: %s",e.what());}
 }

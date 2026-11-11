@@ -1,0 +1,132 @@
+BATTLE ACES - MULTI-UNIT MOVEMENT PREDICTION
+Reviewed:2026-11-11. N33 remains ACTIVE;full feature/Internet acceptance OPEN.
+
+BOUNDED RESULT
+Actual68's separate file-only parser-reanalysis04 passes the two-unit movement,
+group continuity,native-state,wire,lifecycle and original final gates. The
+original run report remainsFAILED.
+Two actual Custom rounds use peers shaped to130/475ms RTT. Both selected units
+respond in53.156..53.676ms,437..485ms before raw server delivery and437..563ms
+before accepted native65. Each also has original native motion at441 before
+both authority receipts. The cohort command is assigned441/canonical442 in the
+first world and441/441 in the second;the one-frame tolerance is unchanged.
+The independent remote command is461/461 in both worlds and causes10 real
+replayed frames plus20 matching continuations. Selection/group/type1 caches
+remain correct across every observed frame420..520 without reselection.
+All2890 closed full parsed native state hashes and native65/rawbridge/serverwire
+triples match authority. Both games
+exit0 naturally with retained handles closed and Jobs3/0/0;both authority
+workers exit0 with Jobs2/0/0. No forced cleanup or cleanup errors occur.
+
+SCOPE
+The explicit --multi-unit-move diagnostic retains the qualified mobile duel,
+original escape150 and fresh single-unit Move180. Both players legally build
+their unchanged deckslot0 Gunbot at250. Actual prebuild249/current420 censuses
+identify the new units;the test never guesses or manufactures their IDs.
+The guest selects initial11 plus its newly built Gunbot through the original
+programmatic Begin/Clear/Add/Add/Dispose path and assigns original manual group4.
+One original two-ID Move440 uses their actual Unity midpoint plus8Z. The other
+player gives its newly built Gunbot an independent Move460,causing a later
+correction while the guest's selected group is moving. The early150 correction
+is setup evidence and does not substitute for this later correction.
+
+The verifier requires native readiness,canonical incarnation admission,normal
+ICommand serialization and exact67/72/canonical body/target/identity binding.
+Each unit must have a quiet baseline and actual targetward Unity AND native
+movement before both raw-bridge delivery and accepted native65 authority.
+Selection,manual group,typed caches and owners must remain consistent through
+the later real replay and20 matching continuations. Full closed native states,
+six original actions and two natural matches remain separate mandatory gates.
+This is scripted selection/command evidence. It does not qualify physical
+mouse input,close-formation collisions,type changes or forced group retirement.
+
+OBSERVATION
+The opt-in cohort trace copies sorted bounded type/army identities and float32
+positions from the existing decoded quiescent Spectator31 query. It adds no
+native query or simulation step. Real QPC and GetTickCount64 brackets join the
+native query to client/wire observations;no invented cross-clock epoch is used.
+Before-restore cached heads and actual replayed heads retain their provenance.
+Single-unit observation stays compatible;ordinary launchers enable neither
+this fixture nor its diagnostic trace.
+
+An independent file-only audit of Actual68's closed cohort trace passes243
+records:232 real queries and11 cached records. Each world contains every
+ordinary frame420..520 with exact type1/army1 IDs11/76 and float32 bits. Three
+same-head replay pairs retain exact cache references and ordered QPC/GTC brackets.
+Both later divergent-frame461 replays leave the guest pair's poses unchanged;
+they qualify continuity through real replay,not a nonzero pose correction of
+these units. The first world's separate441 replay changes both poses.
+Audit:local/multi-unit-move-route01/actual68-cohort-trace-audit01.json
+SHA256a9438129069fbf5f36ab2cc7c652d9d8a0310a6e7686ac562ea6559b8fcbb2d6
+
+PRESERVED FAILURES AND REPAIRS
+The first headless preflight used the wrong default deck and refused before
+constructing an original world. Native-control02 instead uses the unchanged
+retained fixture decks and passes original readiness and two-ID movement.
+Helper93 failed /WX on a signed literal in binary_search;uint32_t{11} fixes it.
+
+Actual67 fails before the multi-unit command because its new scripted selection
+uses BeginSelectionChange(true) while the earlier mobile fixture retains group
+focus. The original method deliberately refuses that combination. The same
+original programmatic false scope already works at180 and in the retained
+Actual18 repair. Helper95 uses false,retains the same-helper/active-suspension
+guards,and revalidates ownership after each original call. Its snapshot records
+that scope explicitly. The test does not claim a physical selection.
+Actual67 also omitted the guest observer value flag. The controller now forwards
+the exact prepared specification and refuses missing/different specifications;
+the authored regression first fails twice,then62 affected tests pass.
+
+Actual68 completes both matches and exits naturally,but its original report
+remains FAILED because the parser did not yet recognize the newly recorded
+selection_scope_player_initiated field. Original captures/source/report are
+preserved. Any corrected interpretation is a separate file-only result.
+The first additive analysis also remainsFAILED:its Build parser incorrectly
+equated request250,presentation-after-return and canonical execution. Actual
+host/guest presentation is251/258 and canonical execution252/259 in both worlds.
+The corrected parser binds sourceNextFrame250 to the exact sequence/body,
+normal67/72 receipts and unique canonical action before selection420. It keeps
+the original legality,queue growth,actual birth/readiness and movement gates.
+The explicit scope field is required:null before selection/on host,false after
+guest programmatic selection. Missing/true/rebound evidence is refused. The
+affected full parser/controller/mobile/verifier suite passes389 cases after
+retained REDs. Reanalysis04 checks1009 source snapshot bindings and66 runtime
+files;it reproduces the frozen native-route/worker/Quit/timing predicates,
+mobile finalization and literal original outer final expression. Earlier
+additive analyses remain preserved with their original narrower results.
+
+RETAINED IDENTITIES
+Original failed67 report:
+local/prediction-runtime/movement67-multi-unit-cohort/run/verification.json
+SHA2567133e5e5cc1ab414eb5d13e345f10c989505d18b454bef518c4898a1b2d344a2
+Original failed68 report:
+local/prediction-runtime/movement68-multi-unit-cohort/run/verification.json
+SHA25642919a8727a560ec50fdb50bcbb0e069c0a7d073a382ecdaf2f93d702f1ce336
+Failure archives:
+local/multi-unit-move-route01/actual67-preserved/receipt.json
+local/multi-unit-move-route01/actual68-preserved/receipt.json
+Original selection contract and repair evidence:
+local/multi-unit-move-route01/selection-scope-fix01/receipt.json
+Observer forwarding RED/GREEN:
+local/multi-unit-move-route01/observer-forwarding-fix01/verification.json
+Final parser tests and result metrics:
+local/multi-unit-move-route01/scope-parser-fix01/verification.json
+SHA256b02a169e8edeb5390a41c6b6674f5dfc658f82db991ed94a67d2bfcbb63adf60
+Separate full file-only qualification:
+local/prediction-runtime/movement68-multi-unit-cohort/parser-reanalysis04/qualified-report.json
+SHA25635859c70100ba02dde3d0a8b08b1d2385b5d8f5a3a55ddde4ac424a654170dca
+
+The first publication audit refused a controller over the256KiB source limit.
+Five pure plan validators and five constants now live in prediction_mobile_plan.py,
+explicitly reexported by the controller. Exact AST/text equivalence proves no
+other controller logic changed;the389 affected tests pass again. The limit is
+unchanged and the controller is258486 LF bytes. This source-only refactor does
+not relabel or rerun Actual68;its original frozen bindings stay preserved.
+Receipt:local/multi-unit-move-route01/mobile-plan-extraction01/verification.json
+SHA25677d80c852cb3a98a834ef6e57c33463d80e92b32232563ac959747eb6365162a
+
+Helper95 built36 authored test executables with213 unchanged C++ source bindings.
+DLL SHA2560d272db91ad6e37393af205c9005d0b6d301c04480e5771f04a0bfb9fd181aaf
+Installed manifest SHA2569ba5c66273ec42598394dda4c8b6534f5ea43480581e4fb93f9a1c96de77d377
+Unchanged GameAssembly SHA256742dc59d0063873a618f407e23cc5b93e7aee374483eb1f9dfdc46533f0999f3
+Only local/prediction-runtime/game is used for automated execution. The deployed
+server,private server-AI installers and all reserved manual games stay unchanged.
