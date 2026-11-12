@@ -38,7 +38,29 @@ SOURCE_FIXTURES = {
 # bypasses only the generic size warning, never the content/path checks below.
 REVIEWED_LARGE_SOURCES = {
     "tools/verify_prediction_multiplayer.py": (
-        271482, "23b9c6b9fc08671e6568de7d876df5e7341bd3c708cba4d6479fbd09c77b6002"),
+        272006, "872bd37fea2eeac4210dd3044fa22fc04b981b3514dea6c8bec5a62f1d193c29"),
+}
+
+# Exact, already-published blobs reviewed independently of the current index.
+# Four old README versions contain the same generic game-folder example. The
+# controller versions retain their earlier authored-source review. These entries
+# waive only the named finding for the exact historical bytes; new/indexed data
+# and every other content/path/credential check still use the normal rules.
+REVIEWED_HISTORICAL_FINDINGS = {
+    ("README.md", 8173, "7ded7f6a265b84f99120eb57a640fdf4809f5ecd3bf9d998727950309740f5bc"):
+        frozenset({"developer-specific absolute path"}),
+    ("README.md", 7820, "b842ac0e5848e11980051dd2b7f9dd1fd81f03958e3b072c2440df182993295f"):
+        frozenset({"developer-specific absolute path"}),
+    ("README.md", 7246, "09ba338cddc466db9ab85ee04e3b21da62570aa49976fb108aaad3e6360cd14b"):
+        frozenset({"developer-specific absolute path"}),
+    ("README.md", 6727, "68982d429db09847befa466c0d239da504c8924f4dab759bc4cc136039281f8e"):
+        frozenset({"developer-specific absolute path"}),
+    ("tools/verify_prediction_multiplayer.py", 270502,
+     "c434521815a5d99c5b99f281680aab23a19859446e70fb4a34327fb1ec9562fc"):
+        frozenset({"source file over 256 KiB; review for embedded payload"}),
+    ("tools/verify_prediction_multiplayer.py", 271482,
+     "23b9c6b9fc08671e6568de7d876df5e7341bd3c708cba4d6479fbd09c77b6002"):
+        frozenset({"source file over 256 KiB; review for embedded payload"}),
 }
 
 
@@ -87,6 +109,13 @@ def git(*args):
     return subprocess.check_output(["git", *args])
 
 
+def inspect_history(name: str, data: bytes) -> list[str]:
+    reasons = inspect_content(name, data)
+    reviewed = REVIEWED_HISTORICAL_FINDINGS.get(
+        (name, len(data), hashlib.sha256(data).hexdigest()), frozenset())
+    return [reason for reason in reasons if reason not in reviewed]
+
+
 def entries(tree=None):
     if tree is None:
         rows = git("ls-files", "--stage", "-z")
@@ -117,7 +146,8 @@ def audit(history=False):
             if (oid, name) in seen:
                 continue
             seen.add((oid, name))
-            reasons = inspect_content(name, git("cat-file", "blob", oid))
+            data = git("cat-file", "blob", oid)
+            reasons = inspect_content(name, data) if tree is None else inspect_history(name, data)
             if mode not in (b"100644", b"100755"):
                 reasons.append("symlink or unsupported file mode")
             if reasons:

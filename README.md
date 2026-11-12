@@ -4,7 +4,9 @@ A community server and reversible Windows client patch for **Battle Aces build 3
 
 **Download 0.4.0:** [Client installer](https://github.com/Vegasq/battleaces_resurrection/releases/download/v0.4.0/BattleAces-Client-Installer-0.4.0.exe) · [Server installer](https://github.com/Vegasq/battleaces_resurrection/releases/download/v0.4.0/BattleAces-Server-Installer-0.4.0.exe) · [Release notes](https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.4.0) · Windows x64
 
-**Community server:** Public queues and Custom rooms on **134.209.176.39:47623** are open again for 0.4.0 players. The dashboard remains restricted to the project owner's IP. Solo AI runs locally by default; movement and latency in games with other humans remain under evaluation.
+**Community server:** **134.209.176.39:47623** is temporarily reserved for private movement-prediction tests. Use local AI or your own host while public access is restricted. The dashboard remains restricted to the project owner's IP. Solo AI in the public client runs locally by default.
+
+**Private prediction preview:** The separate preview supports Custom 1v1 and solo 1v1 against server-hosted AI, with immediate local movement and correction smoothing. It requires its own installer and **Battle Aces Prediction Test** shortcut; the public 0.4.0 download above does not include it. See the [preview setup and testing guide](docs/prediction-test-guide.txt), including how to recognize an older Custom-only preview.
 
 <a href="https://discord.gg/s8YM4d2Sf"><img src="docs/media/discord-server.webp" alt="Community Discord icon" width="28" height="28"></a> **Community:** [Join the Discord server](https://discord.gg/s8YM4d2Sf) to chat with other players and find matches.
 

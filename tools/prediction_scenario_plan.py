@@ -66,10 +66,12 @@ def command_extra(plan, index, run):
     from tools import prediction_visual_input as visual_input
     from tools import prediction_visual_click as visual_click
     from tools import prediction_visual_aim as visual_aim
+    from tools import prediction_visual_acquire as visual_acquire
     visual.validate_plan(plan)
     visual_input.validate_plan(plan)
     visual_click.validate_plan(plan)
     visual_aim.validate_plan(plan)
+    visual_acquire.validate_plan(plan)
     from tools.prediction_close_formation_evidence import validate_plan as validate_close_plan
     from tools.prediction_queued_orders_evidence import validate_plan as validate_queued_plan
     validate_close_plan(plan)
@@ -168,6 +170,8 @@ def command_extra(plan, index, run):
         result.append('-prediction-visual-click-smoke')
     if plan.get('visual_click_spatial') and index == plan['move_slot']:
         result.append('-prediction-visual-click-spatial')
+    if plan.get('visual_click_acquire') and index == plan['move_slot']:
+        result.append('-prediction-visual-click-acquire')
     if plan.get('publication_source')=='post-original-qpc' or plan.get('mobile_recovery_stall') or plan.get('multi_unit_move') or plan.get('cohort_survivor') or plan.get('close_formation') or plan.get('queued_orders'):
         result.append('-frame-timing-worlds=2')
     if plan['lifecycle'] == 'natural':

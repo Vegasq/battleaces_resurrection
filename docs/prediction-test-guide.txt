@@ -3,6 +3,8 @@ CUSTOM GAME AND SERVER AI - PRIVATE PREDICTION + SMOOTHING TEST
 2026-11-12 preview:BattleAces-Client-Prediction-AI-Visual-20261112.exe.
 This kit includes immediate local movement prediction and bounded visual
 correction. It replaces the older Custom-only and PR2-AI preview clients.
+Community-server access is temporarily restricted for private testing. Use the
+existing test access or follow the separate-host instructions below.
 
 For two-player tests,both players must use this same private installer and its
 prediction shortcut. Use Custom Game -> Invite Friend -> Start.

@@ -38,6 +38,76 @@ affected CLI checks pass,including changed coordinates,phase order,source
 binding and refusal to promote a failed parent. Earlier click checks remain
 qualified at the exact retained source;full N33/D8 and human acceptance stay open.
 
+Actual91 - first-selection setup FAILED before Down
+The explicit acquisition-only mode retains naturally empty committed selection
+at frame539,but its first frozen subject point is outside the viewport:
+(1510.479614,-475.824341),with the previous pointer at(0,539). No Down/Up occurs.
+The original focus at510 returned the subject to approximately(480,270);the
+screen projection later moved substantially. At514,even before88's zero-click
+position event,the two captures already differ. Neither camera motion nor
+edge scrolling is established as the cause. The older88 setup does subsequently
+place its pointer inside the viewport;91 has no corresponding early event.
+At553 the retained correction magnitude is below0.5units,which independently
+fails the combined acquisition guard. Its wording does not prove that selection
+changed. This failed/forced capture cannot qualify click or movement acceptance.
+Next:add one explicit position-only neutral control while the zero query is
+settled,retain the same borrowed Mouse session,and observe actual consumption
+before the first nonzero click. Preserve real queue ordinals and naturally empty
+selection;no simulated zero click,history reset or selection clearing.
+Report:local/prediction-runtime/movement91-first-nonzero-selection/run/verification.json
+SHA256777c24c8693ddd5d2b46678c51b8676f4fbb6143c07d2c2e03fea0115b9fc266.
+Helper118 SHA256eddee2eb01c094a93e55846091ce968d6d19955874e69ccc53cfdf5d4c9d300f.
+All44 helper executables pass;24 focused Python tests pass. These authored tests
+do not promote the failed original-game result. Normal human frontend and the
+frozen helper111 installers are unchanged;no live/manual change.
+
+Actual90 - returned-Up observation resolves the rejected setup
+The same zero-offset empty-ground control now logs the actual returned-Up state
+before its unchanged acceptance check. At world1/frame524,current remains[74],
+preview/casting are empty,selector primary/context/drag and actual Mouse buttons
+are false,history mode0/idFFFFFFFF,and the callback ledger completes normally.
+The sole failed selection conjunct is currentEmpty. The original click releases
+normally but does not clear selection in this observed case. No smoothing defect
+or universal empty-click behavior is inferred. Do not force selection clear or
+relax the required transition. Retire this unsuitable setup.
+The53.805s run remainsFAILED/forced. Games51168/20240 exit92,reaped/handlesclosed,
+Jobs3/0/0;authority46672 is cancelled/forced exit1,Job2/0/0. Two bridge Win64
+cleanup errors remain. Source maps agree and runtime files are unchanged.
+Report:local/prediction-runtime/movement90-empty-up-observation/run/verification.json
+SHA2560cdb503c87ae38b80f091bc2b3747cfe57c02d710b0d44606e2cf6ea883abfb6.
+Helper117 SHA256f25ef9ac1870f6d3631944f7bf4d745d6a8f4b086c36e0d8d2c69d29965c9d9e.
+Its exact failed source/captures are retained privately before replacement.
+Next is a separate one-episode acquisition mode:omit the actual zero click,
+retain the Stage1 zero query/focus controls,and make the first original click
+while correction is at least0.5units. Require naturally empty committed
+selection through Up-before,then original Up commits74 with balanced release.
+The old two-click contract and all common parent gates remain unchanged.
+
+Actual89 - empty-click control FAILED before a post-Up observation
+The explicit new control tries one original empty-ground click between the
+qualified zero/nonzero subject episodes. Its point is frozen once at the current
+displayed-root projection plus64pixelsX;no search or selection/history writes.
+At world1/frame524,offsetzero,both original ray checks are inside the viewport,
+hit=false/identity=null. Down and nested ProcessClick return with current[74],
+preview/castingempty,mode1,idFFFFFFFF,primarytrue;Down ledger completion istrue
+but Single authorization isfalse. Actual Up-before still has current[74],while
+the actual Mouse button is released. The post-Up semantic guard then rejects
+BEFORE emitting its returned row. Exact post-Up selection/preview/primary and
+the failed conjunct are UNKNOWN. This is neither a proven smoothing defect nor
+proof that an ordinary empty click clears or preserves selection.
+The53.907s run remainsFAILED/forced. Games41972/36336 exit92,reaped/handlesclosed,
+Jobs3/0/0;authority44264 is cancelled/forced exit1,Job2/0/0. Two bridge Win64
+cleanup errors remain;source/runtime files are unchanged. No live/manual change.
+The next observation90 above resolves the separate run's returned state;89's
+own missing fields remain unknown. No failed report is promoted retrospectively.
+Report:local/prediction-runtime/movement89-visual-click-empty/run/verification.json
+SHA256ff295a8b63a82eb6862bbaa8aee69a2ca578d43f11a45acd5ac31cb6c34eaa5b.
+Helper116 SHA2563189206c53c1c654e911a94c99b50dfaa6d986f4b3e9f6703c3e31be4feb729b.
+All44 helper test executables pass;13 focused Python checks pass. Earlier
+helper115 failed compilation because an explicit default-argument constructor
+did not support nested State{} reset. A real default constructor and nested
+reset regression fix that integration error;the failed build stays preserved.
+
 Actual87 - natural core/visual pass; combined input gate incomplete
 The normal human frontend3e7bea... and helper113 complete two rounds naturally
 in143.120s:all original native/wire/movement-response/visual/lifetime parent

@@ -42,6 +42,21 @@ Try Deck is local;public2vAI is outside this prediction preview's scope.
     Actual88 passes both rounds,all2892 native-state rows and four balanced click
     episodes. Matched P/Q/R/M rays are phase-stable;all old gates remain intact.
     This does not establish every selection transition or physical input.
+[ ] Qualify a genuine empty-to-subject selection during nonzero smoothing.
+    Use one first selection click while correction is nonzero,starting from the
+    naturally empty selection. Require []->74 and all common parent gates;
+    no direct selection writes,point search or invented zero-click episode.
+    Actual89/90 remain FAILED. The90 observation shows the original empty-ground
+    click keeps74 selected;that unsuitable deselection setup is retired.
+    Actual91 fails before Down with an offscreen projected point. Add one
+    observed neutral position control before waiting for the nonzero click;
+    retain real event ordinals,natural empty selection and every parent gate.
+[ ] Measure original Hold while a nonzero visual correction decays. Actual66's
+    original Hold qualification predates smoothing. A stationary raw position
+    can retain a decaying display offset;no actual Hold defect is established.
+    Use a separate declared timeline and retain the existing pre-authority Hold
+    acceptance as a distinct criterion. Do not append Hold to an unchanged
+    three-Move claim. Details:prediction-original-hold.txt.
 [ ] Explain any concrete recurring displayed-root selection miss. Actual87's
     world2 root-center miss remainsFAILED and unexplained;88 does not reproduce
     it. No synchronization fix is justified by current evidence. Preserve the

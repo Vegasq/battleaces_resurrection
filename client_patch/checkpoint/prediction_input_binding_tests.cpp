@@ -48,7 +48,7 @@ static std::function<void(size_t)> originalBody;
 static std::function<void(Obj,Obj)> processBody;
 static Obj selected=nullptr;
 static bool active=true,stopped=false,presentationOwned=true,presentationThrows=false;
-static bool mobileDiagnostic=false,contextDiagnostic=false,visualDiagnostic=false;
+static bool mobileDiagnostic=false,contextDiagnostic=false,visualDiagnostic=false,visualAcquire=false;
 static uint64_t world=91;
 static std::string match(32,'a'),lastFailure;
 static unsigned failures=0,processCalls=0;
@@ -105,6 +105,7 @@ static bool flag(const wchar_t* name) {
     if(std::wstring(name)==L"-prediction-mobile-held-click-smoke")return host::mobileDiagnostic;
     if(std::wstring(name)==L"-prediction-mobile-context-move-smoke")return host::contextDiagnostic;
     if(std::wstring(name)==L"-prediction-visual-click-smoke")return host::visualDiagnostic;
+    if(std::wstring(name)==L"-prediction-visual-click-acquire")return host::visualAcquire;
     throw std::runtime_error("unexpected authored input flag");
 }
 template<class T>T read(Obj value,size_t offset){return host::read<T>(value,offset);}
@@ -202,7 +203,7 @@ static void reset() {
     originals.fill(0);calls.clear();logs.clear();originalBody={};processBody=&single;
     failures=0;processCalls=0;processSelector=nullptr;processInfo=nullptr;lastFailure.clear();
     active=true;stopped=false;presentationOwned=true;presentationThrows=false;world=91;match.assign(32,'a');
-    mobileDiagnostic=false;contextDiagnostic=false;visualDiagnostic=false;ba_prediction_input::mobileReturnedInput.reset();
+    mobileDiagnostic=false;contextDiagnostic=false;visualDiagnostic=false;visualAcquire=false;ba_prediction_input::mobileReturnedInput.reset();
     ba_prediction_input::visualProbe=nullptr;
     ba_prediction_input::visualProcessProbe=nullptr;
     ba_prediction_input::contextPrimaryReturnedInput.reset();ba_prediction_input::contextReturnedInput.reset();
@@ -550,6 +551,19 @@ static void visualObservationIsDefaultOffAndBindsActualNestedOriginals() {
         !ba_prediction_input::mobileReturnedInput&&!ba_prediction_input::contextReturnedInput,
         "visual receipts reordered, modified borrowed context or contaminated other diagnostics");
 }
+static void acquireOnlyFlagObservesActualOriginalsAndPreservesFaultForwarding() {
+    startVisualDiagnostic();visualDiagnostic=false;visualAcquire=true;const auto unchangedContext=context.bytes;
+    invoke(9);exact(9,&selector,&context,&methods[9]);invoke(10);
+    check(visualEvents==std::vector<std::string>{"Down.before","Process.before","Process.returned","Down.returned","Up.before","Up.returned"}&&
+        originals[9]==1&&originals[10]==1&&processCalls==1&&!failures&&context.bytes==unchangedContext&&
+        !ba_prediction_input::currentDispatch,"acquire-only flag did not observe the actual nested original callback pair");
+    for(const char* phase:{"Down.before","Process.returned","Up.returned"}) {
+        startVisualDiagnostic();visualDiagnostic=false;visualAcquire=true;visualFault=phase;
+        invoke(9);invoke(10);
+        check(originals[9]==1&&originals[10]==1&&processCalls==1&&failures>=1&&stopped,
+            "acquire-only observer fault skipped or retried an original callback");
+    }
+}
 static void visualFaultsCannotSkipOrRetryOriginals() {
     for(const char* phase:{"Down.before","Down.returned","Process.before","Process.returned"}) {
         startVisualDiagnostic();visualFault=phase;invoke(9);exact(9,&selector,&context,&methods[9]);
@@ -608,7 +622,8 @@ int main(){try{
     host::retiredPresentationInputPassesThroughButActiveMismatchStillFails();
     host::visualObservationIsDefaultOffAndBindsActualNestedOriginals();host::visualFaultsCannotSkipOrRetryOriginals();
     host::visualOriginalExceptionAndObserverReplacementCannotFabricateReturn();host::visualRetiredOwnerNeverObservesAnUnownedOriginal();
-    std::cout<<"input binding:21 authored actual-source groups PASS; ordinary runtime qualification remains separate\n";
+    host::acquireOnlyFlagObservesActualOriginalsAndPreservesFaultForwarding();
+    std::cout<<"input binding:22 authored actual-source groups PASS; ordinary runtime qualification remains separate\n";
     return 0;
 }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 catch(...){std::cerr<<"unexpected authored input exception\n";return 1;}}

@@ -22,7 +22,7 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
-  prediction-correction-motion.txt - N33 large native command-retime backtracks,strict sampled render decomposition and next presentation work
+  prediction-correction-motion.txt - N33 correction smoothing,original selection checks,retained failures and remaining input work
   prediction-queued-orders.txt - N33 premature queued-movement counterexample,per-unit dependency repair and qualification status
   prediction-multi-unit-move.txt - N33 two-unit movement,survivor correction,partial purge and qualified four-unit close-formation integration
   prediction-server-ai.txt - qualified solo server-AI prediction, new private installers and owner-only deployment
@@ -31,7 +31,7 @@ CURRENT PLANNING AND ACCEPTANCE
   prediction-context-move.txt - N33 original right-click Move,normal serialization and pre-authority response in two actual rounds
   prediction-actor-correction.txt - N33 selected-HQ correction regression,original callback lifetime and mobile/RTT qualification
   prediction-multiplayer-movement.txt - N33 actual Unity Move-before-authority,clock regression/fix and scoped two-client correction proof
-  prediction-test-guide.txt - private Custom prediction kit installation,special launcher and useful human test
+  prediction-test-guide.txt - private Custom/server-AI prediction kit installation,launcher and human test
   prediction-worker-client.txt - N33 actual Unity worker transport,short native parity and late ownership failure
   prediction-worker-wire.txt - private local worker ABI,copied buffers and owned lifetime
   native-prediction-checkpoints.txt - N33 efficient headless restore/control proof,early allocation interception and actual client integration gates

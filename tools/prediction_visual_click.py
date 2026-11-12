@@ -99,7 +99,10 @@ def _hit(value):
             actor(value['displayed']) != actor(value['raw'])), 'callback ray discrimination is fabricated')
 
 
-def rows(log):
+def rows(log, *, contract='legacy_two_episode'):
+    require(contract in ('legacy_two_episode','first_nonzero'), 'unknown explicit callback-record contract')
+    first_nonzero=contract=='first_nonzero'
+    prefix='VISUAL ACQUIRE ' if first_nonzero else PREFIX
     require(type(log) is str and len(log.encode('utf-8')) <= 64*1024*1024, 'bounded closed log required')
     require(FAILURE not in log, 'original click producer failed')
     def unique(pairs):
@@ -110,8 +113,8 @@ def rows(log):
     def constant(value): raise AssertionError('prediction visual click: nonfinite JSON '+value)
     result = []; worlds = []; current = None; sequence = 0; ordinal = 0; clock = 0
     for line in log.splitlines():
-        if PREFIX not in line: continue
-        raw = line.split(PREFIX,1)[1]
+        if prefix not in line: continue
+        raw = line.split(prefix,1)[1]
         require(len(raw.encode('utf-8')) <= 16384, 'click row exceeds byte bound')
         row = json.loads(raw,object_pairs_hook=unique,parse_constant=constant)
         require(type(row) is dict and row.get('event') in set(EVENTS), 'unknown click event')
@@ -123,8 +126,9 @@ def rows(log):
         if row['event'] == 'closed': extra |= {'roots_before','roots_after','balanced'}
         require(set(row) == COMMON|extra and type(row['schema']) is int and row['schema'] == 1, 'click schema differs')
         require(queries.integer(row['world'],1) and type(row['match']) is str and re.fullmatch('[a-f0-9]{32}',row['match']) and
-                queries.integer(row['episode'],1,2) and row['control'] == ('zero' if row['episode'] == 1 else 'nonzero') and
-                queries.integer(row['sequence'],1,20) and queries.integer(row['frontend_ordinal'],1) and
+                (type(row['episode']) is int and row['episode']==1 and row['control']=='nonzero' if first_nonzero else
+                 queries.integer(row['episode'],1,2) and row['control'] == ('zero' if row['episode'] == 1 else 'nonzero')) and
+                queries.integer(row['sequence'],1,10 if first_nonzero else 20) and queries.integer(row['frontend_ordinal'],1) and
                 queries.integer(row['sampled_us'],1) and queries.integer(row['frame'],400,650) and
                 all(queries.integer(row[k],0,0xffffffff) for k in ('entity','unit_type','army')) and
                 all(queries.integer(row[k],1) for k in ('incarnation','lease','generation','focus_ordinal','focus_returned_us')),
@@ -185,7 +189,7 @@ def rows(log):
             require(type(row['roots_before']) is int and row['roots_before'] == 15 and
                     type(row['roots_after']) is int and row['roots_after'] == 0 and row['balanced'] is True,
                     'bound Mouse roots or release balance survived close')
-        result.append(row); require(len(result) <= MAX_ROWS, 'click row budget exceeded')
+        result.append(row); require(len(result) <= (20 if first_nonzero else MAX_ROWS), 'click row budget exceeded')
     return result
 
 

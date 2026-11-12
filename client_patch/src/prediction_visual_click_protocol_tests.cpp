@@ -80,10 +80,42 @@ static void matchedCounterfactualPreservesTheSameSeparatelyRoundedOffset() {
         "spatial counterfactual used double reassociation instead of two Single operations");
     refuses([&]{(void)matchedAnchor({std::numeric_limits<float>::max(),0},{-std::numeric_limits<float>::max(),0},{0,0});});
 }
+static void firstAcquisitionRequiresNaturalEmptySelection() {
+    using ba_prediction_visual_click_protocol::acquireSelection;
+    // Actual88's original hover adds preview74 while committed selection stays
+    // empty until Up. The unsuccessful90 empty click instead retained current74.
+    check(acquireSelection(false,1.884,74,{}, {}, {}),"natural empty acquisition was refused");
+    check(acquireSelection(false,1.688,74,{}, {74}, {}),"original subject hover was treated as committed selection");
+    check(!acquireSelection(false,1.688,74,{74}, {}, {}),"already-selected subject qualified as a first acquisition");
+    check(!acquireSelection(false,1.688,74,{}, {}, {74}),"active casting qualified as an empty acquisition");
+    check(!acquireSelection(false,0,74,{}, {}, {}),"zero control qualified as a corrected acquisition");
+}
+static void firstAcquisitionRequiresActualCorrectedUpCommit() {
+    using ba_prediction_visual_click_protocol::acquireSelection;
+    check(acquireSelection(true,0.5,74,{74},{},{}),"corrected original Up commit was refused");
+    check(!acquireSelection(true,1.5,74,{}, {}, {}),"released but uncommitted Up qualified");
+    check(!acquireSelection(true,1.5,74,{75},{},{}),"another selected unit qualified");
+    check(!acquireSelection(true,1.5,74,{74,75},{},{}),"multiple selected units qualified");
+    check(!acquireSelection(true,1.5,74,{74},{74},{}),"held preview qualified as completed Up");
+    check(!acquireSelection(true,std::nextafter(0.5,0.0),74,{74},{},{}),"correction that expired before commit qualified");
+    check(!acquireSelection(true,std::numeric_limits<double>::infinity(),74,{74},{},{}),"nonfinite correction qualified");
+    check(!acquireSelection(true,std::numeric_limits<double>::quiet_NaN(),74,{74},{},{}),"unknown correction qualified");
+}
+static void nestedWorldResetRetainsDefaultProtocol() {
+    struct Nested {Progress progress;};struct World {Nested click;Point point;};
+    World world{};world.click.progress=waitingUp();world.point.bind(1,2);
+    world=World{};
+    check(world.click.progress.stage==Stage::Ready,"new world inherited an old click stage");
+    refuses([&]{world.point.x();});
+    world.click.progress=waitingDown();world.click.progress.before(true,7,11,111);
+    refuses([&]{world.click.progress.returned(true,7,112,false);});
+}
 }
 int main(){try{
     test::balanced();test::actualDeliveryRequired();test::singleAndBalancedReleaseRequired();test::noSyntheticCallbacksOrCrossEpisodeTickets();
     test::consumedPositionCannotBeRetargetedAtPress();test::pointBindingIsFiniteExactAndSingleUse();
     test::matchedCounterfactualPreservesTheSameSeparatelyRoundedOffset();
-    std::cout<<"visual click protocol:7 authored groups PASS; original runtime remains separate\n";return 0;
+    test::firstAcquisitionRequiresNaturalEmptySelection();test::firstAcquisitionRequiresActualCorrectedUpCommit();
+    test::nestedWorldResetRetainsDefaultProtocol();
+    std::cout<<"visual click protocol:10 authored groups PASS; original runtime remains separate\n";return 0;
 }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}}

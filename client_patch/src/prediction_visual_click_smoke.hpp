@@ -13,7 +13,10 @@ namespace input=ba_prediction_input;
 namespace protocol=ba_prediction_visual_click_protocol;
 using ba::Obj;
 using Vec3=visual::Vec3;
-static bool enabled(){static const bool value=ba::flag(L"-prediction-visual-click-smoke");return value;}
+static bool legacyEnabled(){static const bool value=ba::flag(L"-prediction-visual-click-smoke");return value;}
+static bool acquireEnabled(){static const bool value=ba::flag(L"-prediction-visual-click-acquire");return value;}
+static bool enabled(){return legacyEnabled()||acquireEnabled();}
+static const char* prefix(){return acquireEnabled()?"VISUAL ACQUIRE ":"VISUAL CLICK ";}
 static bool spatialEnabled(){static const bool value=ba::flag(L"-prediction-visual-click-spatial");return value;}
 static void require(bool value,const char* why){actors::require(value,why);}
 struct AimFrozen {
@@ -39,6 +42,7 @@ struct State {
     AimFrozen aim;
 };
 static State& state(){static State* value=new State;return *value;}
+static bool zeroControl(){return !acquireEnabled()&&state().episode==1;}
 static uint64_t& ordinal(){static uint64_t value=0;return value;}
 static double magnitude(const visual::FrontendObservation& value) {
     return std::hypot(std::hypot(value.offset.x,value.offset.y),value.offset.z);
@@ -97,12 +101,16 @@ static Sample sample() {
         "visual click completed join is stale or camera not settled");
     return out;
 }
+static bool acquireSelection(const Sample& value,bool committed) {
+    return !acquireEnabled()||protocol::acquireSelection(committed,magnitude(value.pose),value.pose.identity.entity,
+        value.current,value.preview,value.casting);
+}
 static std::string fields(const Sample& value,const char* event,uint64_t sequence) {
     const auto& s=state();
     const auto& p=value.pose;const auto& h=value.click;const auto& m=value.mouse;
     std::ostringstream out;out.imbue(std::locale::classic());out<<std::setprecision(17)<<std::boolalpha;
     out<<"{\"schema\":1,\"event\":\""<<event<<"\",\"world\":"<<s.world<<",\"match\":\""<<s.match
-       <<"\",\"episode\":"<<s.episode<<",\"control\":\""<<(s.episode==1?"zero":"nonzero")<<"\",\"sequence\":"<<sequence
+       <<"\",\"episode\":"<<s.episode<<",\"control\":\""<<(zeroControl()?"zero":"nonzero")<<"\",\"sequence\":"<<sequence
        <<",\"frontend_ordinal\":"<<ordinal()<<",\"sampled_us\":"<<value.stamp<<",\"frame\":"<<p.frame
        <<",\"entity\":"<<p.identity.entity<<",\"unit_type\":"<<p.identity.unitType<<",\"army\":"<<p.identity.army
        <<",\"incarnation\":"<<p.identity.incarnation<<",\"lease\":"<<p.lease<<",\"generation\":"<<p.generation
@@ -128,7 +136,7 @@ static std::string fields(const Sample& value,const char* event,uint64_t sequenc
     return out.str();
 }
 static std::string common(const Sample& value,const char* event) {
-    auto& s=state();require(s.sequence<32,"visual click bounded record count exhausted");
+    auto& s=state();require(s.sequence<(acquireEnabled()?10u:32u),"visual click bounded record count exhausted");
     return fields(value,event,++s.sequence);
 }
 struct HitReceipt {bool inside=false,rawInside=false,subject=false,discriminates=false;std::string json;};
@@ -243,17 +251,18 @@ static void probe(bool before,const ba_prediction_input_observer::Ticket& ticket
     auto value=sample();requirePoint(value);
     const auto accepted=actors::state().inputIntent.accepted();
     const bool single=accepted&&accepted->serial==ticket.serial&&accepted->owner==ticket.owner&&accepted->kind==input::Kind::Down;
-    std::string hitJson;
+    std::string hitJson;bool upAccepted=true;
     if(before) {
+        require(acquireSelection(value,false),"visual acquire callback did not retain empty selection during correction");
         s.progress.before(down,ticket.serial,ordinal(),value.stamp);s.beforeCommands=value.commands;
         if(down) {
             require(!value.click.primary&&!value.click.context&&!value.click.drag&&value.mouse.ownedButtonPressed&&!value.context&&
                 value.now-value.click.lastUp>value.click.window,"visual click Down is not an expired released primary gesture");
-            const double amount=magnitude(value.pose);require(s.episode==1?amount==0:amount>=0.5,
+            const double amount=magnitude(value.pose);require(zeroControl()?amount==0:amount>=0.5,
                 "visual click callback lacks its requested correction control");
             spatial(value,0,ticket,info,context);
             const auto observed=hit(value,value.x,value.y);
-            require(observed.inside&&observed.rawInside&&observed.subject&&(s.episode==1||observed.discriminates),
+            require(observed.inside&&observed.rawInside&&observed.subject&&(zeroControl()||observed.discriminates),
                 "visual click callback ray does not qualify the displayed subject");
             hitJson=",\"hit_test\":"+observed.json;
         }
@@ -262,13 +271,13 @@ static void probe(bool before,const ba_prediction_input_observer::Ticket& ticket
         s.progress.returned(down,ticket.serial,value.stamp,completed&&single);
         require(value.commands==s.beforeCommands,"visual click original callback added a command");
         if(down) {
+            require(acquireSelection(value,false),"visual acquire Down return changed empty committed selection");
             require(value.click.primary&&!value.click.context&&!value.click.drag&&value.click.mode==1&&
                 value.click.id==value.pose.identity.entity&&value.mouse.ownedButtonPressed&&!value.context,
                 "visual click original Down did not preserve the subject Single gesture");
         } else {
-            require(!value.click.primary&&!value.click.context&&!value.click.drag&&!value.mouse.ownedButtonPressed&&!value.context&&
-                value.click.mode==0&&value.current==std::vector<uint32_t>{value.pose.identity.entity},
-                "visual click original Up did not commit the subject and release the Mouse");
+            upAccepted=!value.click.primary&&!value.click.context&&!value.click.drag&&!value.mouse.ownedButtonPressed&&!value.context&&
+                value.click.mode==0&&value.current==std::vector<uint32_t>{value.pose.identity.entity}&&acquireSelection(value,true);
         }
     }
     const auto& route=input::routes[static_cast<unsigned>(ticket.kind)];
@@ -279,7 +288,13 @@ static void probe(bool before,const ba_prediction_input_observer::Ticket& ticket
        <<",\"dispatch_thunk\":"<<ui::pointer(ba::read<Obj>(info,0))<<",\"method_token\":\""<<(down?"0x06002266":"0x06002267")
        <<"\",\"method_rva\":\""<<(down?"0x3bf7d20":"0x3bf7f60")<<"\",\"context_pointer\":"<<ui::pointer(const_cast<void*>(context))<<hitJson<<'}';
     require(ba::read<Obj>(info,8)==ba::read<Obj>(ba::native<Obj>(route.slot),0),"visual click dispatch witness changed");
-    ba::log("VISUAL CLICK %s",out.str().c_str());
+    ba::log("%s%s",prefix(),out.str().c_str());
+    if(!upAccepted)ba::log("Visual click Up refused: world=%llu episode=%u acquire=%u primary=%u context=%u drag=%u mousePrimary=%u mouseContext=%u mode=%u currentEmpty=%u previewEmpty=%u castingEmpty=%u soleSubject=%u offset=%.9g",
+        static_cast<unsigned long long>(s.world),s.episode,unsigned(acquireEnabled()),unsigned(value.click.primary),unsigned(value.click.context),
+        unsigned(value.click.drag),unsigned(value.mouse.ownedButtonPressed),unsigned(value.context),unsigned(value.click.mode),
+        unsigned(value.current.empty()),unsigned(value.preview.empty()),unsigned(value.casting.empty()),
+        unsigned(value.current==std::vector<uint32_t>{value.pose.identity.entity}),magnitude(value.pose));
+    require(upAccepted,"visual click original Up did not commit the subject and release the Mouse");
 }
 static void process(bool before,const ba_prediction_input_observer::Ticket& ticket,Obj selector,Obj downInfo,
                     const void* context,Obj originalInfo) {
@@ -289,6 +304,7 @@ static void process(bool before,const ba_prediction_input_observer::Ticket& tick
         "visual ProcessClick has another original Down owner");
     auto value=sample();require(s.processStage==(before?0u:1u),"visual ProcessClick is duplicated or lacks entry");
     requirePoint(value);
+    require(acquireSelection(value,false),"visual acquire ProcessClick changed empty committed selection");
     if(before){s.processCommands=value.commands;s.processUs=value.stamp;}
     else require(value.stamp>=s.processUs&&value.commands==s.processCommands&&value.click.primary&&
         !value.click.context&&!value.click.drag&&value.click.mode==1&&value.click.id==value.pose.identity.entity,
@@ -299,12 +315,13 @@ static void process(bool before,const ba_prediction_input_observer::Ticket& tick
        <<",\"ticket_serial\":"<<ticket.serial<<",\"down_method_info\":"<<ui::pointer(downInfo)
        <<",\"method_info\":"<<ui::pointer(originalInfo)<<",\"method_rva\":\"0x3bf4a60\",\"original_entry\":"
        <<ui::pointer(ba::native<Obj>(0x3bf4a60))<<",\"context_pointer\":"<<ui::pointer(const_cast<void*>(context))<<'}';
-    ba::log("VISUAL CLICK %s",out.str().c_str());
+    ba::log("%s%s",prefix(),out.str().c_str());
 }
 static void queue(bool held,const char* event) {
     auto& s=state();vm::queuePositionButton(s.point.x(),s.point.y(),held);auto value=sample();
+    require(acquireSelection(value,false),"visual acquire queued event lost empty committed selection");
     s.progress.queue(static_cast<unsigned>(value.mouse.queuedSequence),ordinal(),value.stamp);
-    ba::log("VISUAL CLICK %s}",common(value,event).c_str());
+    ba::log("%s%s}",prefix(),common(value,event).c_str());
 }
 static unsigned roots() {
     const auto& s=vm::session();unsigned count=0;
@@ -325,7 +342,7 @@ static void update() {
     visual::FrontendObservation pose;if(!visual::frontendObservation(pose))return;
     require(pose.frame<=600,"visual click bounded acquisition window exhausted");
     if(!s.active) {
-        const double amount=magnitude(pose);if(s.episode==0?amount!=0:amount<0.5)return;
+        const double amount=magnitude(pose);if(acquireEnabled()?amount<0.5:(s.episode==0?amount!=0:amount<0.5))return;
         auto& owner=actors::state();Obj selector=ba_prediction_selection::currentSelector();
         vm::ownerGraph(owner,selector);history::validateHistory(selector);const auto h=history::history(selector);
         const auto now=actors::clickNow();require(std::isfinite(now)&&now>=h.lastUp,"visual click acquisition clock regressed");
@@ -333,48 +350,52 @@ static void update() {
         require(!h.primary&&!h.context&&!h.drag,"visual click cannot borrow an active gesture");
         s.anchor=pose;vm::begin(owner,selector);s.active=true;++s.episode;s.progress=protocol::Progress{};s.processStage=0;
         input::visualProbe=&probe;input::visualProcessProbe=&process;
-        const auto value=sample();const auto projected=ui::project(value.camera,value.actual);
+        const auto value=sample();require(acquireSelection(value,false),"visual acquire first acquisition is not naturally empty");
+        const auto projected=ui::project(value.camera,value.actual);
         s.point=protocol::Point{};s.point.bind(projected.x,projected.y);
         queue(false,"position_queued");return;
     }
     if(s.progress.stage==protocol::Stage::PositionQueued) {
         if(ordinal()<=s.progress.queuedOrdinal)return;
-        const auto value=sample();
+        const auto value=sample();require(acquireSelection(value,false),"visual acquire consumed position lost empty selection");
         if(!s.point.matches(value.x,value.y))return;
         require(!value.click.primary&&!value.click.context&&!value.click.drag&&!value.mouse.ownedButtonPressed&&!value.context,
             "visual click position event delivered an unexpected gesture");
-        const double amount=magnitude(value.pose);if(s.episode==1?amount!=0:amount<0.5)return;
+        const double amount=magnitude(value.pose);if(zeroControl()?amount!=0:amount<0.5)return;
         // Position delivery was observed at this exact point. Press and release
         // retain it; movement of the displayed unit never retargets this episode.
         const auto observed=hit(value,s.point.x(),s.point.y());
-        if(!observed.inside||!observed.rawInside||!observed.subject||(s.episode==2&&!observed.discriminates))return;
+        if(!observed.inside||!observed.rawInside||!observed.subject||(!zeroControl()&&!observed.discriminates))return;
         queue(true,"down_queued");return;
     }
     if(s.progress.stage==protocol::Stage::DownReturned) {
         if(ordinal()<=s.progress.queuedOrdinal)return;
         const auto value=sample();require(value.mouse.ownedButtonPressed&&value.click.primary&&!value.context&&!value.click.drag,
             "visual click returned Down is no longer held");
+        require(acquireSelection(value,false),"visual acquire held Down changed empty committed selection");
         s.pressed=value.mouse;s.pressOrdinal=ordinal();queue(false,"up_queued");return;
     }
     if(s.progress.stage==protocol::Stage::UpReturned) {
         if(ordinal()<=s.progress.queuedOrdinal)return;
         const auto value=sample();const bool released=!value.mouse.ownedButtonPressed&&!value.context&&!value.click.primary&&
             !value.click.context&&!value.click.drag&&value.click.mode==0&&
-            value.current==std::vector<uint32_t>{value.pose.identity.entity};
+            value.current==std::vector<uint32_t>{value.pose.identity.entity}&&acquireSelection(value,true);
         s.progress.close(ordinal(),value.stamp,released);
         const unsigned before=roots();require(before==15,"visual click borrowed root count differs");
         vm::close(vm::ReleaseObservation{s.pressed,value.mouse,s.pressOrdinal,ordinal()});
         require(!roots()&&!vm::session().active,"visual click borrowed roots did not close");
         input::visualProbe=nullptr;input::visualProcessProbe=nullptr;s.active=false;
-        ba::log("VISUAL CLICK %s,\"roots_before\":%u,\"roots_after\":0,\"balanced\":true}",common(value,"closed").c_str(),before);
-        if(s.episode==2)s.complete=true;
+        ba::log("%s%s,\"roots_before\":%u,\"roots_after\":0,\"balanced\":true}",prefix(),common(value,"closed").c_str(),before);
+        if(acquireEnabled()||s.episode==2)s.complete=true;
     }
 }
 static void tick() {
     if((!enabled()&&!spatialEnabled())||state().failed)return;
     try {
         require(enabled(),"visual click spatial diagnostic requires the original click diagnostic");
-        static bool marked=false;if(!marked){ba::log("BA_RESURRECTION_VISUAL_CLICK_SMOKE_V1");
+        require(!ba::flag(L"-prediction-visual-click-empty"),"removed empty-ground diagnostic is unsupported");
+        require(!acquireEnabled()||(!legacyEnabled()&&!spatialEnabled()),"visual acquire is exclusive of legacy click/spatial diagnostics");
+        static bool marked=false;if(!marked){ba::log(acquireEnabled()?"BA_RESURRECTION_VISUAL_ACQUIRE_V1":"BA_RESURRECTION_VISUAL_CLICK_SMOKE_V1");
             if(spatialEnabled())ba::log("BA_RESURRECTION_VISUAL_AIM_V1");marked=true;}
         require(ordinal()!=UINT64_MAX,"visual click frontend ordinal exhausted");++ordinal();update();
     } catch(const std::exception& error) {

@@ -48,6 +48,7 @@ from tools import prediction_visual_correction as visual
 from tools import prediction_visual_input as visual_input
 from tools import prediction_visual_click as visual_click
 from tools import prediction_visual_aim as visual_aim
+from tools import prediction_visual_acquire as visual_acquire
 
 MAX_LOG = 64 * 1024 * 1024
 HEX64 = re.compile(r'[0-9a-f]{64}')
@@ -218,6 +219,7 @@ def prepare(args):
     visual_input_enabled = visual_input.option(args,frames,position_trace,delay_config)
     visual_click_enabled = visual_click.option(args,frames,position_trace,delay_config)
     visual_aim_enabled = visual_aim.option(args,frames,position_trace,delay_config)
+    visual_acquire_enabled = visual_acquire.option(args,frames,position_trace,delay_config)
     actor_correction = bool(getattr(args, 'actor_correction', False))
     mobile_correction = bool(getattr(args, 'mobile_correction', False))
     mobile_group_intent = bool(getattr(args, 'mobile_group_intent', False))
@@ -349,6 +351,7 @@ def prepare(args):
     visual_input.helper(visual_input_enabled,helper)
     visual_click.helper(visual_click_enabled,helper)
     visual_aim.helper(visual_aim_enabled,helper)
+    visual_acquire.helper(visual_acquire_enabled,helper)
     if queued_orders:
         require(b'BA_RESURRECTION_PREDICTION_QUEUED_ORDERS_V1' in helper,
                 'helper lacks queued-orders schema marker')
@@ -482,6 +485,7 @@ def prepare(args):
     if visual_input_enabled:invocation['visual_input']=True
     if visual_click_enabled:invocation['visual_click']=True
     if visual_aim_enabled:invocation['visual_click_spatial']=True
+    if visual_acquire_enabled:invocation['visual_click_acquire']=True
     if expired_click:
         invocation['expired_click'] = True
         validate_expired_click_plan(invocation)
@@ -587,6 +591,7 @@ def verify_prepared(output):
     visual_input.validate_plan(plan)
     visual_click.validate_plan(plan)
     visual_aim.validate_plan(plan)
+    visual_acquire.validate_plan(plan)
     if plan.get('scenario') == 'mobile':
         validate_mobile_plan(plan)
     validate_expired_click_plan(plan)
@@ -3491,6 +3496,7 @@ async def run_prepared(output):
         visual_input.finalize(plan,report,run)
         visual_click.finalize(plan,report,run)
         visual_aim.finalize(plan,report,run)
+        visual_acquire.finalize(plan,report,run)
         write(run / 'verification.json', report)
     return report
 
@@ -3707,6 +3713,7 @@ def main(argv=None):
     parser.add_argument('--visual-input',action='store_true',help='Read-only original frontend ray/drag queries with visual correction')
     parser.add_argument('--visual-click',action='store_true',help='Balanced original primary callbacks with visual input/correction diagnostics')
     parser.add_argument('--visual-click-spatial',action='store_true',help='Read-only matched spatial/phase rays during the explicit visual click diagnostic')
+    parser.add_argument('--visual-click-acquire',action='store_true',help='First original nonzero subject click from naturally empty committed selection')
     parser.add_argument('--scenario', choices=('startup', 'movement', 'mobile', 'close-formation', 'queued-orders'), default='startup')
     parser.add_argument('--lifecycle', choices=('natural', 'prefix'), default='natural')
     parser.add_argument('--frames', type=int); parser.add_argument('--timeout', type=float, default=180)

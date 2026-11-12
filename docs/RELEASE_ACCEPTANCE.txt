@@ -3,6 +3,18 @@ Reviewed:2026-11-12. FINAL RELEASE:NOT ACCEPTED.
 Work queue:REMAINING_DELIVERY_PLAN.txt. Latest results:STATUS.txt.
 Exact prior checklist/history:history/2026-10-24/RELEASE_ACCEPTANCE.txt.
 
+Named original-click/smoothing subcase:PASSED in Actual88/helper114 on the normal
+human frontend. Both rounds,all2892 native-state/wire comparisons,movement and
+visual limits,original ray/drag/click callbacks and normal lifetime gates pass.
+Four balanced click episodes include offsets1.102/1.251units. All48 matched
+P/Q/R/M queries are phase-stable;every old parent gate remains unchanged. The
+zero control commits an empty selection to74;the nonzero control reselects74.
+Fresh selection during nonzero correction remains a separate pending check.
+Both games/workers/authorities exit naturally0,no force/errors or source drift.
+Actual87's root-center miss remains FAILED and unexplained;88 does not reproduce
+it or establish a physics-synchronization cause. Physical/Internet and full N33
+remain OPEN. Frozen helper111 installers are unchanged. prediction-correction-motion.txt.
+
 New bounded preview-kit gate:PASSED locally by ServerAI04 on clean afb5f20 with
 normal human assembly,new packaged worker/runtime,helper111 and smoothing enabled.
 Embedded payloads/isolated shortcuts,owned install/normal-launch arguments and

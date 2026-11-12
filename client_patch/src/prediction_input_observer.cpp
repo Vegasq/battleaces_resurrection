@@ -86,7 +86,7 @@ using VisualProbe=void(*)(bool,const observer::Ticket&,Obj,Obj,const void*,bool,
 static VisualProbe visualProbe=nullptr;
 using VisualProcessProbe=void(*)(bool,const observer::Ticket&,Obj,Obj,const void*,Obj);
 static VisualProcessProbe visualProcessProbe=nullptr;
-static bool visualEnabled(){return ba::flag(L"-prediction-visual-click-smoke");}
+static bool visualEnabled(){return ba::flag(L"-prediction-visual-click-smoke")||ba::flag(L"-prediction-visual-click-acquire");}
 static bool contextEnabled(){return ba::flag(L"-prediction-mobile-context-move-smoke");}
 static bool contextKind(Kind kind){return kind==Kind::ContextDown||kind==Kind::ContextUp;}
 static void remember(std::optional<ReturnedInput>& target,const observer::Ticket& ticket,bool completed,uint64_t serial) {

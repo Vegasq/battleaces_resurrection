@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstring>
 #include <stdexcept>
+#include <vector>
 
 // Pure ordering for one borrowed-Mouse click. Queue return never proves delivery.
 namespace ba_prediction_visual_click_protocol {
@@ -30,6 +31,13 @@ inline MatchedAnchor matchedAnchor(ScreenPoint consumed,ScreenPoint displayed,Sc
         throw std::invalid_argument("visual aim Single arithmetic is nonfinite");
     return {{dx,dy},{x,y}};
 }
+inline bool acquireSelection(bool committed,double correction,uint32_t subject,
+                             const std::vector<uint32_t>& current,const std::vector<uint32_t>& preview,
+                             const std::vector<uint32_t>& casting) {
+    if(!std::isfinite(correction)||correction<0.5||!casting.empty())return false;
+    return committed?(current==std::vector<uint32_t>{subject}&&preview.empty()):current.empty();
+}
+
 enum class Stage {Ready,PositionQueued,DownQueued,DownEntered,DownReturned,UpQueued,UpEntered,UpReturned,Closed};
 struct Progress {
     Stage stage=Stage::Ready;

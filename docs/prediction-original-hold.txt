@@ -6,6 +6,23 @@ The same work fixes a post-match observer error:input arriving after terminal
 drain could abort a completed game with "movement prediction generation/match
 changed" while the worker world key was still retained.
 
+2026-11-12 combined smoothing follow-up:planned,not qualified
+The900ms presentation policy decays retained offsets even if the raw root stops.
+This is a conditional source finding,not an observed original Hold failure.
+Actual88 has genuine nonzero offsets,but its declared three-Move timeline does
+not contain Hold. Do not reinterpret those observations as a Hold result.
+The next bounded case should declare Move1/retimed Move2/original Hold,acquire
+a completed join with offset>=0.5 and unfinished raw travel,and reuse the
+original slot5/config14/Instant2 button action and normal ToProto witness.
+Bind exactly one own-unit Hold through wire/native authority,measure raw and
+displayed settling through pulse expiry and a150ms raw-equal tail,and retain
+full native-state comparisons and natural cleanup. Existing three-Move and
+Actual66 validators stay unchanged. Recovered130ms RTT may not permit the old
+150ms settled interval to finish before authority;do not relax or silently
+claim that separate pre-authority acceptance. No new native ABI is required by
+the reviewed plan. A missing active-offset subject or unknown ownership route
+is an incomplete observation,not permission to search or manufacture a pass.
+
 RESULT
 Actual66 completes two real Custom rounds at130/475ms RTT,Continue/rematch,
 Leave and original Quit. Both games/workers/authorities exit naturally0;

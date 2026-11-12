@@ -169,7 +169,7 @@ static Obj ownerGraph(actors::State& owner,Obj selector) {
     const bool expired=ba::flag(L"-prediction-expired-click-smoke"),held=ba::flag(L"-prediction-held-click-smoke");
     const bool mobileHeld=ba::flag(L"-prediction-mobile-held-click-smoke");
     const bool mobileContext=ba::flag(L"-prediction-mobile-context-move-smoke");
-    const bool visual=ba::flag(L"-prediction-visual-click-smoke");
+    const bool visual=(ba::flag(L"-prediction-visual-click-smoke")||ba::flag(L"-prediction-visual-click-acquire"));
     const bool visualScope=visual&&ba::flag(L"-prediction-visual-input-smoke")&&
         ba::flag(L"-prediction-visual-observe")&&ba::flag(L"-prediction-movement-smoke")&&
         ba_prediction_worker::visualCorrectionsEnabled()&&!ba_lan::publicMatch&&
@@ -321,7 +321,7 @@ static void bindingRequire(bool value,unsigned index,const char* condition) {
 }
 static void live(bool audit=false) {
     auto& s=session();require(s.active&&!s.closed&&!s.failed&&s.owner&&s.selector&&s.device,"virtual mouse session unavailable");
-    require(s.visual==ba::flag(L"-prediction-visual-click-smoke")&&
+    require(s.visual==(ba::flag(L"-prediction-visual-click-smoke")||ba::flag(L"-prediction-visual-click-acquire"))&&
         (s.visual?(s.victimSlot==ba::lanSlot()&&!s.mirror):
             (s.victimSlot==ba_prediction_actor_fixture_smoke::victimSlot()&&
              s.mirror==ba_prediction_actor_fixture_smoke::mirrored()))&&
@@ -372,7 +372,7 @@ static void beginSession(actors::State& owner,Obj selector,SessionKind kind) {
     Obj handler=ownerGraph(owner,selector);resolve();auto choice=choose(handler);released(selector,choice);
     s=Session{};s.owner=&owner;s.world=owner.world;s.match=owner.match;s.active=true;
     s.kind=kind;
-    s.visual=ba::flag(L"-prediction-visual-click-smoke");
+    s.visual=(ba::flag(L"-prediction-visual-click-smoke")||ba::flag(L"-prediction-visual-click-acquire"));
     s.victimSlot=s.visual?ba::lanSlot():ba_prediction_actor_fixture_smoke::victimSlot();
     s.mirror=s.visual?false:ba_prediction_actor_fixture_smoke::mirrored();
     try {

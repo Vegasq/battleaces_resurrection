@@ -4,6 +4,23 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+2026-11-12 Actual91 first-selection setup remains FAILED before any Down/Up:
+the projected point is offscreen,and correction later drops below0.5units.
+The combined guard message does not prove a selection change. A separate
+observed neutral position control is next;no camera/edge-scroll cause is claimed.
+Helper118 and24 focused authored tests pass at their separate scopes.
+Full current-index/history publication audit passes4310objects/zero findings;
+exact reviewed historical exceptions do not apply to new/indexed content.
+Details:prediction-correction-motion.txt. Live/manual copies remain untouched.
+
+2026-11-12 Actual90 resolves the unsuccessful empty-ground click setup:original
+Up releases both controls and clears preview/casting,but committed selection
+remains74. Only the expected-empty predicate fails;this is not a smoothing
+defect. Actual89/90 remain FAILED/forced,with exact reports/source retained.
+The next check uses a naturally empty selection and one first original click
+during nonzero correction. Legacy two-click and common parent gates stay intact.
+No live/manual change. Details:prediction-correction-motion.txt.
+
 2026-11-12 Actual88 PASSES two actual rounds with all2892 native-state rows,
 wire/command,response,visual,original ray/drag/click and lifetime gates. Four
 balanced click episodes include nonzero offsets1.102/1.251units. All48 original

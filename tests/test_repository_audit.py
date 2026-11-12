@@ -7,6 +7,42 @@ from tools.audit_repository import inspect_content
 
 
 class PublicationAuditTests(unittest.TestCase):
+    def test_historical_reviews_are_exact_and_do_not_apply_to_current_content(self):
+        name = 'README.md'
+        data = b'Example C:' + b'/Games/Example/game.dll\n'
+        reason = 'developer-specific absolute path'
+        key = (name, len(data), hashlib.sha256(data).hexdigest())
+        with patch.dict(audit_repository.REVIEWED_HISTORICAL_FINDINGS,
+                        {key: frozenset({reason})}):
+            self.assertEqual(audit_repository.inspect_history(name, data), [])
+            self.assertEqual(inspect_content(name, data), [reason])
+            for changed in (data + b'\n', data.replace(b'Example', b'Changed')):
+                self.assertIn(reason, audit_repository.inspect_history(name, changed))
+            self.assertIn(reason, audit_repository.inspect_history('docs/other.txt', data))
+
+    def test_historical_review_preserves_unrelated_content_failures(self):
+        name = 'README.md'
+        data = b'Example C:' + b'/Games/Example/game.dll\n-----BEGIN ' + b'PRIVATE KEY-----'
+        key = (name, len(data), hashlib.sha256(data).hexdigest())
+        with patch.dict(audit_repository.REVIEWED_HISTORICAL_FINDINGS,
+                        {key: frozenset({'developer-specific absolute path'})}):
+            self.assertEqual(audit_repository.inspect_history(name, data), ['private key'])
+
+    def test_history_audit_cannot_hide_an_index_failure_for_the_same_blob(self):
+        name, oid = 'README.md', 'reviewed-oid'
+        data = b'Example C:' + b'/Games/Example/game.dll\n'
+        key = (name, len(data), hashlib.sha256(data).hexdigest())
+        with patch.dict(audit_repository.REVIEWED_HISTORICAL_FINDINGS,
+                        {key: frozenset({'developer-specific absolute path'})}), \
+             patch.object(audit_repository, 'entries', return_value=iter(())) as entries, \
+             patch.object(audit_repository, 'git') as git:
+            git.side_effect = lambda *args: b'commit\n' if args[0] == 'rev-list' else data
+            entries.side_effect = lambda tree=None: iter([(b'100644', oid, name)])
+            count, failures = audit_repository.audit(history=True)
+            self.assertEqual(count, 1)
+            self.assertEqual(failures, [dict(path=name, object=oid,
+                reasons=['developer-specific absolute path'])])
+
     def test_only_exact_reviewed_large_source_allowed(self):
         name = 'tools/verify_prediction_multiplayer.py'
         data = (Path(__file__).resolve().parents[1] / name).read_bytes()
