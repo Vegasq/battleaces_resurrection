@@ -3,6 +3,16 @@ Reviewed:2026-11-12. FINAL RELEASE:NOT ACCEPTED.
 Work queue:REMAINING_DELIVERY_PLAN.txt. Latest results:STATUS.txt.
 Exact prior checklist/history:history/2026-10-24/RELEASE_ACCEPTANCE.txt.
 
+Refreshed local preview-kit gate:PASSED by ServerAI05 with clean7ddf273/helper121,
+normal human assembly and actual packaged client worker/Python3.14.8. At475ms RTT
+Move63ms precedes native65 by468ms;629 native-state/wire matches and real AI/human
+replay continuations pass. Natural103.167s complete lifecycle,no force/errors.
+Embedded payloads/isolated shortcuts and owned bundled install/normal-launch/
+exact restore pass. New pair:dist/prediction-ai-sync-20261112. Server39 source
+files equal both new package and prior compatible pair;packaged server launcher
+was not run as a live host. N35 Internet/VPN and full acceptance remain OPEN.
+No deployment/public release. Details:prediction-server-ai.txt.
+
 New named first-selection/physics subcase:PASSED by Actual94/helper121.
 Both actual empty-to-subject first clicks during nonzero correction and all
 unchanged ray/drag/native/wire/feel/visual/lifetime gates pass,natural143.816s.

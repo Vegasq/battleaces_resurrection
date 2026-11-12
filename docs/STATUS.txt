@@ -4,6 +4,17 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+2026-11-12 New clean7ddf273/helper121 AI-Sync installer pair is verified and staged
+atdist/prediction-ai-sync-20261112/. Actual packaged client/server-AI05 passes
+629 native-state/wire comparisons at475ms RTT;Move63ms and468ms before65,
+genuine AI/human replay continuations,natural103.167s result/Continue/Quit.
+Embedded payloads,isolated shortcuts,owned install/normal-launch settings and
+exact prior-file restore pass.39 server files match the prior compatible pair;
+no live restart/deployment/firewall change. Both Python CI matrices pass.
+Same pending N35 handoff updated;Internet/VPN answer and broad N33 remain open.
+Details:prediction-server-ai.txt. Combined Hold needs a separate honest timeline;
+the existing three-Move acceptance must not be reused for a substituted Hold.
+
 2026-11-12 Actual94/helper121 PASSES ordinary two-round first selection during
 smoothing,all strict ray/drag/movement/visual/lifetime gates and2892 fullnative/
 wire comparisons. Batched Sync follows all changed visual writes and precedes

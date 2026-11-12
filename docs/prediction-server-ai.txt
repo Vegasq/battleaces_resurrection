@@ -1,6 +1,57 @@
 SERVER-HOSTED SOLO AI PREDICTION -2026-11-12
 
-Latest:SERVER-AI04 NORMAL BUNDLED CLIENT PASS;NEW LOCAL PAIR VERIFIED.
+Latest:SERVER-AI05/helper121 NORMAL BUNDLED CLIENT PASS;SYNC PAIR VERIFIED.
+Clean7ddf2733284d42e0f862cb685ba81476ced3725c supplies the new local preview pair
+atdist/prediction-ai-sync-20261112/. It includes server AI,prediction,900ms visual
+correction and one physics synchronization after each changed visual-write batch.
+This replaces the earlier helper111 kit for the same pending N35 test;older kits
+and every usual/reserved manual game stay preserved. No public release,live
+deployment,restart or firewall change is made. N35's VPN/network question remains
+pending;read-only cloud metadata is not guest-service or Internet acceptance.
+
+BattleAces-Client-Prediction-AI-Sync-20261112.exe
+  14362624bytes SHA25619ff4ce629e90ff470b4bff124fac086e7b5e88281fa0ec242ba97e3d9662cb2
+BattleAces-Server-Prediction-AI-Sync-20261112.exe
+  14338560bytes SHA256e84cd2f67792cb372f5e89cb70585228b0fcca7e9fca591c81b2dca02bc38478
+Helper121 SHA2566bca3ce2e1c5a0c4278fbc42928af1d71017f6fb47281d9238c6fcc92d68e8cf.
+SHA256SUMS SHA2562d507eb52fd8b022a2dbd6f4db65ce83f17b2b092d2d95c7cc1baf055cf4522a.
+
+Actual serverAI05 - PASS at475ms simulated RTT,103.167seconds
+The actual normal human frontend and NEW packaged client worker/Python3.14.8
+runtime pass original Build300->310 and Move441/441 for entity84/type1/army0.
+Move becomes visible63ms after input,453ms before raw bridge delivery and468ms
+before accepted native65. Actual human correction has10 replayed frames and20
+matching continuations;AI-only action131->frontier132 has11 replayed frames and
+20 continuations. All629 full canonical-state hashes and629 public/bridge/native65
+payload hashes match.100 frames contain non-Join native AI actions. Result,
+Continue,normal menu Quit and all retained process/Job cleanup pass naturally0;
+no force/errors,source and runtime files unchanged. UnityPlayer's exact file
+hash is checked before/after,alongside the helper's guarded loaded engine binding.
+
+Source closure and scope:the authority worker starts from repository server
+source,whose39 files match the NEW server package and prior afb5f20 package
+byte-for-byte. The packaged server installer/launcher was not run as a live host.
+Both installer payloads are extracted/verified (client109/server124 files),and
+their desktop shortcuts are tested in isolated scratch directories. An actual
+bundled install/prepare/intercepted normal launch passes within the original
+180second bound and restores prior owned bytes/mtimes exactly. Human launch
+arguments enable prediction/visual/server-AI with no gameplay automation.
+All39 server-module matches mean this client requires no server-code upgrade
+relative to the previously confirmed compatible host;they do not prove live health.
+
+Run:local/prediction-runtime/server-ai05-package-sync/run/verification.json
+SHA25642c61658cbbeb55246a1e2745e1f898243e804b7363065a4dc7a776bae3ac004.
+Evidence:local/prediction-handoff-sync-20261112/ (build,package/install,normal
+launch,engine pin,staging receipts and independent-ai05/receipt.json).
+Independent receipt SHA256dfee733153ff74a246de6b237d344e50067786127d38dcb5bd3739411fc2cfc2.
+Actual94 separately qualifies first selection/strict ray+drag and479 observed
+physics batches across two rounds. Its post-only parser repair records exactly
+two reviewed checker/test changes;all runtime sources remain original. Packaging
+binds that explicit analysis revision instead of pretending the old checker ran.
+Human Internet feel,combined Hold during smoothing and broader input/combat
+remain OPEN. PR2 stays draft;docs/prediction-test-guide.txt gives player steps.
+
+Earlier SERVER-AI04 NORMAL BUNDLED CLIENT PASS;PRIOR LOCAL PAIR VERIFIED.
 The afb5f20/helper111 preview pair is locally verified with visual correction
 enabled. Local distribution is staged atdist/prediction-ai-visual-20261112/.
 This records a verified local pair,not publication,deployment or renewed live

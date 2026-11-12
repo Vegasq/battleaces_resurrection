@@ -37,6 +37,10 @@ Try Deck is local;public2vAI is outside this prediction preview's scope.
     embedded payloads,isolated shortcuts,owned installation and ordinary launcher
     arguments. No diagnostic automation is added to the human launcher.
     Frozen kit:dist/prediction-ai-visual-20261112. Same existing N35 handoff.
+[x] Refresh that handoff with clean7ddf273/helper121 after Actual94 physics/input
+    qualification. Newdist/prediction-ai-sync-20261112 pair passes actual bundled
+    server-AI05 at475ms RTT,629 native states,normal install/launch and natural
+    lifecycle. Prior kit preserved;no live/manual changes. Same N35 answers.
 [x] Qualify actual original primary-click callbacks during nonzero smoothing,
     with zero-offset control,correct selection and balanced input release.
     Actual88 passes both rounds,all2892 native-state rows and four balanced click
