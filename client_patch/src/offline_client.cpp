@@ -34,6 +34,8 @@ static void registered(uint64_t,int,const std::vector<uint8_t>&);
 static void authoritative(const std::vector<uint8_t>&,const std::string&);
 }
 namespace ba_prediction_actor_smoke {static void tick();}
+namespace ba_prediction_visual_input {static void tick();}
+namespace ba_prediction_visual {void clearInactive(const char*);}
 namespace ba_prediction_selection {static void focusClearInactive();}
 namespace ba_dedicated_results { static void receive(const std::string&); }
 namespace ba_audit { static void beginMatch(const std::string&);static void practiceAIView(void*,int); }
@@ -299,12 +301,14 @@ extern "C" __declspec(dllexport) int OfflineInitialUpdate(void* state,void*) {
 }
 
 #include "frame_timing_audit.cpp"
+#include "prediction_presentation_stages.hpp"
 
 extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
     // Offline mode owns no connection to the discontinued front service.
     using namespace ba;
     static ULONGLONG last=0;
     try {
+        ba_prediction_visual::clearInactive("frontend");
         ba_prediction_selection::focusClearInactive();
         if(!owner)return;
         if(!get<Obj>(front,"_frontVersionResponse")) {
@@ -323,6 +327,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         if(unified())ba_client::update(front);
         else if(offlinePractice())ba_practice::offlineUpdate(front);
         else if(lan())lanFrontUpdate(front);
+        ba_prediction_visual_input::tick();
         ba_prediction_movement_smoke::tick();
         ba_prediction_actor_smoke::tick();
         ba_prediction_cohort::tick();
@@ -402,12 +407,14 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "prediction_worker.cpp"
 #include "prediction_movement.cpp"
 #include "prediction_actor_repair.cpp"
+#include "prediction_visual_correction.cpp"
 #include "prediction_timeline_smoke.cpp"
 #include "prediction_click_provenance.cpp"
 #include "prediction_selection.cpp"
 #include "prediction_input_observer.cpp"
 #include "prediction_movement_smoke.cpp"
 #include "prediction_actor_smoke.cpp"
+#include "prediction_visual_input_smoke.hpp"
 #include "prediction_cohort_smoke.cpp"
 #include "prediction_cohort_survivor_smoke.cpp"
 #include "prediction_close_formation_smoke.cpp"

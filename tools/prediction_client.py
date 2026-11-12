@@ -88,6 +88,8 @@ def profile(package):
     hooks=prediction_worker.CALL_HOOKS+prediction_actor_repair.CALL_HOOKS+prediction_actor_repair.TAIL_HOOKS+prediction_actor_repair.POINTER_HOOKS
     if any(m not in helper for m in markers)or any(h['name'].encode()+b'\0'not in helper for h in hooks):
         raise PackageError('Private package helper lacks movement prediction support')
+    if b'OfflinePredictionVisualJoin\0'not in helper or '-prediction-visual-correction'.encode('utf-16-le')not in helper:
+        raise PackageError('Private package helper lacks visual correction support')
     return dict(package=package,descriptor=value,paths=paths,inventory=inventory,
         package_sha256=digest(bounded(package/'package-manifest.json',1024*1024)))
 
@@ -282,10 +284,10 @@ def start(package,game):
     run.mkdir(parents=True,exist_ok=False);data=run/'worker-data';data.mkdir()
     options=launcher.PredictionWorkerOptions(python=bundle['package']/'program/runtime/python.exe',
         module_root=bundle['package']/'program/app',heap_helper=bundle['paths']['heap_helper'],
-        cooperative=bundle['paths']['cooperative'],data_directory=data)
+        cooperative=bundle['paths']['cooperative'],data_directory=data,visual_correction=True)
     args=client.player_options(original_command_scheduling_experimental=True);args.run_name='prediction-client'
     patcher.atomic_write(run/'launch.json',json_bytes(dict(schema=1,profile=PROFILE,package_sha256=bundle['package_sha256'],
-        game=str(game),worker_data=str(data),scripted_gameplay=False)))
+        game=str(game),worker_data=str(data),scripted_gameplay=False,visual_correction=options.visual_correction)))
     return asyncio.run(launcher.launch(config,rc_setup.Resolver(path,game),args,prediction_worker=options))
 
 

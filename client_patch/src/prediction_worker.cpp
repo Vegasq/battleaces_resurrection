@@ -16,6 +16,7 @@ namespace channel=ba_native_worker_channel;
 using Obj=void*;
 
 bool movementEnabled(){return ba::flag(L"-prediction-movement-experimental");}
+bool visualCorrectionsEnabled(){return movementEnabled() && ba::flag(L"-prediction-visual-correction");}
 static bool enabled(){return ba::flag(L"-prediction-native-worker-probe") || movementEnabled();}
 struct State {
     std::recursive_mutex gate;
@@ -156,6 +157,7 @@ static void setup(HMODULE selected) {
         ba::argument(L"-solo-ai-host=","")!="server"))
         throw std::runtime_error("server AI state observation requires its explicit owned public mode1 fixture");
     if(movementSmoke || mobileSmoke || serverAiObserve || closeFormation || queuedOrders)args.push_back(L"--movement-observe");
+    if(visualCorrectionsEnabled())args.push_back(L"--movement-corrections");
     if(serverAiObserve)ba::log("Server AI native state observation enabled: BA_RESURRECTION_SERVER_AI_PREDICTION_OBSERVE_V1");
     if(serverAiMove)ba::log("Server AI original Move fixture enabled: BA_RESURRECTION_SERVER_AI_MOVEMENT_SMOKE_V1");
     if(closeFormation)ba::log("Close formation diagnostic enabled: BA_RESURRECTION_PREDICTION_CLOSE_FORMATION_V1");
@@ -293,6 +295,7 @@ static void requireActorHook() {
     requireMovementHook(0x3bf25d0,"OfflinePredictionSelectionRemovePreview");
     requireMovementHook(0x3bf2739,"OfflinePredictionSelectionClear");
     requireMovementHook(0x3e6608b,"OfflinePredictionActorUpdate");
+    requireMovementHook(0x3c563cf,"OfflinePredictionVisualJoin");
     requireMovementHook(0x3ea625a,"OfflinePredictionGroupReleaseRemove");
     requireMovementHook(0x3b02322,"OfflinePredictionSelectionCommit");
     requireMovementHook(0x3bf9657,"OfflinePredictionSelectionConfirmer");
@@ -379,6 +382,14 @@ MovementMetrics movementMetrics() {
     for(unsigned i=0;i<8;++i)wire::read64(response.data,at);
     if(result.flags&~15u)throw std::runtime_error("movement metrics flags differ");
     return result;
+}
+ba_prediction_correction_wire::Frame movementCorrections(int publishedFrame) {
+    auto& s=state();std::lock_guard<std::recursive_mutex> hold(s.gate);movementOwner(s);
+    if(!visualCorrectionsEnabled() || publishedFrame<0)
+        throw std::runtime_error("presentation correction requested outside the enabled frame owner");
+    wire::Bytes bytes;wire::append64(bytes,s.world);wire::append32(bytes,static_cast<uint32_t>(publishedFrame));
+    const auto response=control(s,ba_prediction_correction_wire::Opcode,bytes);
+    return ba_prediction_correction_wire::decode(response.data,s.world,publishedFrame);
 }
 MovementAdmission movementAdmission() {
     auto& s=state();std::lock_guard<std::recursive_mutex> hold(s.gate);movementOwner(s);

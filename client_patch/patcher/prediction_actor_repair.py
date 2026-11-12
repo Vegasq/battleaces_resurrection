@@ -29,6 +29,11 @@ CALL_HOOKS = [
          offset=0x3be2d8a, before='e8e1904f01'),
     dict(name='OfflinePredictionActorUpdate', rva=0x3e6608b,
          offset=0x3e6468b, before='e8801fdaff'),
+    # Original UnitInterpolationSystem.UpdateSteps, nonzero step==lastStep:
+    # forward EnsureJobsComplete once, then optionally observe/render the join.
+    # The consumer is inert unless -prediction-visual-correction is selected.
+    dict(name='OfflinePredictionVisualJoin', rva=0x3c563cf,
+         offset=0x3c549cf, before='e86cfcffff'),
     # bool(UnitSelectionSet*, uint32 entity, MethodInfo*=null). The ORIGINAL
     # false-Contains branch has already removed trackedReleasedUnits. Decline
     # only the complete typed membership operation; the return is ignored.
@@ -46,6 +51,10 @@ POINTER_HOOKS = list(prediction_selection.POINTER_HOOKS) + [
 ]
 PATCHES = list(prediction_selection.PATCHES)
 BODY_GUARDS = [
+    # Untouched final-step branch/receiver, continuation, and original join.
+    dict(rva=0x3c563be, before='85db74303bde0f851808000033d2488bcf'),
+    dict(rva=0x3c563d4, before='488b4f104885c90f842c080000'),
+    dict(rva=0x3c56040, before='48895c2408574883ec204883b9a800000000488bd97431'),
     dict(rva=0x3c699b0, before='48895c2408574883ec20488bd98bfa48'),
     dict(rva=0x3c63de0, before='c74154ffffffffc3'),
     dict(rva=0x3c08010, before='488bc44889501048894808535657415441'),

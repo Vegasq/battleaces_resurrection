@@ -62,6 +62,10 @@ def validate_terminal_timeline_plan(plan):
 
 
 def command_extra(plan, index, run):
+    from tools import prediction_visual_correction as visual
+    from tools import prediction_visual_input as visual_input
+    visual.validate_plan(plan)
+    visual_input.validate_plan(plan)
     from tools.prediction_close_formation_evidence import validate_plan as validate_close_plan
     from tools.prediction_queued_orders_evidence import validate_plan as validate_queued_plan
     validate_close_plan(plan)
@@ -151,6 +155,11 @@ def command_extra(plan, index, run):
         result.append('-prediction-movement-smoke-transition-gates='+str(run/'transition-gates'))
     if plan.get('native_position_trace') is not None and index == plan['move_slot']:
         result.append('-prediction-movement-observe-position='+plan['native_position_trace'])
+    if plan.get('visual_correction'):
+        result += ['-prediction-visual-correction', '-prediction-presentation-stages']
+        if index == plan['move_slot']:result.append('-prediction-visual-observe')
+    if plan.get('visual_input') and index == plan['move_slot']:
+        result.append('-prediction-visual-input-smoke')
     if plan.get('publication_source')=='post-original-qpc' or plan.get('mobile_recovery_stall') or plan.get('multi_unit_move') or plan.get('cohort_survivor') or plan.get('close_formation') or plan.get('queued_orders'):
         result.append('-frame-timing-worlds=2')
     if plan['lifecycle'] == 'natural':

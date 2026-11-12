@@ -18,7 +18,7 @@ class HostError:public ProtocolError {public:using ProtocolError::ProtocolError;
 inline void require(bool value,const char* message){if(!value)throw ProtocolError(message);}
 inline bool nativeOpcode(uint8_t op) {
     return (op>=1 && op<=9) || op==11 || op==13 || op==15 ||
-        (op>=17 && op<=19) || (op>=21 && op<=24) || (op>=64 && op<=71) || op==76 || op==shutdownOpcode;
+        (op>=17 && op<=19) || (op>=21 && op<=24) || (op>=64 && op<=71) || op==76 || op==77 || op==shutdownOpcode;
 }
 inline void append32(Bytes& out,uint32_t value){for(unsigned i=0;i<4;++i)out.push_back(static_cast<uint8_t>(value>>(i*8)));}
 inline void append64(Bytes& out,uint64_t value){for(unsigned i=0;i<8;++i)out.push_back(static_cast<uint8_t>(value>>(i*8)));}

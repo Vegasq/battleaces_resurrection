@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "prediction_visual_correction_wire.hpp"
+#include "prediction_visual_lifetime.hpp"
 
 // Shared declarations only. The worker bridge serializes these controls with
 // its original native API gate; the Unity-side pipeline never calls a raw DLL.
@@ -16,6 +18,8 @@ void movementBegin(const std::string& match,unsigned slot,bool serverAi=false);
 void movementAuthority(const MovementBytes& canonical,const std::string& wireSha);
 MovementMetrics movementMetrics();
 MovementAdmission movementAdmission();
+ba_prediction_correction_wire::Frame movementCorrections(int publishedFrame);
+bool visualCorrectionsEnabled();
 void movementBatch(uint64_t sequence,const MovementBytes& originalPlayerBody);
 void movementEnd(int finalInputFrame);
 uint64_t movementWorldId();
@@ -33,4 +37,9 @@ void published(void* simulation,uint64_t nowUs);
 void tick(void* server);
 void flushEarlyPhaseDiagnostics() noexcept;
 void reset() noexcept;
+ba_prediction_visual_lifetime::Snapshot presentationLifetime();
+}
+namespace ba_prediction_visual {
+void published(void* simulation);
+void clearInactive(const char* trigger="frontend");
 }

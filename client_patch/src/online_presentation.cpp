@@ -18,9 +18,14 @@ extern "C" __declspec(dllexport) void OfflinePresentAvailableSimFrame(void* simu
             const auto now=ba_lan::movementPacingNowUs();
             if(!ba_prediction_movement::canPublish(simulation,now))return;
             const int before=ba::read<int>(simulation,0xac);
+            ba_prediction_stages::mark("stage.present.enter",simulation);
             original(simulation,methodInfo);
+            ba_prediction_stages::mark("stage.present.original",simulation);
             if(ba::read<int>(simulation,0xac)!=before) {
                 ba_prediction_movement::published(simulation,ba_lan::movementPacingNowUs());
+                ba_prediction_stages::mark("stage.present.clock",simulation);
+                ba_prediction_visual::published(simulation);
+                ba_prediction_stages::mark("stage.present.visual",simulation);
                 ba_frame_timing::published(simulation,ba_lan::frames.size());
             }
             return; // Movement admission owns the single absolute phase.

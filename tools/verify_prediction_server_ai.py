@@ -4,6 +4,8 @@ Only --run-prepared launches the isolated loopback TLS authority and retained,
 suspended/Job-owned client and native AI worker. The first scope is canonical
 AI correction/startup/result/Continue/menu Quit. Explicit --human-move additionally
 requires original Move440/Unity response; default startup makes no Move claim.
+Explicit --visual-correction keeps that human-Move scope and enables the same
+render correction flag as the private human launcher, without visual observers.
 The shared multiplayer preparer freezes runtime inputs only; its Custom runner
 and every Custom-only gameplay fixture are never invoked by this controller.
 """
@@ -45,6 +47,39 @@ MOVE_MARKER = b'BA_RESURRECTION_SERVER_AI_MOVEMENT_SMOKE_V1'
 MAX_FRAMES = 2048
 
 
+def visual_option(human_move, value):
+    require(type(human_move)is bool,'human Move option must be Boolean')
+    require(type(value)is bool,'server AI visual correction option must be Boolean')
+    require(not value or human_move,'server AI visual correction requires explicit human Move scope')
+    return value
+
+
+def visual_helper(enabled, helper):
+    if enabled:
+        require(b'OfflinePredictionVisualJoin\0'in helper and
+                '-prediction-visual-correction'.encode('utf-16-le')in helper,
+                'server AI helper lacks visual join or correction flag')
+
+
+def packaged_source_closure(inputs, visual_enabled):
+    if not inputs.get('worker_package'):return
+    from tools.build_windows_packages import PREDICTION_CLIENT
+    from tools.package_integrity import verify
+    app=Path(inputs['worker_module_root'])
+    sources=inputs['source_sha256']
+    inventory=verify(Path(inputs['worker_package']),'client')
+    names={name for name in PREDICTION_CLIENT if name.endswith('.py')}
+    actual={name[len('program/app/'):]for name in inventory['files']
+            if name.startswith('program/app/')and name.endswith('.py')}
+    require(actual==names,'packaged private client Python module inventory differs')
+    require(names<=sources.keys(),'packaged private client source pins missing')
+    # The authority is frozen from ROOT; the worker ships only its declared
+    # dependency subset. Bind every packaged module, including human launchers,
+    # without demanding unshipped authority modules inside the client bundle.
+    for name in sorted(names):
+        require(sha(app/name)==sources[name],'packaged server AI worker/source differs: '+name)
+
+
 def bootstrap_preflight(template, catalog):
     """Pure schema/control check; not the eventual randomly assigned match."""
     from client_patch.prediction_worker.commands import CanonicalRoster
@@ -64,6 +99,7 @@ def bootstrap_preflight(template, catalog):
 def validate_plan(plan):
     human_move = plan.get('human_move', False)
     require(type(human_move) is bool, 'human Move option must be Boolean')
+    visual_option(human_move,plan.get('visual_correction',False))
     require(type(plan.get('schema')) is int and plan['schema'] == 1 and
             plan.get('scope') == (MOVE_SCOPE if human_move else SCOPE) and
             plan.get('native_executed') is False and type(plan.get('mode')) is int and plan['mode'] == 1 and
@@ -84,12 +120,16 @@ def validate_plan(plan):
 def prepare(args):
     human_move = getattr(args, 'human_move', False)
     require(type(human_move) is bool, 'human Move option must be Boolean')
+    visual_enabled=visual_option(human_move,getattr(args,'visual_correction',False))
     game, output = owned.owned_paths(args.game, args.output)
     # Reuse all source/build-receipt/export/patch/arena/package input checks.
     # This nested invocation is a frozen resource preflight, never executed.
     options = argparse.Namespace(**vars(args))
     options.output, options.module_root = output / 'frozen-inputs', ROOT
     options.scenario, options.lifecycle, options.frames = 'startup', 'natural', 200
+    # Nested preparation freezes resources only. Its visual option belongs to
+    # a different Custom/changing-RTT fixture and must never be activated here.
+    options.visual_correction=False
     options.rtt_ms, options.move_slot = [args.rtt_ms, args.rtt_ms], 0
     inputs = owned.prepare(options)
     from server.assets import verify_assets
@@ -108,6 +148,7 @@ def prepare(args):
     require(not human_move or (MOVE_MARKER in helper and
             '-prediction-server-ai-move-smoke'.encode('utf-16-le') in helper),
             'helper lacks explicit public server AI original Move fixture')
+    visual_helper(visual_enabled,helper)
     from server.game_data import GameTemplate
     from server.bot_catalog import BotCatalog
     template = GameTemplate.load(assets / 'map-1v1.pb.gz', catalog_path=assets / 'unit-catalog.json',
@@ -116,16 +157,13 @@ def prepare(args):
     (output / 'bootstrap-preflight.pb').write_bytes(bootstrap)
     write(output / 'bootstrap-preflight.json', control)
     # A package may be used only when its actual worker Python equals this source.
-    if inputs.get('worker_package'):
-        app = Path(inputs['worker_module_root'])
-        for name, expected in inputs['source_sha256'].items():
-            if name.endswith('.py') and name.startswith(('client_patch/prediction_worker/', 'server/')):
-                require(sha(app / name) == expected, 'packaged server AI worker source differs: ' + name)
+    packaged_source_closure(inputs,visual_enabled)
     plan = dict(schema=1, native_executed=False, scope=MOVE_SCOPE if human_move else SCOPE,
                 output=str(output), game=str(game),
                 mode=1, solo_ai_host='server', human_slots=[0], bot_slots=[1], expected_matches=1,
                 profile=inputs['profiles'][0], surrender_frame=args.surrender_frame,
                 rtt_ms=args.rtt_ms, timeout=args.timeout, human_movement_exercised=False,
+                visual_correction=visual_enabled,
                 full_feature_accepted=False, frozen_inputs_sha256=sha(output / 'frozen-inputs/invocation.json'),
                 extra_asset_files=extra_assets, bootstrap_preflight_sha256=digest(bootstrap),
                 bootstrap_preflight_report_sha256=sha(output / 'bootstrap-preflight.json'))
@@ -150,6 +188,8 @@ def verify_prepared(output):
             sha(output / 'bootstrap-preflight.json') == plan['bootstrap_preflight_report_sha256'],
             'preparation-only real template/catalog control changed')
     inputs = owned.verify_prepared(output / 'frozen-inputs')
+    visual_helper(plan.get('visual_correction',False),read(inputs['files']['helper']['path']))
+    packaged_source_closure(inputs,plan.get('visual_correction',False))
     require(inputs['game'] == plan['game'] and inputs['profiles'][0] == plan['profile'],
             'server AI resource/profile ownership changed')
     for row in plan['extra_asset_files'].values():
@@ -171,6 +211,8 @@ def command_extra(plan, inputs, run):
                '-prediction-worker-data-dir=' + str(Path(run) / 'worker-data')]
     if plan.get('human_move'):
         result.append('-prediction-server-ai-move-smoke')
+    if plan.get('visual_correction'):
+        result.append('-prediction-visual-correction')
     return result
 
 
@@ -431,6 +473,7 @@ async def run_prepared(output):
     run.mkdir(exist_ok=False)
     (run / 'worker-data').mkdir()
     report = dict(passed=False, scope=plan['scope'], human_movement_exercised=False, full_feature_accepted=False,
+                  visual_correction=plan.get('visual_correction',False),
                   invocation_sha256=sha(output / 'invocation.json'), forced_cleanup=False,
                   source_sha256_at_start=owned.source_hashes(), pid_evidence_refusals=[])
     events, workers, states = [], [], {}
@@ -577,7 +620,8 @@ async def run_prepared(output):
             log = owned.read_fresh_native_log(native)
             require(not any(marker in log for marker in ('Public client failure:', 'Offline loop stopped in ',
                 'Movement prediction stopped;', 'Native worker request failed:', 'Native worker startup refused:',
-                'Prediction selection admission failed:', 'Native Quit probe failed:')), 'original public AI client failed')
+                'Prediction selection admission failed:', 'Prediction visual correction failed:',
+                'Native Quit probe failed:')), 'original public AI client failed')
             require(not any(row['event'] in ('protocol_error', 'match_aborted', 'public_match_setup_error') for row in events),
                     'original public AI authority failed')
             if not quit_released and 'PUBLIC QUEUE completed return:' in log and not server.rooms and not server.retired:
@@ -771,6 +815,7 @@ def parser():
     value.add_argument('--surrender-frame', type=int)
     value.add_argument('--timeout', type=float)
     value.add_argument('--human-move', action='store_true', help='explicit original Move440/8m response scope')
+    value.add_argument('--visual-correction',action='store_true',help='human Move scope with the private human render correction flag')
     return value
 
 
@@ -779,6 +824,7 @@ def main(argv=None):
     args = cli.parse_args(argv)
     if args.run_prepared:
         require(not args.human_move, 'run-prepared cannot replace frozen human Move scope')
+        require(not args.visual_correction,'run-prepared cannot replace frozen visual correction scope')
         require(not any(getattr(args, name) is not None for name in
                 ('game', 'output', 'assets', 'python', 'heap_helper', 'cooperative', 'helper_build_receipt',
                  'worker_package', 'expected_helper_sha256', 'expected_gameassembly_sha256',

@@ -1,4 +1,8 @@
-CUSTOM GAME AND SERVER AI - PRIVATE MOVEMENT PREDICTION TEST
+CUSTOM GAME AND SERVER AI - PRIVATE PREDICTION + SMOOTHING TEST
+
+2026-11-12 preview:BattleAces-Client-Prediction-AI-Visual-20261112.exe.
+This kit includes immediate local movement prediction and bounded visual
+correction. It replaces the older Custom-only and PR2-AI preview clients.
 
 For two-player tests,both players must use this same private installer and its
 prediction shortcut. Use Custom Game -> Invite Friend -> Start.
@@ -8,6 +12,16 @@ against server-hosted AI. It does not pair prediction testers with other
 queued humans. Ordinary public1v1 still searches for a human before falling
 back to AI;its existing matchmaking behavior is unchanged.
 Try Deck vs AI stays local. Prediction does not support public2vAI/team modes.
+
+If Play says "This experiment supports Custom 1v1 only."
+That exact message comes from the older Custom-only draft client. Changing
+solo_ai_host cannot enable public AI in that version. Install the newer
+BattleAces-Client-Prediction-AI-Visual-20261112.exe kit,
+select the intended test folder,and use the shortcut created by that installer.
+An existing desktop shortcut can still point to a folder with the old helper.
+The newer helper instead says "Use Custom 1v1, or 1v1 with solo_ai_host set to
+server" if its hosting setting/mode is unsupported. Follow step4 below for that
+different message. No server restart fixes a local Custom-only client rejection.
 
 Setup on another Windows PC
 1. Make a separate copy of your supported Battle Aces build37822 game folder.
@@ -44,7 +58,9 @@ The launcher sends no automated gameplay commands and has no timed shutdown.
 
 What this changes
 Your client simulates movement before the server response,then reconciles with
-server authority. The server still decides the accepted match state. New units
+server authority. This preview also smooths supported correction jumps over a
+bounded interval;it does not delay your initial Move until server confirmation.
+The server still decides the accepted match state. New units
 may need a moment to become selectable while their identity is confirmed.
 Changing network delay and some selection/ability correction cases are still
 under test;this is a private test build,not the next public release.

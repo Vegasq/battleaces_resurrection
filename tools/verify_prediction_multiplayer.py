@@ -13,6 +13,7 @@ import argparse
 import ast
 import asyncio
 from collections import defaultdict
+from copy import deepcopy
 import csv
 import ctypes as C
 from dataclasses import replace
@@ -43,6 +44,8 @@ from tools.verify_prediction_client_worker import (
 from tools import prediction_close_formation_evidence as close_formation_evidence
 from tools import prediction_queued_orders_evidence as queued_orders_evidence
 from tools import prediction_input_delay as input_delay
+from tools import prediction_visual_correction as visual
+from tools import prediction_visual_input as visual_input
 
 MAX_LOG = 64 * 1024 * 1024
 HEX64 = re.compile(r'[0-9a-f]{64}')
@@ -209,6 +212,8 @@ def prepare(args):
     close_formation = close_formation_evidence.option(args,frames,position_trace)
     queued_orders = queued_orders_evidence.option(args,frames,position_trace)
     delay_config = input_delay.option(args,frames,position_trace)
+    visual_enabled = visual.option(args,frames,position_trace,delay_config)
+    visual_input_enabled = visual_input.option(args,frames,position_trace,delay_config)
     actor_correction = bool(getattr(args, 'actor_correction', False))
     mobile_correction = bool(getattr(args, 'mobile_correction', False))
     mobile_group_intent = bool(getattr(args, 'mobile_group_intent', False))
@@ -336,6 +341,8 @@ def prepare(args):
             files['gameassembly']['sha256'] == args.expected_gameassembly_sha256,
             'installed helper/GameAssembly differs from explicit pins')
     helper = read(files['helper']['path'])
+    visual.helper(visual_enabled,helper)
+    visual_input.helper(visual_input_enabled,helper)
     if queued_orders:
         require(b'BA_RESURRECTION_PREDICTION_QUEUED_ORDERS_V1' in helper,
                 'helper lacks queued-orders schema marker')
@@ -465,6 +472,8 @@ def prepare(args):
     if delay_config is not None:
         invocation['transition_input_delay']=delay_config
         input_delay.validate_plan(invocation)
+    if visual_enabled:invocation['visual_correction']=True
+    if visual_input_enabled:invocation['visual_input']=True
     if expired_click:
         invocation['expired_click'] = True
         validate_expired_click_plan(invocation)
@@ -566,6 +575,8 @@ def verify_prepared(output):
     close_formation_evidence.validate_plan(plan)
     queued_orders_evidence.validate_plan(plan)
     input_delay.validate_plan(plan)
+    visual.validate_plan(plan)
+    visual_input.validate_plan(plan)
     if plan.get('scenario') == 'mobile':
         validate_mobile_plan(plan)
     validate_expired_click_plan(plan)
@@ -711,9 +722,11 @@ def phase_rows(log, match, world):
     return result
 
 
-def decision_phase_rows(log, match, world):
-    """Actual decide() observations; sparse status logs are not a fallback."""
-    result=[];previous={};counts=defaultdict(int)
+def _decision_phase_records(log, previous=None, counts=None):
+    """Validate new actual decisions, including prior-prefix ordering/counts."""
+    result=[]
+    if previous is None:previous={}
+    if counts is None:counts=defaultdict(int)
     fields={'schema','event','match','world','next','target_assigned','presented_frame',
             'rtt_us','allowed','wait','decision_us','sampled_us','tick_ms'}
     for line in log.splitlines():
@@ -739,9 +752,13 @@ def decision_phase_rows(log, match, world):
                 'actual movement phase clock/throttle differs')
         previous[key]=row;counts[key]+=1
         require(len(counts)<=2 and counts[key]<=4096,'actual movement phase world/count bound exceeded')
-        if key==(match,world):
-            result.append(dict(row,next_assignment_delta=row['target_assigned']-row['next']))
+        result.append(dict(row,next_assignment_delta=row['target_assigned']-row['next']))
     return result
+
+
+def decision_phase_rows(log, match, world):
+    """Actual decide() observations; sparse status logs are not a fallback."""
+    return [row for row in _decision_phase_records(log) if (row['match'],row['world'])==(match,world)]
 
 
 def observed_phase_rows(log, match, world, source):
@@ -771,6 +788,106 @@ def publish_transition_gate(directory, command, ordinal, tick, perf):
                 published_tick_ms=int(tick()),published_perf_counter_ns=perf())
 
 
+def decode_changing_rtt(log, match, world, require_sampled_us, phase_source, include_turns):
+    """Pure cumulative-log decoding; no controller, relay, clocks or file writes."""
+    rows = feel_rows(log)
+    commands = [row for row in rows if row['match'] == match and row['event'] == 'command_created']
+    require(len(commands) <= 1, 'changing RTT duplicated subject Move')
+    poses = changing_poses(rows, match, require_sampled_us=require_sampled_us)
+    samples = refresh_round_trips(log)
+    turns, phases, turn_error = [], [], None
+    if include_turns:
+        # Decode off the relay loop, but preserve the original validation order:
+        # transition-specific errors apply only once measured recovery qualifies.
+        try:
+            turns = [row for row in transition_rows(log) if row['match'] == match and row['ordinal'] == 2]
+            if len(turns) == 1:
+                phases = observed_phase_rows(log, match, world, phase_source)
+        except Exception as error:
+            turn_error = error
+    return dict(commands=commands, poses=poses, samples=samples,
+                turns=turns, phases=phases, turn_error=turn_error)
+
+
+def append_native_log(log, previous):
+    require(type(log)is str and len(log)<=MAX_LOG,'live native log exceeds bound')
+    require(log.startswith(previous),'live native log truncated or rewritten')
+    require(not log or log.endswith('\n'),'live native log requires complete lines')
+    return log[len(previous):]
+
+
+NATIVE_FAILURE_MARKERS=('Movement prediction stopped;',
+    'Native worker request failed:', 'Native worker startup refused:',
+    'Prediction actor repair failed:', 'Prediction selection admission failed:',
+    'Actor correction smoke failed:', 'Expired click smoke failed:',
+    'Mobile correction smoke failed:', 'Close formation smoke failed:', 'Queued orders smoke failed:',
+    'Offline loop stopped in ', 'Native Quit probe failed:')
+
+
+def update_native_status(log, previous=None):
+    previous=previous or dict(log='',failed=False,complete=False,guest_left=False,left=False)
+    appended=append_native_log(log,previous['log'])
+    return dict(log=log,failed=previous['failed']or any(marker in appended for marker in NATIVE_FAILURE_MARKERS),
+        complete=previous['complete']or COMPLETE in appended,
+        guest_left=previous['guest_left']or 'post-match leave passed: role=guest'in appended,
+        left=previous['left']or 'COMMUNITY MATCH SMOKE post-match leave passed:'in appended)
+
+
+def decode_changing_rtt_incremental(log, match, world, require_sampled_us, phase_source, include_turns, cache=None):
+    """Pure append-only cache: no controller references or mutation of prior cache.
+
+    JSON records are decoded once. Small RTT/status categories retain their
+    original parsers; cross-prefix phase ordering and global row bounds remain.
+    A cancelled/superseded worker's returned cache is never published.
+    """
+    if cache is None:
+        cache=dict(log='',feel=[],rtt_text='',samples=[],rtt_error=None,turns=[],turn_error=None,
+            decisions=[],decision_previous={},decision_counts=defaultdict(int),decision_error=None,wait_text='')
+    appended=append_native_log(log,cache['log'])
+    if appended:
+        cache=dict(cache,log=log)
+        cache['feel']=cache['feel']+feel_rows(appended)
+        require(len(cache['feel'])<=65536,'feel event count exceeds bound')
+        lines=appended.splitlines(True)
+        new_rtt=''.join(line for line in lines if 'Movement RTT 'in line)
+        if new_rtt:
+            cache['rtt_text']+=new_rtt
+            try:
+                cache['samples']=refresh_round_trips(cache['rtt_text']);cache['rtt_error']=None
+            except Exception as error:cache['rtt_error']=error
+        if cache['turn_error'] is None:
+            try:
+                cache['turns']=cache['turns']+transition_rows(appended)
+                require(len(cache['turns'])<=4,'bounded two-world transition order count exceeded')
+                require(len({(row['match'],row['world'],row['ordinal'])for row in cache['turns']})==len(cache['turns']),
+                        'duplicate transition order')
+            except Exception as error:cache['turn_error']=error
+        if cache['decision_error'] is None:
+            try:
+                previous=dict(cache['decision_previous']);counts=defaultdict(int,cache['decision_counts'])
+                new=_decision_phase_records(appended,previous,counts)
+                cache.update(decisions=cache['decisions']+new,decision_previous=previous,decision_counts=counts)
+            except Exception as error:cache['decision_error']=error
+        cache['wait_text']+=''.join(line for line in lines if 'Movement pacing START:'in line or 'Movement pacing waiting:'in line)
+    commands=[row for row in cache['feel'] if row['match']==match and row['event']=='command_created']
+    require(len(commands)<=1,'changing RTT duplicated subject Move')
+    poses=changing_poses(cache['feel'],match,require_sampled_us=require_sampled_us)
+    if cache['rtt_error'] is not None:raise cache['rtt_error']
+    turns,phases,turn_error=[],[],None
+    if include_turns:
+        try:
+            if cache['turn_error'] is not None:raise cache['turn_error']
+            turns=[row for row in cache['turns'] if row['match']==match and row['ordinal']==2]
+            if len(turns)==1:
+                require(phase_source in ('pacer_wait','decision'),'unknown transition phase observation source')
+                if phase_source=='decision':
+                    if cache['decision_error'] is not None:raise cache['decision_error']
+                    phases=[row for row in cache['decisions'] if (row['match'],row['world'])==(match,world)]
+                else:phases=phase_rows(cache['wait_text'],match,world)
+        except Exception as error:turn_error=error
+    return dict(commands=commands,poses=poses,samples=cache['samples'],turns=turns,phases=phases,turn_error=turn_error),cache
+
+
 class ChangingRttController:
     """Diagnostic local relay control; existing client RTT traffic is the witness."""
     def __init__(self, tick, perf=time.perf_counter_ns, *, require_sampled_us=False, transition_gates=None,
@@ -786,6 +903,8 @@ class ChangingRttController:
         self.phase_source = phase_source
         self.worlds = []
         self.last_clock = (-1,-1)
+        self._decode_revision = 0
+        self._live_decode_cache = None
 
     def now(self):
         tick, perf = int(self.tick()), self.perf()
@@ -801,6 +920,7 @@ class ChangingRttController:
                 'changing RTT prior match did not finish both real transitions')
         self.now()
         reset = shaper.set_rtt_ms(130,tick=self.tick)
+        self._decode_revision += 1
         self.worlds.append(dict(match=match,stage='waiting_for450',reset=reset,high_samples=[],low_samples=[]))
 
     @staticmethod
@@ -814,20 +934,80 @@ class ChangingRttController:
                 'changing RTT subject is not demonstrably moving before transition')
         return latest
 
-    def update(self, log, shaper):
+    def _decode_options(self, state):
+        # Pass only immutable scalar options to the worker, never self/state.
+        return (state['match'], state.get('world'), self.require_sampled_us, self.phase_source,
+                self.transition_gates is not None and state['stage'] in ('low', 'complete'))
+
+    def _capture_decode(self):
         if not self.worlds:
             return
         state = self.worlds[-1]
         if state['stage']=='failed' or (state['stage']=='complete'and
             (self.transition_gates is None or 'turn3_gate'in state)):
             return
+        self._decode_revision += 1
+        return dict(state=state, before=deepcopy(state), revision=self._decode_revision,
+                    options=self._decode_options(state), gates=self.transition_gates,
+                    delay=deepcopy(self.directional_delay), cache=self._live_decode_cache)
+
+    def _decode_current(self, request):
+        return (bool(self.worlds) and self.worlds[-1] is request['state'] and
+                self._decode_revision == request['revision'] and
+                self.worlds[-1] == request['before'] and
+                self._decode_options(self.worlds[-1]) == request['options'] and
+                self.transition_gates == request['gates'] and self.directional_delay == request['delay'])
+
+    @staticmethod
+    def _decode_failed(state, error):
+        state.update(stage='failed', error=str(error))
+        if isinstance(error, ChangingRttFixtureError):
+            state['failure_scope'] = 'fixture acquisition/readiness; natural lifecycle continues'
+        else:
+            raise error
+
+    def update(self, log, shaper):
+        """Synchronous API retained for authored fixtures and closed analyses."""
+        request = self._capture_decode()
+        if request is None:
+            return
+        try:
+            decoded = decode_changing_rtt(log, *request['options'])
+        except Exception as error:
+            if self._decode_current(request):
+                if isinstance(error, AssertionError):
+                    self._decode_failed(request['state'], error)
+                else:
+                    raise
+            return
+        if self._decode_current(request):
+            self._apply_decoded(request['state'], decoded, shaper)
+
+    async def update_async(self, log, shaper):
+        """Keep JSON scans off the loop that delivers the measured RTT traffic."""
+        request = self._capture_decode()
+        if request is None:
+            return
+        try:
+            decoded, cache = await asyncio.to_thread(decode_changing_rtt_incremental, log,
+                *request['options'], request['cache'])
+        except Exception as error:
+            if self._decode_current(request):
+                if isinstance(error, AssertionError):
+                    self._decode_failed(request['state'], error)
+                else:
+                    raise
+            return
+        # Cancellation never reaches this section. A rematch or another update
+        # may supersede decoding while awaited; discard stale results/errors.
+        if self._decode_current(request):
+            self._live_decode_cache = cache
+            self._apply_decoded(request['state'], decoded, shaper)
+
+    def _apply_decoded(self, state, decoded, shaper):
         try:
             now_tick, now_perf = self.now()
-            rows = feel_rows(log)
-            commands = [row for row in rows if row['match']==state['match'] and row['event']=='command_created']
-            require(len(commands) <= 1, 'changing RTT duplicated subject Move')
-            poses = changing_poses(rows,state['match'],require_sampled_us=self.require_sampled_us)
-            samples = refresh_round_trips(log)
+            commands, poses, samples = decoded['commands'], decoded['poses'], decoded['samples']
             if state['stage'] == 'waiting_for450':
                 eligible = [row for row in poses if row['presented_frame'] >= 450]
                 if not eligible:
@@ -870,11 +1050,13 @@ class ChangingRttController:
                 if low:
                     state.update(stage='complete',low_estimate_us=low[-1]['estimate_us'],low_observed_tick_ms=now_tick)
             if state['stage']=='complete'and self.transition_gates is not None and 'turn3_gate'not in state:
-                turns=[row for row in transition_rows(log)if row['match']==state['match']and row['ordinal']==2]
+                if decoded['turn_error'] is not None:
+                    raise decoded['turn_error']
+                turns = decoded['turns']
                 if not turns:return
                 require(len(turns)==1,'transition2 original order is not unique')
                 low_tick=state['low_samples'][-1]['received_tick_ms']
-                observed_phases=observed_phase_rows(log,state['match'],state['world'],self.phase_source)
+                observed_phases = decoded['phases']
                 phases=[row for row in observed_phases if
                     row['tick_ms']>=low_tick and row['tick_ms']>=state['fall']['effective_tick_ms']and
                     abs(row['next_assignment_delta'])<=1 and
@@ -2783,17 +2965,11 @@ async def run_prepared(output):
                     require(quit_released or process.poll() is None, 'owned game exited before original Quit release')
                     require(quit_released or not row['task'].done(), 'owned bridge stopped before native lifecycle')
                     row['log'] = await asyncio.to_thread(read_fresh_native_log, row['native_path'])
-                    require(not any(x in row['log'] for x in ('Movement prediction stopped;',
-                        'Native worker request failed:', 'Native worker startup refused:',
-                        'Prediction actor repair failed:', 'Prediction selection admission failed:',
-                        'Actor correction smoke failed:',
-                        'Expired click smoke failed:',
-                        'Mobile correction smoke failed:',
-                        'Close formation smoke failed:', 'Queued orders smoke failed:',
-                        'Offline loop stopped in ', 'Native Quit probe failed:')),
+                    row['native_status'] = update_native_status(row['log'],row.get('native_status'))
+                    require(not row['native_status']['failed'],
                         'actual movement client reported failure')
                 if changing is not None:
-                    changing.update(clients[plan['move_slot']]['log'],shapers[plan['move_slot']])
+                    await changing.update_async(clients[plan['move_slot']]['log'],shapers[plan['move_slot']])
                 require(not any(r['event'] in ('protocol_error', 'match_aborted', 'custom_match_setup_error') for r in events),
                         'owned Custom authority failed')
                 created = [r['match'] for r in events if r['event'] == 'match_created']
@@ -2801,12 +2977,12 @@ async def run_prepared(output):
                 if plan['lifecycle'] == 'prefix' and created and all(r['trace'].exists() for r in clients):
                     break  # Forced diagnostic prefix; never natural Quit acceptance.
                 if plan['lifecycle'] == 'natural':
-                    if leave_stage == 0 and all(COMPLETE in r['log'] for r in clients) and not server.rooms and not server.retired:
+                    if leave_stage == 0 and all(r['native_status']['complete'] for r in clients) and not server.rooms and not server.retired:
                         publish_gate(game, clients[1]['profile'], 'custom-match-leave.ready'); leave_stage = 1
-                    elif leave_stage == 1 and 'post-match leave passed: role=guest' in clients[1]['log']:
+                    elif leave_stage == 1 and clients[1]['native_status']['guest_left']:
                         publish_gate(game, clients[0]['profile'], 'custom-match-leave.ready'); leave_stage = 2
                     if not quit_released and leave_stage == 2 and not server.community.lobbies and all(
-                            'COMMUNITY MATCH SMOKE post-match leave passed:' in r['log'] for r in clients):
+                            r['native_status']['left'] for r in clients):
                         for row in clients:
                             publish_gate(game, row['profile'], 'native-quit.ready')
                         quit_released = True
@@ -3294,7 +3470,6 @@ async def run_prepared(output):
             len(workers) == plan['expected_matches'] and all(r['exit_code'] == 0 and not r['failure'] and
             not r['forced'] and r['job'] and r['job']['active'] == r['job']['terminated'] == 0
             for r in report['authority_workers']))
-        write(run / 'verification.json', report)
         write(run / 'server-states.json', dict(states))
         if fixture_active:
             write(run / 'actor-native-authority.json', dict(actor_states))
@@ -3302,6 +3477,9 @@ async def run_prepared(output):
         body_dir = run / 'submitted-batches'; body_dir.mkdir()
         for (match, slot, sequence), body in raw_bodies.items():
             (body_dir / f'{match}-{slot}-{sequence}.pb').write_bytes(body)
+        visual.finalize(plan,report,run)
+        visual_input.finalize(plan,report,run)
+        write(run / 'verification.json', report)
     return report
 
 
@@ -3513,6 +3691,8 @@ def main(argv=None):
                         help='Owned frozen private package; bind all files and use its actual worker imports/runtime')
     parser.add_argument('--expected-helper-sha256'); parser.add_argument('--expected-gameassembly-sha256')
     parser.add_argument('--transition-input-delay-ms',type=int,help='Explicit traced 100ms input-delay diagnostic')
+    parser.add_argument('--visual-correction',action='store_true',help='Bounded Actual74 visual correction capture')
+    parser.add_argument('--visual-input',action='store_true',help='Read-only original frontend ray/drag queries with visual correction')
     parser.add_argument('--scenario', choices=('startup', 'movement', 'mobile', 'close-formation', 'queued-orders'), default='startup')
     parser.add_argument('--lifecycle', choices=('natural', 'prefix'), default='natural')
     parser.add_argument('--frames', type=int); parser.add_argument('--timeout', type=float, default=180)

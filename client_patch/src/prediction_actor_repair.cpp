@@ -29,7 +29,7 @@ struct Span {const uint32_t* values=nullptr;int count=0;int padding=0;};
 static_assert(sizeof(Span)==16,"Original ReadOnlySpan<uint> ABI changed");
 struct UnitEvent {Obj units=nullptr,currentFrame=nullptr;};
 static_assert(sizeof(UnitEvent)==16,"Original UnitEventArgs ABI changed");
-struct Resident {policy::ActorIdentity identity;uint64_t incarnation=0;};
+struct Resident {policy::ActorIdentity identity;uint64_t incarnation=0,presentationLease=0;};
 struct Retire {
     Obj actor=nullptr;
     policy::ActorIdentity resident,current;
@@ -47,6 +47,7 @@ struct State {
     bool checked=false,inUpdate=false,failed=false;
     std::unique_ptr<Root> simulation,manager;
     std::map<Obj,Resident> identities;
+    uint64_t nextPresentationLease=0; // Monotonic across observer/world clears; independent of canonical incarnation.
     std::map<uint32_t,policy::ActorIdentity> pending;
     ba_prediction_worker::MovementAdmission admission;
     std::set<uint32_t> confirmedRecreation;
@@ -265,7 +266,10 @@ static void remember(State& s,const std::vector<Obj>& actors,std::set<Obj>& live
         require(live.insert(actor).second,"same actor appears in two manager sets");
         const auto identity=resident(actor);
         const auto found=s.identities.find(actor);
-        if(found==s.identities.end())s.identities.emplace(actor,Resident{identity,0});
+        if(found==s.identities.end()) {
+            require(s.nextPresentationLease!=UINT64_MAX,"actor presentation lease exhausted");
+            s.identities.emplace(actor,Resident{identity,0,++s.nextPresentationLease});
+        }
         else require(found->second.identity.entityId==identity.entityId &&
             found->second.identity.unitType==identity.unitType && found->second.identity.armyId==identity.armyId,
             "resident actor changed creation identity outside repair");
@@ -1334,19 +1338,28 @@ extern "C" __declspec(dllexport) void OfflinePredictionActorUpdate(void* manager
             ba_prediction_actors::clearInactive(s);original(manager,frames,methodInfo);return;
         }
         ba_prediction_actors::require(!s.inUpdate,"actor repair reentered");s.inUpdate=true;entered=true;
+        ba_prediction_stages::mark("stage.actor.enter",s.simulation?s.simulation->get():nullptr);
         ba_prediction_actors::checkContext(s,manager,frames);
+        ba_prediction_stages::mark("stage.actor.context",s.simulation->get());
         ba_prediction_actors::reconcileGroupIntent(s);
+        ba_prediction_stages::mark("stage.actor.intent",s.simulation->get());
         ba_prediction_actors::repair(s,manager,frames,changes,selection,&held);
+        ba_prediction_stages::mark("stage.actor.repair",s.simulation->get());
         {
             ba_prediction_actors::ClickOriginalUpdate boundary(s);
             original(manager,frames,methodInfo);
         }
+        ba_prediction_stages::mark("stage.actor.original",s.simulation?s.simulation->get():nullptr);
         ba_prediction_actors::requireOwned(s);
         changes.close();
         ba_prediction_actors::requireOwned(s);
+        ba_prediction_stages::mark("stage.actor.groups",s.simulation->get());
         ba_prediction_actors::after(s,manager,frames);
+        ba_prediction_stages::mark("stage.actor.after",s.simulation->get());
         ba_prediction_actors::reconcileGroupIntent(s);
+        ba_prediction_stages::mark("stage.actor.reconcile",s.simulation->get());
         selection.commit(s,&held);
+        ba_prediction_stages::mark("stage.actor.selection",s.simulation->get());
         s.inUpdate=false;
     } catch(const std::exception& error) {
         try{changes.close(true);}catch(const std::exception& cleanup){ba::log("Prediction actor group cleanup failed: reason=%s retry=0",cleanup.what());}

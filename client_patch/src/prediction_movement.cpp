@@ -96,6 +96,18 @@ static void failed(const char* reason) noexcept {
     worker::movementFail(reason);
 }
 void reset() noexcept {state=State{};earlyPhaseCount=0;earlyPhaseOverflow=false;}
+ba_prediction_visual_lifetime::Snapshot presentationLifetime() {
+    require(ba::initialThread && GetCurrentThreadId()==ba::initialThread,
+        "movement lifetime snapshot requires retained Unity thread");
+    // These scalar keys remain safe after disconnect/world destruction. Do not
+    // call bound(), inspect the old Simulation, or free handles on its worker.
+    ba_prediction_visual_lifetime::Snapshot value;
+    value.movementWorld=state.world;value.movementMatch=state.match;value.ownerThread=state.owner;
+    value.workerWorld=worker::movementWorldId();value.workerMatch=worker::movementMatchId();
+    value.prepared=state.prepared;value.pacingStarted=state.pacingStarted;value.failed=state.failed;
+    value.endSent=state.endSent;value.drained=state.drained;value.matchEnded=ba_lan::matchEnded;
+    value.abortPending=ba_community::abortPending;value.connected=ba_community::online;return value;
+}
 
 static void context(Obj server) {
     require(ba::unified() && ba::dedicated() && ba::community() && ba::lan() &&
@@ -312,6 +324,7 @@ void tick(void* serverValue) {
                     state.drained=true;ba_lan::running=false;
                     ba::log("Movement terminal drain complete: match=%s confirmed=%d physical=%d presented=%d target=%lld",
                         state.match.c_str(),value.confirmed,completed,presented,static_cast<long long>(state.drainTarget));
+                    ba_prediction_visual::clearInactive("drain_complete");
                 }
                 // ac can publish before a8 finishes the iteration's later view
                 // queries. Wait for this target rather than queuing an endless

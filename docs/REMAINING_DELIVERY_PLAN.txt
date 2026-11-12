@@ -1,5 +1,22 @@
 BATTLE ACES - CURRENT DELIVERY ROADMAP
-Updated:2026-11-11. ACTIVE. Single current work queue;final release is not accepted.
+Updated:2026-11-12. ACTIVE. Single current work queue;final release is not accepted.
+
+NEXT DELIVERY - prediction AI + visual correction preview
+Actual85 PASSES the complete two-round native/wire/response,900ms visual,
+onscreen original selection-query and prompt root-retirement gates. Every
+child exits naturally;source/runtime unchanged. Helper111 is qualified for
+this bounded scope. Actual84 stays failed for offscreen acquisition.
+1. Freeze reviewed source and build paired client/server preview installers.
+2. Verify embedded payloads,isolated desktop shortcuts,owned installation and
+   the actual bundled normal launcher with smoothing enabled/no automation.
+3. Qualify that exact bundled client on public1v1 server AI at475ms RTT with
+   smoothing enabled;then refresh existing N35 with the verified installer.
+The installed helper88 explains Nick's Custom-only rejection. A config edit
+cannot upgrade it. Usual/manual games and live host remain untouched during
+local qualification. Full N33,physical gestures/unit-target callbacks with
+smoothing,forced group/type retirement and human Internet feel remain open.
+The following chronological evidence is retained;older NEXT labels do not
+override this delivery queue. Details:prediction-correction-motion.txt.
 
 CURRENT PRIORITY:N33 bounded presentation correction for reproduced native
 command-retime backtracks;remaining group/type and gameplay/input paths plus
@@ -53,7 +70,51 @@ delay scenario,not Portable16 retrospectively or visual comfort. Actual73 remain
 FAILED;its diagnostic open failure led to reuse of the qualified bounded sharing
 retry with exact error logs.627 Python/39 C++ checks pass. Next design/qualify
 bounded presentation correction without changing native authority or immediate
-input;no smoothing has been implemented. See prediction-correction-motion.txt.
+input. The600ms policy and renderer consumer are implemented;helper103/41 C++
+executables and114 related Python checks pass. Original-native enabled/disabled
+query control passes372 identical ordinary own-view buffers,exact inputs and
+terminal full-state equality with natural shutdown. Next:actual Unity visual
+correction/complete-decay,input/lifetime and overhead qualification. No new
+playable smoothing build yet. Actual75 exposed a pre-initial-state join guard,
+fixed in helper104;Actual76 reaches gameplay but fails the peer local-army guard.
+Actual77 proves peer frame army stays0 while localplayer/slot/alliance identify1.
+Renderer now uses authenticated SimPlayer ArmyID;helper106/review pass. Next
+complete the two-world visual/lifecycle gate with that fix;preserve75/76/77.
+See prediction-correction-motion.txt.
+
+Latest79 supersedes the preceding next-step labels:78 passes natural lifecycle
+and ownership but fails displayed holds127.767/171.117ms. Frozen analysis proves
+600ms decay cancels forward motion;900ms candidate/helper107 and regression
+checks pass. Actual79 completes two matches/natural Quit but fails initial
+pre-authority visible response. Diagnose that exact closed-capture window next;
+do not repeat unchanged runs or accept smoothing from unit/counterfactual tests.
+No new installer or live/manual change;full N33 and existing N35 stay open.
+
+Actual79 closed-capture attribution narrows first-response delay to117.466ms
+between UI view and frame publication;native moved frame already existed and
+metadata bookkeeping takes109us. Smoothing pulses were zero. Helper108 adds
+opt-in buffered stage/CPU markers,review/41 C++ programs/224 Python checks PASS.
+Actual80 fails before movement during slow startup/backlog;local competing load
+is present but causal attribution is open. Analyze retained stage timing and
+resume the unchanged full gate in a suitable performance window;do not promote
+79/80 or weaken response/hold/backtrack limits. See focused correction record.
+
+Actual84 supersedes earlier pending labels:two natural rounds now PASS native/
+wire/response,900ms visual correction and four prompt visual-root retirements.
+Full report remainsFALSE solely for offscreen frontend-query acquisition. Four
+ray/drag comparisons discriminate but are outside the viewport. Add one original
+camera focus to this explicit test,then qualify the unchanged input/visual gates
+and build the usable human kit. No new package/deployment yet. Installed helper88
+explains the Custom-only message;correct the actual installed version in handoff.
+
+Static input/reader review now narrows the next integration check:actual original
+frontend click/drag/unit-target at nonzero smoothing,compared with zero offset.
+Clicks use physics;radius drag uses root Transform;other modes use engine bounds.
+Shipped auto-sync is false but live policy/freshness is unproven. Health/fog use
+shared positions,so shared-reader ordering and UI placement remain in scope.
+Do not infer selection correctness from joined Transform equality or add global
+physics synchronization without evidence. Helper110/Actual84 are terminal;
+the original queries already discriminate offscreen without synchronization.
 
 Nick's requested0.4.0 client/server release is PUBLISHED;matching host deployed
 at134.209.176.39 and game TCP47623 reopened publicly,durable across restart.

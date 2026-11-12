@@ -1,7 +1,23 @@
 BATTLE ACES - RELEASE ACCEPTANCE
-Reviewed:2026-11-11. FINAL RELEASE:NOT ACCEPTED.
+Reviewed:2026-11-12. FINAL RELEASE:NOT ACCEPTED.
 Work queue:REMAINING_DELIVERY_PLAN.txt. Latest results:STATUS.txt.
 Exact prior checklist/history:history/2026-10-24/RELEASE_ACCEPTANCE.txt.
+
+Latest bounded visual-correction scope:PASSED in Actual85/helper111 with two
+natural rounds,all2892 native-state/wire comparisons,pre-authority response,
+900ms visual correction,onscreen original ray/drag queries and four main-thread
+normal-drain visual-root retirements. Raw1.260/1.575unit backtracks reduce to
+0.178/0.239;holds43.982/48.927ms. One original camera focus per world fixes the
+diagnostic acquisition;query geometry,viewport margins and motion limits stay
+unchanged. Both539/540 ray+drag comparisons discriminate displayed from raw
+positions,with zero controls and no forced physics synchronization.
+This stage1 read-only query proof does not accept physical gestures,unit-target
+callbacks or commands under smoothing. Forced group/type retirement,broader
+input/lifetime and human Internet gates remain open. Actual84's original
+offscreen failure and Actual78/79/80/81/82/83 failures remain preserved. All
+numeric acceptance limits and the N35 kit/live host are unchanged. Next:exact
+paired preview/bundled launcher and server-AI qualification before user handoff.
+Details:prediction-correction-motion.txt.
 
 Nick's requested0.4.0 publication/public-game reopening is COMPLETE. Paired
 installers are hash-verified on GitHub;matching live host/data-preserving upgrade
@@ -67,6 +83,14 @@ segments. Both-world decomposition and>.75 event reproduction pass. This adds
 diagnostic evidence,not visual-comfort acceptance or a smoothing implementation.
 Actual73's failed/forced run staysFAILED.627 Python/39 C++ checks pass;the N35
 kit and live host remain unchanged. See prediction-correction-motion.txt.
+
+The subsequent600ms smoothing implementation now compiles as helper103 with41
+C++ executables and114 related Python checks passing. Its original-native query
+control passes372 ordinary own-view buffers/exact inputs across enabled/disabled
+roles and terminal full-state equality,natural0/Jobs2/0/0. This qualifies the
+bounded metadata query path;actual Unity smoothing/complete decay,input/lifetime,
+other presentation readers,overhead and human Internet feel remain OPEN. No new
+installer or runtime installation. See prediction-correction-motion.txt.
 
 Acceptance is scoped to actual artifacts and observations. A user request may
 be complete without closing its entire parent gate. Historical failures remain

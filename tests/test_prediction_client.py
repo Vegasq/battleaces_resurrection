@@ -21,6 +21,7 @@ class PredictionClientTests(unittest.TestCase):
         helper=b'MZ'+b' '.join((b'BA_RESURRECTION_MOVEMENT_PIPELINE_V1',b'BA_RESURRECTION_NATIVE_WORKER_PROXY_V1',
             b'BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1'))
         helper+=b' '.join(h['name'].encode()+b'\0'for h in p.prediction_worker.CALL_HOOKS+p.prediction_actor_repair.CALL_HOOKS+p.prediction_actor_repair.TAIL_HOOKS+p.prediction_actor_repair.POINTER_HOOKS)
+        helper+='-prediction-visual-correction'.encode('utf-16-le')
         self.helper=helper
         files={'program/runtime/python.exe':b'MZpython',
             'program/app/client_patch/prediction_worker/__main__.py':b'# authored\n',
@@ -99,8 +100,17 @@ class PredictionClientTests(unittest.TestCase):
     def test_verified_package_missing_natural_removal_tail_export_refuses_before_game_changes(self):
         self.missing_export_refuses(p.prediction_actor_repair.TAIL_HOOKS[0]['name'])
 
+    def test_verified_package_missing_visual_join_refuses_before_game_changes(self):
+        self.missing_export_refuses('OfflinePredictionVisualJoin')
+
+    def test_verified_package_missing_visual_correction_flag_refuses_before_game_changes(self):
+        self.missing_helper_bytes_refuse('-prediction-visual-correction'.encode('utf-16-le'),
+            'lacks visual correction')
+
     def missing_export_refuses(self, export):
-        name=export.encode()+b'\0'
+        self.missing_helper_bytes_refuse(export.encode()+b'\0','lacks movement prediction')
+
+    def missing_helper_bytes_refuse(self, name, message):
         changed=self.helper.replace(name,b'authored_missing_export\0')
         self.assertNotEqual(changed,self.helper)
         helper_path=self.package/p.ARTIFACTS['main_helper'];helper_path.write_bytes(changed)
@@ -112,7 +122,7 @@ class PredictionClientTests(unittest.TestCase):
         descriptor=p.json_bytes(self.descriptor);(self.package/p.DESCRIPTOR).write_bytes(descriptor)
         self.inventory['files'][p.DESCRIPTOR]=dict(bytes=len(descriptor),sha256=p.digest(descriptor));self.publish_inventory()
         before=self.manifest_path.read_bytes()
-        with self.assertRaisesRegex(p.PackageError,'lacks movement prediction'):p.prepare(self.package,self.game)
+        with self.assertRaisesRegex(p.PackageError,message):p.prepare(self.package,self.game)
         self.assertEqual(self.manifest_path.read_bytes(),before)
         self.assertEqual((self.game/'GameAssembly.dll').read_bytes(),self.ordinary)
 
@@ -286,6 +296,7 @@ class PredictionClientTests(unittest.TestCase):
             config,remote,args=call.args;options=call.kwargs['prediction_worker']
             self.assertEqual(config['local_profile'],p.LOCAL_PROFILE)
             self.assertEqual(config['solo_ai_host'],'server')
+            self.assertIs(getattr(options,'visual_correction',False),True)
             self.assertTrue(args.unified_experimental);self.assertTrue(args.original_command_scheduling_experimental)
             self.assertTrue(args.player_features);self.assertFalse(hasattr(args,'smoke'));self.assertFalse(hasattr(args,'quit_smoke'))
             self.assertEqual(options.module_root,self.package/'program/app')
@@ -294,10 +305,14 @@ class PredictionClientTests(unittest.TestCase):
             self.assertFalse(list(options.data_directory.iterdir()))
             argv=p.launcher.game_arguments(config,None,8765,args,prediction_worker=options)
             self.assertIn('-prediction-movement-experimental',argv)
+            self.assertIn('-prediction-visual-correction',argv)
             self.assertIn('-original-command-scheduling-experimental',argv)
             self.assertIn('-solo-ai-host=server',argv)
             self.assertIn('-prediction-worker-python='+str(options.python),argv)
-            self.assertFalse(any(word in flag for flag in argv for word in ('smoke','audit','probe','auto-ready','quit-','frame-timing')))
+            self.assertFalse(any(word in flag for flag in argv for word in ('smoke','audit','probe','observe','stages','auto-ready','quit-','frame-timing')))
+            receipt=json.loads((options.data_directory.parent/'launch.json').read_bytes())
+            self.assertIs(receipt['visual_correction'],True)
+            self.assertIs(receipt['scripted_gameplay'],False)
 
 
 if __name__=='__main__':unittest.main()

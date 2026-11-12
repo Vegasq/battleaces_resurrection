@@ -1,15 +1,369 @@
 N33 - LARGE COMMAND-RETIME CORRECTIONS - 2026-11-11
 
-Result and next work
+Latest result and next work - 2026-11-12
+Actual85/helper111 PASSES the complete bounded two-round native/wire/response,
+900ms visual,onscreen original selection-query and normal-drain retirement gates.
+One original camera focus per world fixes diagnostic acquisition without changing
+query geometry,viewport margins or motion limits. Next:qualify the exact paired
+preview package and bundled server-AI path,then refresh the existing N35 handoff.
+Physical gestures,unit-target callbacks,forced group/type retirement and human
+Internet feel remain open. Full N33 and final release are not accepted.
+
+Actual85 results
+Root61882 terminal0,142.868seconds;games32172/35720 exit0,reaped/handles closed,
+Jobs3/0/0;authorities22716/45908 exit0,Jobs2/0/0. Both workers shut down naturally;
+no force or cleanup errors,source/files unchanged. Original reportSHA256
+5bc53fd5019c902c9f64507cfe57344b90950990cc72b9c2d2ace4555097f193.
+All2892 worker native-state rows and the parent wire/command gates pass.
+Initial subject Moves respond63/62ms,109/110ms before raw bridge and125ms before
+native authority. Turn2 responses41.010/42.576ms and recovered turn3 responses
+69.128/43.399ms precede both receipts,with20 matching continuations per order.
+Turn2 retimes533->536/534->537 during the deliberate100ms C2S scheduling delay
+for250ms. Recovered turn3 phases594/594 and556/557 satisfy unchanged+/-1.
+Each world completes130->475->130ms configured RTT;genuine high estimates are
+486.079/492.621ms and later low estimates145.497/141.896ms. These are measured
+ACK estimates,not a universal network latency or phase-recovery duration.
+
+World1/2 raw turn2 backtracks1.259996/1.575004 become0.177630/0.238627units.
+Unfinished holds43.982/48.927ms and actual post-original publication gaps
+79.710/78.052ms pass unchanged100ms limits. Counter first-observation gaps are
+separately81.957/85.266ms. All7350 visual poses match the independent900ms
+correction,shared output and actual Transform;raw-equal tails last4.696/3.682s.
+Four main-thread drain_complete retirements each release three roots to zero
+before next-world activity/exit;entries and pulses are also zero afterward.
+This proves the scoped visual ownership cleanup,not whole-process memory use.
+
+Original frontend query stage1 now PASSES. Original FocusOnUnit runs once at510
+in each world,followed by202.409/202.602ms minimum settling. Eleven query records
+include zero-before/nonzero/zero-after controls,all inside the original viewport
+margins with actual root equal displayed position and active drag mode1
+(BoundingSphere_UnitRadius). Both worlds'539/540 comparisons discriminate both
+ray and drag:displayed point selects the current subject while raw point misses.
+World2 also has ray-only discrimination559/560. Maximum prior-join ages are
+5.872/5.785ms;maximum query costs0.193/0.074ms. No forced physics synchronization,
+selection writes,physical input or fabricated callback is used. This qualifies
+the original read-only ray/drag query route,not real gesture,unit-target callback
+or command acceptance under smoothing. Existing broader input gates remain open.
+Private capture:local/prediction-runtime/movement85-visual-input-camera.
+File-only summary:local/prediction-presentation-smoothing01/analysis85-summary01.
+
+Actual84 results (original failed report preserved)
+Root8952 terminal1,142.430seconds;games9404/37184 exit0,reaped/handles closed,
+Jobs3/0/0,no forced cleanup or errors,source/files unchanged. Original reportSHA
+d996a180645e072499bf249bbb9f2b4be3f6bc197aceeee29c49d5cb444895f3.
+Both RTT transitions recover153.332/158.189ms;turn2/turn3 gates complete without
+changing200ms/650-frame/6-second bounds. Both subject Moves respond47ms,110/125ms
+before bridge/native authority. All2892 worker native-state rows are validated.
+World1/2 raw turn2 backtracks1.260004/1.575004 become0.233143/0.315000units.
+Unfinished holds44.873/41.717ms and original publication gaps78.324/80.489ms pass.
+All6760 visual poses match independent900ms correction,shared output and actual
+Transform;raw-equal tails last4.692/4.676seconds. Four retirement receipts bind
+normal drained state to zero remaining roots,entries and pulses;each starts with
+the three simulation/manager/interpolator roots. No whole-process memory claim.
+
+Original frontend query component remainsINCONCLUSIVE,not a selection failure.
+All nine records retain exact root/displayed identity and active drag mode1
+(BoundingSphere_UnitRadius). Four nonzero comparisons discriminate both original
+ray and drag,displayed hit/raw miss,but screenY538..546 exceeds the960x540 safe
+viewport bound537. The second tail is also offscreen. Maximum prior-join ages
+5.990/6.028ms;query costs13.786ms on first resolution and0.102ms in world2.
+Use original FocusOnUnit once at510..511 and wait200ms before query controls;
+retain the exact original geometry,viewport margin and acceptance thresholds.
+Private original capture:local/prediction-runtime/movement84-visual-input.
+
+Repairs leading to84
+Incremental complete-line decoding removes repeated diagnostic JSON work while
+preserving strict cross-chunk validation,owner mutations and cancellation guards.
+Actual83 retains an early turn2 failure after a321.625ms subject/log pause;the
+nearest100ms sample moved only0.01572units over337.566ms. Gate rename took0.432ms;
+earlier file-I/O/scheduling attribution remains unproven and subject stage trace
+was missing. Fixture now defers insufficient movement with the same100..500ms
+sample bounds and strict target/650 cutoff;all hold limits remain. Failed explicit
+diagnostics flush existing timing as incomplete. Separately,source review found
+visual roots retained until another join/new match. Main-thread cleanup now runs
+immediately after completed drain and at frontend startup for failed/retired
+owners;active END/drain and unrelated current-owner joins are preserved.
+Helper11043 C++ programs pass;44 visual/input/lifetime Python checks and69 human
+launcher checks pass. New human launch enables only the visual runtime feature,
+with no automation/observation flags;no package has yet been produced from it.
+
+Earlier attribution checkpoint (retained)
 Actual74 PASSES two original client/server rounds and closed-file decomposition
 of large visible backtracks. World1 renders2.179506units backward over121.030ms;
 world2 renders1.207480units over64.487ms. Both follow the native corrected
 publication endpoints within float32 precision. This reproduces a large artifact
 and attributes it in this scenario;it is not a visual-comfort or full N33 PASS.
-Next:design and qualify bounded presentation correction while preserving native
+Next:qualify the implemented bounded presentation correction while preserving native
 authority,state parity,immediate input,actor lifetime and original selection.
-No presentation smoothing is implemented by this checkpoint. N35's installers,
-deployed server and all manual/user copies remain unchanged.
+No runtime presentation smoothing is qualified by this checkpoint. N35's
+installers,deployed server and all manual/user copies remain unchanged.
+
+Actual82: recovery RTT restored; stable phase still missing
+2026-11-12 helper108 with pure decoding off the relay loop reaches both matches
+but FAILS second-world turn3 readiness. Root60160 terminal1,138.018seconds;
+source/files unchanged. Both games exit92,reaped/handles closed,Jobs3/0/0,
+forced cleanup. Original reportSHA256
+78426530f154ded6b4ef14f158de5c94562c629f2c4a1d662df60a1c401b78e7.
+Minimum freeRAM16.408GB,average CPU27.208%,peak47.38%;no observed resource
+pressure like81. W1/W2 low RTT135.744/160.502ms passes200ms. W2 has113 of121
+post-low phase rows outside +/-1;brief eligible intervals do not satisfy the
+unchanged500ms stable window before650. Do not relax the phase gate.
+
+Thread-offloaded full-log decode still holds Python's execution lock:6MB costs
+112..115ms and a concurrent heartbeat gaps39.89..56.28ms versus16.27..17.33ms
+baseline. An opaque C2S chunk overlapping request41 reaches the relay85.401ms
+late;its RTT236.517ms fails. Request42 recovers at4.22seconds after the fall,
+leaving little phase-braking time. Chunk correlation is not packet identity or
+exclusive causality. Next:incremental complete-line decoding with strict
+cross-chunk validation and stale/cancel guards,then the unchanged full gate.
+
+Closed initial-response analysis gives62/63ms,125/109ms before raw/native
+authority,zero smoothing pulses/writes. All8230 captured poses match independent
+900ms policy/shared output/Transform;W1 raw1.890 becomes0.247units. Unfinished
+holds46.740/43.398ms;both tails return to raw. W2 lacks turn3 and a large raw
+backtrack,so these partial measurements are not full visual acceptance.
+Private analysis82-response01/report2.json SHA256
+4c6caef2130293db495f5970ff8e92e2935f10e7fd1cce574772a15a39a1e149;
+analysis82-gates01 and analysis82-visual01 retain component evidence. No native
+pacer change,installer/user-copy edit or deployment follows from this result.
+
+Actual81: second-round recovery gate missing; diagnostic interference identified
+2026-11-12 helper108 run reaches both matches but FAILS at the second world's
+capture cutoff:turn3 never becomes ready. Root55394 terminal1;186.257seconds,
+source/files unchanged. Both retained games are reaped/closed,exit92,Jobs3/0/0;
+cleanup forced,two bridge reset errors. First authority natural0;second forced1.
+Original reportSHA256
+dd388052a359ce3dea87ae6060c02505f699fa2d2d54c688175d0b84bcd2e7bb.
+The local resource window initially cleared,but a new unrelated workload started
+between inspection and launch. In-run freeRAM drops to265MB before recovering;
+resources81.json preserves the observations. No causal attribution is assumed.
+
+Initial Move responds93/47ms,125/156ms before raw bridge and native authority;
+smoothing pulses/writes are zero in those windows. First-world presentation441
+takes22.514ms,mostly original post-actor work21.709ms. Actual79's initial delay
+is not reproduced;no change to its original failed result.
+Partial visual arithmetic matches all7789 captured poses exactly to900ms policy,
+shared output and actual Transform. First-world turn2 raw backtrack1.575 becomes
+0.315units;unfinished holds48.662/45.124ms. Second world lacks turn3 and ends at
+649,so it does not qualify the full correction/window gate. Both captured tails
+return to raw. These component observations are not acceptance.
+
+Second-world RTT recovery samples262.715/230.261/217.454ms all exceed the original
+200ms bound. Controller correctly stays low with no turn3 gate;there is no gate
+file-read failure. ChangingRttController.update synchronously decodes the growing
+log on the relay/authority event loop. Closed decoder cost grows27.9 to83.0ms;
+selected no-extra-delay C2S chunks forward92.232/74.969ms late. This supports
+removing concrete diagnostic interference,not exact parser-only causality.
+Next:offload pure decoding,retain controller/shaper/gate mutations on their owner
+loop,then rerun the unchanged200ms/650-frame/6-second and visual gates.
+Private evidence:analysis81-gates01,analysis81-response01/report2.json,
+analysis81-visual01 under local/prediction-presentation-smoothing01.
+Gate reportSHA2569d06baeec784ac53cfb30a4338f0e45bd2a4d06f6fe282849227a2b5ed58c3cc.
+Visual reportSHA256c395782d7166f135bcbe63c0763961474290b3bef4f579f5ab0bc4afba3b2039.
+N35's reported Custom-only dialog is separately traced to installed helper88;
+the newer server-AI installer is not the helper at that desktop shortcut.
+
+Static reader/input review: concrete runtime scope
+Original click selection and unit-target casting use physics raycasts. Radius
+drag modes read Unit root Transform; collider/mesh drag modes read engine
+bounds. The unit-target command retains the picked entity ID; its root-position
+read feeds acknowledgement feedback. Ground targeting retains ground-ray XYZ.
+The owned shipped PhysicsManager has m_AutoSyncTransforms=false;this is a
+serialized setting,not proof of the live policy or an observed selection bug.
+Consequently the next input check must run in the real original frontend/input
+phase during a nonzero correction,with a zero-offset control. Compare displayed
+root/collider bounds,picked full identity and emitted target ID. An immediate
+post-join query alone cannot qualify input behavior. Do not add synchronization
+to the diagnostic or globally enable it before observing the original behavior.
+
+The complete declared-field type inventory finds11 matches across22961 types;
+it is not an exhaustive alias/reader graph. Selected HealthSystem.Update and
+FogOfWarManager.Render directly consume shared InterpolatedPositions. This
+extends the affected display beyond meshes to health bars and visual fog;
+native visibility/state is not shown to change. Camera root-position use was
+already established. Directional job bodies inspected show no direct read of
+their presentation-buffer field;global reader quiescence remains unqualified.
+VFX/RangePreview indirect producer paths and fog coroutine ordering remain
+unknown. No runtime/source behavior was changed from these static findings.
+
+Private evidence:local/prediction-presentation-smoothing01/static-hit-test03
+and static-readers03. Twelve reader slices match original/owned bytes;35 input
+slices match except the existing classified PreviewClear hook. The health slice
+extends into two following methods,explicitly excluded from the Update claim.
+Owned globalgamemanagers SHA256
+79d00abfc666c1b4eeedb04d19251cbf1c7261a66d7dbf1e602d5af853fa0c56.
+Input report SHA256
+cdfa688c9eab2c820028a79a25528404f178b09260d7c85c74a43b474646acab.
+Shell LLVM/metadata and isolated UnityPy evidence,not REA runtime evidence.
+Helper108 and prepared Actual81 remain unchanged;81 has not been launched.
+
+Actual80 stage-attribution followup: early backlog failure
+File-only79 review proves first-move response187ms versus78's93ms(world1),both
+second worlds47ms. Native moved frame441 query ends885201032543us and takes
+1.755ms. UI view885201035991us to publication885201153457us is117.466ms;
+visual metadata and bookkeeping only109us. Dense first movement precedes UI
+authority by4.449ms but shares the raw bridge coarse tick,so strict pre-raw
+ordering is still unproven. Pulses0/writesfalse excludes decay in this window.
+Helper108 adds opt-in stage.* rows around original presentation and actor
+context/intent/repair/original/groups/after/selection work. Existing QPC trace
+stays buffered;stage-only queued holds coarse cumulative thread CPUus,not a
+network queue. CPU cannot distinguish blocking from descheduling. Independent
+source review,41 C++ programs and224 Python checks PASS. DLL SHA256
+b1de96928421127ffa1c2edbf83acdefc0fa285419c8a5e6fafa43de822c20e6.
+Actual80 FAILS before movement after121.751s:subject falls behind and reports
+unexpected LAN frame around100. Both retained game handles reaped/closed,
+exit92,gameJobs3/0/0,forced cleanup and two bridge reset errors. Source/runtime
+unchanged. Peer stage trace retained;subject did not flush a completed trace.
+Report SHA256abba7b39b255d064f2972a8b6701d9e9c59e77264ac2875f6aef0d09a0b114b8.
+A substantial separate local workload started before80;post-run CPU/memory/
+paging observations establish competing load,not cause for79 or80. Next
+analyze retained peer stages and obtain a suitable local performance window.
+No acceptance,unchanged retry,queue-limit relaxation or live/manual change.
+
+Closed80 peer stage analysis verifies145 ordered sequences(frames0..144).
+Normal presentation total median1.175ms,p953.489,max105.712(frame121). Actor
+wrapper median0.386ms,p951.499,max91.855;the peak is original actor execution
+91.106ms wall versus15.625ms coarse thread CPU. Original post-actor work peaks
+39.801ms(frame122). Original-return to pure pacing bookkeeping and adjacent
+markers median0.006ms,p950.018,max0.049 supports small routine observed cost,
+not a universal overhead bound. Frame0 total3530.687ms is dominated by original
+post-actor presentation3144.640ms/2218.750ms CPU. No evidence justifies changing
+the already-small ordinary actor checks or the64-frame queue limit.
+Private analysis report SHA256
+621ef247c60a1c5e83866f0e8d123809dd9fb6d62dc0c9559dd802a1261acc46.
+Actual81 is prepared/preflight PASS,not launched. It reuses helper108,unchanged
+fixture/gates and adds low-rate in-process OS CPU/memory observations around the
+run. A suitable local performance window is pending. Existing failures preserved.
+
+Actual79 candidate: natural lifecycle, initial response gate FAILS
+Frozen analysis78-01 verifies6542 actual pose rows against native endpoints,
+immutable From/To,original alpha,cubic policy and actual Transform. No sampled
+feedback/job bug:opposing600ms correction velocity cancels ordinary6.3units/s
+motion. All2892 parsed native hashes match authority. Same-stream900ms replay
+predicts60.291/70.803ms holds,with17.084/20.007percent velocity margin;this is
+counterfactual evidence,not runtime acceptance or a guarantee for all8-unit caps.
+The new continuing-motion test reproduces old600ms failure(exit2,minimum speed
+-1.57427units/s,105ms hold).900ms candidate passes helper107's41 C++ programs;
+224 related Python checks pass. Bounds,authority/input and strict gates unchanged.
+helper107 DLL SHA256
+8bfea343298fd65f53a8f1cae2a0bd667c880c9f2ad111d9cff80cfa0b6c2ef1.
+Actual79 uses that helper in only the owned automation game. Two matches,
+Continue/rematch/original Quit complete naturally in182.455seconds,both game
+Jobs3/0/0,no force/cleanup errors,source/runtime unchanged. Full result FAILS
+the initial actual Transform movement-before-both-authority check;steady
+assigned/canonical441/442 is within the existing one-frame phase tolerance.
+Later smoothness/visual gates are not qualified when this parent check fails.
+Original report SHA256
+ac8fbc1c9add033b88d2876b28767b7b10c32e5a43dff97a53325d38e0646d4b.
+Next:file-only diagnosis of the exact command/pose/authority window,comparing78.
+Preserve failed reports;no new game rerun or lowered threshold is justified yet.
+
+Actual78 natural lifecycle passes; displayed hold gate FAILS
+Both clients complete two worlds/Continue/rematch/original Quit with no visual
+ownership error. Games and workers exit0,reaped/handles closed,gameJobs3/0/0,
+authorityJobs2/0/0,no force/cleanup errors;184.860seconds,source/runtime unchanged.
+Native position trace558 rows qualifies both worlds. Original turn2 responses
+43.586/64.224ms precede authority;assigned/canonical535/540 and540/545. Recovered
+turn3 phases576/576 and581/581;both complete transition-order gates pass.
+However,the unchanged .025-unit unfinished-pose gate measures127.767/171.117ms
+holds against100ms;post-original publication84.054/81.055ms passes. This closes
+the peer ownership failure's scoped runtime check,not visual comfort/full gate.
+Original report SHA256c90875c8044ea10dc00c645a7feaadf3bf6bac4a4b385be60b7756c6b75ea682
+remainsFAILED. Next file-only analysis uses actual raw/alpha/pulses/Transform to
+attribute the hold and compare bounded curves;no threshold is being raised.
+
+Actual77 ownership attribution and source repair
+The new initial/refusal observations settle76's missing numeric claim. Subject
+frame0:frame army0/alliance0,player army0/alliance0,assigned0. Peer frame0 AND
+refusal713:frame army0/alliance1,player army1/alliance1,assigned1. Peer refusal
+packet is713/H712/revision6/one delta. The original frame's LocalArmyId cannot
+authenticate this peer;no terminal-only identity change is established.
+Original77 remainsFAILED/forced with source/runtime unchanged,both handles
+reaped/closed,Jobs3/0/0 and two bridge cleanup errors. Report SHA256
+41d50876b2065e01454e9c4a06cb1a93e52caf2e57ebb43f95bb6464c8f67b0c.
+The renderer now reads ArmyID from the owned simulation's SimPlayer,as existing
+selection/group repair does,and requires army<=1,assigned-slot equality and
+player/frame alliance equality. Map perspective validation uses that same owner;
+per-delta army,current membership,incarnation/lease and publication guards remain.
+Read-only review PASS. Helper106/41 C++ executables PASS,227 sources unchanged;
+DLL3c517987168c22c42c8bca302b23d01efed78741af120d7865e478bbbd96d47e.
+Only owned automation copy updated;actual full visual/lifecycle followup78 next.
+
+Actual76 peer ownership failure (not visual acceptance)
+Helper104 passes the earlier startup boundary and reaches first-world gameplay.
+Subject visual poses cover400..650;before rematch,the peer fails the new guard
+requiring current-frame LocalArmyId<=1 and equality with the assigned slot.
+Authority703 arrives883118703,worker confirms it with ten replay frames at
+883118828,and the visual guard fails883118890. The guard's numeric operands
+were not logged. Untraced empty-packet fastpath avoids earlier checks,so this
+does not establish a change at terminal. Retained metadata confirms UInt32 at
+0x44;no logged reassignment precedes cleanup. No ownership relaxation justified.
+Next bounded observation logs initial frame/player army/alliance and assigned
+slot before that fastpath,then exact refusal/publication/packet values. It is
+limited to the existing explicit movement fixture. Original76 report SHA256
+b8fd7b4c60eec9f39c5be7195dbea08a36f26a8560da8e8280f7e1726f811bee;
+source/runtime unchanged,both owned handles reaped/closed,Jobs3/0/0,forced cleanup
+and two bridge cleanup errors retained. No full visual or natural-lifecycle pass.
+
+Actual75 startup failure and bounded repair
+First actual visual run75 failed before any match. The original final job join
+also occurs during scene initialization,62ms before OfflineInitialUpdate records
+the Unity thread. The observer mistakenly applied its initialized-thread guard
+then,failed the optional connection,and the run reached its bounded deadline.
+Failed report SHA2564444f430511a3176c9bd8178418dcb281af5efe1ec38d7188ce95cd797a2c80e.
+Both clients reaped/handles closed,Jobs3/0/0;forced cleanup and four cleanup errors
+remain failures. Source/runtime unchanged. No visual acceptance follows.
+The wrapper now returns after the original join when initialThread is still0.
+All producers/state mutation already require a retained thread;after retention,
+the original wrong-thread guard remains. Independent read-only review supports
+the repair. Helper104 builds/all41 C++ executables PASS;DLL SHA256
+43e3f5d2a4c8fa0605ec4851381ac160338be36d5772c631072ec6dd9fb05a03.
+Only the owned automated helper/manifest were replaced with prior bytes/metadata
+preserved.224 frozen-interpreter capture/controller checks pass;Actual76 is next.
+
+In-progress correction implementation (not a new playable build)
+The600ms finite-decay correction policy,opcode77 metadata decoder and renderer
+consumer are implemented. The explicit -prediction-visual-correction flag arms
+the optional prediction recipe's final joined-unit-job CALL. It preserves the
+original interpolation alpha,uses immutable From at zero elapsed,binds the
+actual map perspective,and updates shared presentation output plus Transform.
+Canonical incarnation and a separate actor lifetime lease prevent known pool
+recreation paths from inheriting an old offset. Empty ordinary render passes
+skip army/position scans. Bounded diagnostics expose correction metadata and
+raw/output/Transform samples for the next actual-game qualification.
+Helper103 compiles with all41 C++ executables passing;227 source pins unchanged.
+DLL SHA2560f018fe3a668cb80cb2140230c4701bc0a726ccb070831fe8be249faeca6b32b.
+Helper103 and the current optional recipe are installed only in the owned
+automation copy;prior GameAssembly/helper/manifest bytes and metadata retained.
+New GameAssembly SHA256e11af2696fb84f8529f694d01b0ceab895b7461c943fdc42ad0270adf373362a.
+No actual Unity smoothing run yet.114 related Python and24 package checks pass.
+The first
+combined Python run and helper101 build remain failed/preserved:their existing
+test hosts needed the new message/callback. The callback test now checks order,
+exact-once consumption and no original-publication retry on consumer failure.
+Read-only renderer review found no concrete source blocker;Unity ABI,other job
+readers,camera/input behavior,overhead and visual benefit remain runtime gates.
+
+Original-native correction-query control PASSES (worker-query-control01/prepared01)
+Two sequential owned workers use only normal own-view queries through frames
+0..371,with movement observation disabled. The enabled worker adds exactly one
+own-view query at correctedH310;no diagnostic31 query occurs during gameplay.
+All372 ordinary frame buffers and executed ProcessMsg bytes match across roles.
+Each passes362 available-own-view canonical comparisons;after all ordinary
+evidence,one terminal full-state snapshot matches the retained original371
+reference. Enabled metadata is the genuine same-H delta for entity11,army1:
+(0.1821746826171875,0,-3.1447296142578125),published at311/revision1.
+The metadata request is query-free;published+pending retention and stale refusal
+pass. Both children exit naturally0,reaped/closed,Jobs2/0/0,no force/errors;
+source and input pins remain unchanged through the run. Report SHA256
+40e41feda3a713f4ef4534e878e27fe8f8d9d57243ffe44a0c227b9fcaaef266.
+The added pair measured0.2816ms and in-worker metadata dispatch0.018ms. Whole
+repair boundaries were18.0381/22.5015ms. These are single instrumented samples,
+not engine-only cost or a performance threshold. This proves the scoped query
+path and terminal state,not full hidden-state equality every frame or Unity
+smoothing. Full evidence:local/prediction-correction-motion01/worker-query-control01/.
+The next original-game capture must qualify actual smoothing,complete decay,
+unchanged native/input behavior and selection/lifetime handling.
 
 Changed scenario and evidence
 Reuse the genuine650-frame movement/transition-order fixture with two natural

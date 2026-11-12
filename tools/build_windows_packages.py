@@ -73,6 +73,7 @@ PREDICTION_CLIENT = tuple(dict.fromkeys(CLIENT + (
     'client_patch/prediction_worker/commands.py', 'client_patch/prediction_worker/entities.py',
     'client_patch/prediction_worker/entity_guard.py', 'client_patch/prediction_worker/presentation.py',
     'client_patch/prediction_worker/observation.py',
+    'client_patch/prediction_worker/corrections.py',
 )))
 PREDICTION_PROFILE = 'private-custom-movement-prediction-v1'
 PREDICTION_HEAP_SHA256 = '64d8805ca111cf512d0edcd04057fca66db2ab7138bcc1bfed29aa770e62f26b'

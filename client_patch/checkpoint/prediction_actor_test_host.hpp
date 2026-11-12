@@ -530,6 +530,7 @@ MovementAdmission movementAdmission(){return {};}
 void movementFail(const char*)noexcept{}
 }
 namespace ba_prediction_movement {bool ownsPresentation(void*){return host::presentationOwned;}}
+namespace ba_prediction_stages {static void mark(const char*,void*){}}
 #ifndef BA_ACTOR_SOURCE
 #define BA_ACTOR_SOURCE "../src/prediction_actor_repair.cpp"
 #endif

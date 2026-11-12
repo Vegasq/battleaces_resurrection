@@ -85,6 +85,8 @@ def main(argv=None):
     parser.add_argument('--movement-observe-cohort', type=_cohort_trace_spec,
                         metavar='TYPE:ARMY:FIRST:LAST:MAX',
                         help='diagnostic-only bounded native type/army position census; requires --movement-observe')
+    parser.add_argument('--movement-corrections', action='store_true',
+                        help='explicit presentation-only same-head correction metadata; original frame bytes stay unchanged')
     args = parser.parse_args(argv)
     if args.movement_observe_position is not None and not args.movement_observe:
         parser.error('--movement-observe-position requires --movement-observe')
@@ -98,6 +100,8 @@ def main(argv=None):
         observation_path = Path(args.data_dir).resolve() / 'canonical-state.jsonl' if args.movement_observe else None
         session = NativeSession.open(original_dll=args.original_dll, heap_helper=args.heap_helper,
                                      cooperative=args.cooperative, data_dir=args.data_dir)
+        if args.movement_corrections:
+            session.enable_movement_corrections()
         if observation_path is not None:
             options = {}
             if args.movement_observe_position is not None:

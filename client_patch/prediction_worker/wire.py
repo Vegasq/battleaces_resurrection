@@ -46,6 +46,7 @@ class Op(IntEnum):
     ACTIVE_ENTITIES = 70
     ENTITY_GUARD = 71
     CANONICAL_ROSTER = 76
+    PRESENTATION_CORRECTIONS = 77
     SHUTDOWN = 127
 
 
@@ -130,6 +131,9 @@ def decode_request(packet):
     elif op == Op.CANONICAL_ROSTER:
         args = exact('<QI')
         require(args[1] == 0, 'canonical AI roster requires own human slot0')
+    elif op == Op.PRESENTATION_CORRECTIONS:
+        args = exact('<Qi')
+        require(args[0] > 0 and 0 <= args[1] <= 0x7fffffff, 'invalid presentation correction world/frame')
     elif op == Op.LOCAL_BATCH:
         require(16 < len(body) <= 16 + 65536, 'local batch player body exceeds64KiB/is empty')
         world, sequence = struct.unpack_from('<QQ', body)

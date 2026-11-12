@@ -7,6 +7,7 @@
 #include <locale>
 #include <sstream>
 #include "native_quit_gate.hpp"
+#include "prediction_movement_readiness.hpp"
 
 namespace ba_prediction_movement_smoke {
 using ba::Obj;
@@ -28,6 +29,7 @@ struct State {
     unsigned turnsIssued=0;
     std::array<std::string,2> turnHashes{};
     std::array<ba_native_quit_gate::Wait,2> turnGateWaits{};
+    std::array<bool,2> turnMotionPending{};
     Vec3 activeTarget{};
     std::deque<MotionSample> motion;
     ULONGLONG lastSample=0,createdTick=0;
@@ -104,6 +106,12 @@ static bool transitionGate(unsigned ordinal) {
 static void reset(){state()=State{};} // Observer GC roots only, on retained main thread.
 static void failed(const char* why) noexcept {
     state().failed=true;ba::log("Movement feel smoke failed: reason=%s scriptedOriginalCtor=1 physicalUI=0",why);
+    // Explicit smoke path only. Preserve the already-buffered subject stages
+    // before failure cleanup/forced teardown; flush marks this prefix incomplete.
+    if(enabled()&&ba::initialThread&&GetCurrentThreadId()==ba::initialThread) {
+        try {ba_frame_timing::flush();}
+        catch(...) {} // Diagnostic output must not replace the original failure.
+    }
     worker::movementFail(why);
 }
 static void finite(const Vec3& point) {
@@ -311,12 +319,23 @@ static void enqueueTurn(selection::Context& context,const Vec3& origin,unsigned 
         if(current.sampledUs-it->sampledUs<100000)continue;
         prior=*it;found=true;break;
     }
-    require(found&&current.sampledUs-prior.sampledUs<=500000,"movement turn lacks recent100ms actual motion");
+    require(found,"movement turn lacks recent100ms actual motion");
     const float dx=origin.x-prior.point.x,dz=origin.z-prior.point.z;
     const float length=std::sqrt(dx*dx+dz*dz);
     const float remainingX=s.activeTarget.x-origin.x,remainingZ=s.activeTarget.z-origin.z;
-    require(length>.05f&&remainingX*remainingX+remainingZ*remainingZ>.0625f,
-        "movement turn requires actual ongoing unfinished travel");
+    const auto readiness=ba_prediction_movement_readiness::evaluate(current.sampledUs-prior.sampledUs,length,
+        remainingX*remainingX+remainingZ*remainingZ);
+    auto& pending=s.turnMotionPending[ordinal-2];
+    if(readiness==ba_prediction_movement_readiness::Result::Pending) {
+        if(!pending)ba::log("Movement turn motion pending: world=%llu ordinal=%u sampled_us=%llu prior_us=%llu displacement=%.9g; gate retained",
+            static_cast<unsigned long long>(s.world),ordinal,static_cast<unsigned long long>(current.sampledUs),
+            static_cast<unsigned long long>(prior.sampledUs),static_cast<double>(length));
+        pending=true;return; // No constructor, queue, turn count or target mutation.
+    }
+    if(pending)ba::log("Movement turn motion resumed: world=%llu ordinal=%u sampled_us=%llu prior_us=%llu displacement=%.9g",
+        static_cast<unsigned long long>(s.world),ordinal,static_cast<unsigned long long>(current.sampledUs),
+        static_cast<unsigned long long>(prior.sampledUs),static_cast<double>(length));
+    pending=false;
     const float travel=ordinal==2?48.0f:32.0f;
     Vec3 target=origin;target.x-=travel*dx/length;target.z-=travel*dz/length;finite(target);
 

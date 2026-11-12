@@ -29,6 +29,7 @@ class PredictionWorkerOptions:
     heap_helper: Path
     cooperative: Path
     data_directory: Path
+    visual_correction: bool = False
 
 
 def prediction_worker_options(args, selected=None):
@@ -41,6 +42,8 @@ def prediction_worker_options(args, selected=None):
         return None
     if type(value) is not PredictionWorkerOptions:
         raise LaunchError('Prediction worker requires typed private launch options')
+    if type(value.visual_correction) is not bool:
+        raise LaunchError('Prediction visual correction requires a Boolean private option')
     if (getattr(args, 'unified_experimental', False) is not True or
             getattr(args, 'original_command_scheduling_experimental', False) is not True or
             getattr(args, 'replay', None) is not None):
@@ -81,7 +84,7 @@ def prediction_worker_options(args, selected=None):
     if resolved['data_directory'] in {resolved['module_root'], resolved['python'].parent,
                                       resolved['heap_helper'].parent, resolved['cooperative'].parent}:
         raise LaunchError('Prediction worker data must be separate from immutable program resources')
-    return PredictionWorkerOptions(**resolved)
+    return PredictionWorkerOptions(**resolved,visual_correction=value.visual_correction)
 
 
 def read_json(path, maximum):
@@ -313,6 +316,7 @@ def game_arguments(config, player_id, handle, args, *, prediction_worker=None):
     if original_commands: result.append('-original-command-scheduling-experimental')
     if prediction is not None:
         result.append('-prediction-movement-experimental')
+        if prediction.visual_correction: result.append('-prediction-visual-correction')
         for flag, value in (('python', prediction.python), ('module-root', prediction.module_root),
                             ('heap-helper', prediction.heap_helper), ('cooperative', prediction.cooperative),
                             ('data-dir', prediction.data_directory)):

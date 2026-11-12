@@ -1,5 +1,6 @@
 """Pure authored verifier controls. No processes, native DLLs, or network."""
 import copy
+import argparse
 import io
 import json
 from pathlib import Path
@@ -84,7 +85,7 @@ class PreparationTests(unittest.TestCase):
     def test_run_requires_frozen_inputs_and_rejects_runtime_overrides_before_launch(self):
         with mock.patch.object(verify, 'run_prepared') as run:
             for extra in (['--game', 'other'], ['--timeout', '120'], ['--rtt-ms', '130'], ['--assets', 'other'],
-                          ['--human-move']):
+                          ['--human-move'],['--visual-correction']):
                 with self.subTest(extra=extra), self.assertRaisesRegex(AssertionError, 'frozen'):
                     verify.main(['--run-prepared', 'owned', *extra])
         run.assert_not_called()
@@ -120,6 +121,99 @@ class PreparationTests(unittest.TestCase):
         for changes in ({'scope': verify.SCOPE}, {'human_move': 1}, {'surrender_frame': 500}):
             with self.subTest(changes=changes), self.assertRaises(AssertionError):
                 verify.validate_plan(selected | changes)
+
+    def test_visual_correction_adds_only_the_human_runtime_flag(self):
+        selected=plan()|dict(human_move=True,scope=verify.MOVE_SCOPE)
+        inputs=dict(files={name:dict(path=name)for name in ('python','heap_helper','cooperative')},worker_module_root='root')
+        base=verify.command_extra(selected,inputs,Path('run'))
+        actual=verify.command_extra(selected|dict(visual_correction=True),inputs,Path('run'))
+        self.assertEqual(actual,base+['-prediction-visual-correction'])
+        self.assertEqual(verify.command_extra(selected|dict(visual_correction=False),inputs,Path('run')),base)
+        self.assertFalse(any('visual-observe'in flag or 'presentation-stages'in flag for flag in actual))
+
+    def test_visual_option_is_typed_and_rejects_startup_before_resource_access(self):
+        for value in (0,1,None,'true',[],{}):
+            with self.subTest(value=value),mock.patch.object(verify.owned,'owned_paths')as paths:
+                with self.assertRaisesRegex(AssertionError,'Boolean'):
+                    verify.prepare(argparse.Namespace(human_move=True,visual_correction=value))
+                paths.assert_not_called()
+        with mock.patch.object(verify.owned,'owned_paths')as paths:
+            with self.assertRaisesRegex(AssertionError,'human Move scope'):
+                verify.prepare(argparse.Namespace(human_move=False,visual_correction=True))
+            paths.assert_not_called()
+        for changes in ({'visual_correction':1},{'visual_correction':True}):
+            with self.subTest(changes=changes),self.assertRaises(AssertionError):verify.validate_plan(plan()|changes)
+
+    def test_visual_helper_requires_join_and_flag_without_observation_flags(self):
+        join=b'OfflinePredictionVisualJoin\0';flag='-prediction-visual-correction'.encode('utf-16-le')
+        verify.visual_helper(True,join+flag)
+        verify.visual_helper(False,b'')
+        for data in (join,flag,b''):
+            with self.subTest(data=data),self.assertRaisesRegex(AssertionError,'visual join or correction flag'):
+                verify.visual_helper(True,data)
+
+    def test_visual_bundle_binds_worker_server_and_human_launcher_source_closure(self):
+        from tools.build_windows_packages import PREDICTION_CLIENT
+        with tempfile.TemporaryDirectory()as directory:
+            package=Path(directory);root=package/'program/app'
+            names=tuple(name for name in PREDICTION_CLIENT if name.endswith('.py'))
+            sources={}
+            manifest=dict(schema=1,product='client',files={})
+            def publish_manifest():
+                (package/'package-manifest.json').write_text(json.dumps(manifest))
+            def pin(name):
+                file=root/name
+                manifest['files']['program/app/'+name]=dict(bytes=file.stat().st_size,sha256=verify.sha(file))
+                publish_manifest()
+            for name in names:
+                file=root/name;file.parent.mkdir(parents=True,exist_ok=True);file.write_text('# authored '+name)
+                sources[name]=verify.sha(file)
+                pin(name)
+            # The frozen loopback authority has more server modules than the
+            # private worker package. Do not require unshipped authority files.
+            self.assertNotIn('server/dedicated_server.py',names)
+            sources['server/dedicated_server.py']='a'*64
+            inputs=dict(worker_package=str(package),worker_module_root=str(root),source_sha256=sources)
+            verify.packaged_source_closure(inputs,True)
+            for name in ('server/native_simulation.py','client_patch/prediction_worker/commands.py',
+                         'tools/prediction_client.py','client_patch/transport/launcher.py'):
+                file=root/name;before=file.read_bytes();file.write_bytes(before+b'changed')
+                pin(name)
+                with self.subTest(name=name),self.assertRaisesRegex(AssertionError,'worker/source differs'):
+                    verify.packaged_source_closure(inputs,True)
+                file.write_bytes(before);pin(name)
+            with self.assertRaisesRegex(AssertionError,'source pins missing'):
+                verify.packaged_source_closure(dict(inputs,source_sha256={names[0]:sources[names[0]]}),True)
+            # A coherent manifest cannot conceal a required missing dependency.
+            missing='client_patch/prediction_worker/commands.py'
+            (root/missing).unlink();del manifest['files']['program/app/'+missing];publish_manifest()
+            with self.assertRaisesRegex(AssertionError,'module inventory differs'):
+                verify.packaged_source_closure(inputs,True)
+
+    def test_visual_prepare_freezes_outer_flag_without_enabling_custom_visual_fixture(self):
+        from server.ai_rules import SUPPORTED_AI_SHA256
+        with tempfile.TemporaryDirectory()as directory:
+            root=Path(directory);output=root/'output';output.mkdir();assets=root/'assets';assets.mkdir()
+            for name in ('aiprogram.dll','bot-catalog.json'):(assets/name).write_bytes(b'authored')
+            args=argparse.Namespace(game=root/'game',output=output,assets=assets,rtt_ms=475,surrender_frame=600,
+                timeout=210,human_move=True,visual_correction=True)
+            inputs=dict(files={'helper':{'path':'helper'}},profiles=['nativestest_pm_0123456789_0'],worker_package=None)
+            helper=(verify.OBSERVER_MARKER+verify.MOVE_MARKER+b'OfflinePredictionVisualJoin\0'+
+                ''.join(('-prediction-server-ai-observe','-prediction-server-ai-move-smoke',
+                         '-prediction-visual-correction')).encode('utf-16-le'))
+            with mock.patch.object(verify.owned,'owned_paths',return_value=(args.game,output)), \
+                    mock.patch.object(verify.owned,'prepare',return_value=inputs)as nested, \
+                    mock.patch('server.assets.verify_assets'),mock.patch('server.ai_rules.RuleBook')as rules, \
+                    mock.patch('server.game_data.GameTemplate.load'),mock.patch('server.bot_catalog.BotCatalog'), \
+                    mock.patch.object(verify,'bootstrap_preflight',return_value=(b'bootstrap',{})), \
+                    mock.patch.object(verify,'read',return_value=helper), \
+                    mock.patch.object(verify,'sha',side_effect=lambda path:SUPPORTED_AI_SHA256 if Path(path).name=='aiprogram.dll'else'a'*64):
+                rules.return_value.files={}
+                prepared=verify.prepare(args)
+            self.assertIs(prepared['visual_correction'],True)
+            self.assertIs(json.loads((output/'invocation.json').read_text())['visual_correction'],True)
+            self.assertIs(nested.call_args.args[0].visual_correction,False)
+            self.assertIs(args.visual_correction,True)
 
 
 class PublicPacketTests(unittest.TestCase):

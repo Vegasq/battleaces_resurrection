@@ -322,6 +322,7 @@ class NativeSession:
         self.active_identity_histories, self.bootstrap_identity_views = {}, {}
         self.entity_guards = {}
         self.movement_observer = None  # Explicit --movement-observe only.
+        self.movement_corrections = None  # Explicit --movement-corrections only.
         self.initialized = self.closed = False
         self.logs, self.log_overflow = [], False
         self.log_enabled = False
@@ -490,7 +491,24 @@ class NativeSession:
                 context['query_end_tick_ms'] = observer.tick()
             observer.record(key, frame, state, context=context)
 
+    def enable_movement_corrections(self):
+        self.healthy()
+        if self.initialized or self.worlds or self.movement_corrections is not None:
+            raise HostError('presentation corrections must precede native Init/worlds')
+        from .corrections import Corrections
+        self.movement_corrections = Corrections()
+
+    def _correction_identity_context(self, key, head):
+        history = self.active_identity_histories[key]
+        frontier = history.promoted_frame
+        guard = self.entity_guards.get(key)
+        continuity = bool(history._promoted and -1 <= frontier <= head and
+                          (frontier == head or (guard is not None and guard.continuity(frontier, head))))
+        return dict(history.active), continuity
+
     def _retire_prediction(self, key):
+        if self.movement_corrections is not None:
+            self.movement_corrections.retire(key)
         self.canonical_rosters.pop(key, None)
         self.world_bootstraps.pop(key, None)
         prediction = self.predictions.pop(key, None)
@@ -609,19 +627,25 @@ class NativeSession:
         prediction = self.predictions[key]
         number = frame_number(raw)
         self._observe_native_frame(key, number, stage='replay')  # EVERY replayed step,before its checkpoint.
-        if number != prediction.received_frame or number > prediction.predicted_frame:
+        identity_query = number == prediction.received_frame and number <= prediction.predicted_frame
+        correction_query = (self.movement_corrections is not None and
+                            self.movement_corrections.wants_head(key, number))
+        if not identity_query and not correction_query:
             return
-        # The existing own-alliance identity query still caches ONLY the latest
-        # known authoritative frontier. The explicit full31 diagnostic above
-        # independently records every replayed step. Neither applies the copied
-        # terminal-view filter inside reconstruction.
+        # The normal own-alliance query caches ONLY the authoritative frontier.
+        # Explicit corrections add one own-view query at H, reusing that query
+        # when R==H. The separate full31 diagnostic above remains independent.
+        # No copied terminal/position filter is applied inside reconstruction.
         world, slot = self._world(key), self.command_ledgers[key].slot
         size = C.c_uint32()
         code, data = self._pair(size, 'SimMakeSimFrame', (world, slot, C.byref(size)),
                                 'SimGetSimFrameBuffer', lambda output: (world, output))
         if code or struct.unpack_from('<i', data, 4)[0] != 0:
             raise HostError('native confirmed replay identity query failed')
-        self._record_identity_view(key, data[12:], number)
+        if identity_query:
+            self._record_identity_view(key, data[12:], number)
+        if correction_query:
+            self.movement_corrections.corrected_head(key, number, data[12:])
 
     def dispatch(self, command):
         if _thread.get_ident() != self.owner_thread:
@@ -685,6 +709,12 @@ class NativeSession:
         if op == w.Op.SHUTDOWN:
             return 0, b''  # Stream owner performs cleanup before acknowledging.
         world = self._world(args[0])
+        if op == w.Op.PRESENTATION_CORRECTIONS:
+            prediction = self.predictions.get(args[0])
+            if (self.movement_corrections is None or prediction is None or prediction.failed or prediction.closed or
+                    args[0] not in self.command_ledgers):
+                raise HostError('presentation corrections are not enabled for this active prediction world')
+            return 0, self.movement_corrections.packet(args[0], args[1])
         if op == w.Op.CANONICAL_ROSTER:
             key = args[0]
             if key in self.dirty_worlds or key in self.predictions or key in self.canonical_rosters:
@@ -746,6 +776,8 @@ class NativeSession:
                 staged.register(args[1], args[2], assigned)
                 self.command_ledgers[key], self.identity_histories[key] = staged, history
                 self.active_identity_histories[key] = active
+                if self.movement_corrections is not None:
+                    self.movement_corrections.begin(key, slot)
                 self.bootstrap_identity_views.pop(key, None)
                 return 0, struct.pack('<Qi', args[1], assigned)
             if ledger is None:
@@ -811,9 +843,15 @@ class NativeSession:
                 first, last = prediction.received_frame + 1, prediction.predicted_frame
                 plan = dict(ledger.revision_plan(first, last)) if first <= last else {}
                 prediction.revise_unconfirmed(plan)
+            corrections = self.movement_corrections if ledger is not None else None
+            if corrections is not None:
+                corrections.prepare(args[0], prediction.predicted_frame)
             actual = prediction.before_next_frame(next_raw) if prediction else next_raw
             if prediction:
                 self._promote_identities(args[0])
+                if corrections is not None:
+                    admitted, continuity = self._correction_identity_context(args[0], prediction.predicted_frame)
+                    corrections.finish(args[0], admitted=admitted, continuity=continuity)
             raw = C.create_string_buffer(actual)
             observer=self.entity_guards.get(args[0])
             if observer:observer.begin(actual)
@@ -852,6 +890,11 @@ class NativeSession:
                 if ledger is not None and args[1] == ledger.slot:
                     self._record_identity_view(args[0], data[12:], prediction.predicted_frame)
                     self._promote_identities(args[0])
+                    if (self.movement_corrections is not None and prediction.predicted_frame >= 0 and
+                            args[0] not in self.prepared_prediction):
+                        admitted, continuity = self._correction_identity_context(args[0], prediction.predicted_frame)
+                        self.movement_corrections.ordinary(args[0], prediction.predicted_frame, data[12:],
+                                                           admitted=admitted, continuity=continuity)
                 from .presentation import confirmed_terminal_view
                 view, masked, key = confirmed_terminal_view(data[12:],
                     confirmed_frame=prediction.confirmed_frame, physical_frame=prediction.predicted_frame)
@@ -938,6 +981,8 @@ class NativeSession:
         self.dirty_worlds.clear()
         self.bootstrap_identity_views.clear()
         self.active_identity_histories.clear()
+        if self.movement_corrections is not None:
+            self.movement_corrections.clear()
         # Retain callback and helpers until every original native teardown call
         # completes. Heap interception stays loaded through process CRT detach.
         attempt('SimSetLogCallBack', C.c_void_p())

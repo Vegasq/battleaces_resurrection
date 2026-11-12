@@ -1,8 +1,107 @@
 BATTLE ACES - CURRENT STATUS
-Reviewed:2026-11-11. Final release is not accepted.
+Reviewed:2026-11-12. Final release is not accepted.
 Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
+
+2026-11-12 Actual85/helper111 PASSES the complete bounded two-round native/wire,
+pre-authority movement,900ms visual,onscreen original ray/drag-query and prompt
+visual-root retirement gates. All2892 native-state rows pass;both games/workers
+and authorities finish naturally0 in142.868s,no force,source/files unchanged.
+Raw backtracks1.260/1.575 become0.178/0.239units;holds43.982/48.927ms and original
+publication gaps79.710/78.052ms pass. Initial Moves respond63/62ms,109/110ms
+before bridge. Original camera focus once/world makes both539/540 ray+drag
+comparisons usable inside the viewport;zero controls and actual/displayed roots
+match. Four completed drains each release three roots to zero before nextworld/
+exit. This accepts read-only original queries,not physical gestures or callbacks.
+Actual84's original offscreen failure remains preserved. Next:paired preview
+package/bundled server-AI qualification and refreshed N35 handoff;no new package
+or live/manual change follows from this run. Installed helper88 still explains
+Nick's Custom-only dialog. Full N33 and human Internet feedback remain open.
+Details:prediction-correction-motion.txt.
+
+2026-11-11 static input review resolves the coordinate sources:click/unit-target
+uses physics raycasts,radius drag uses root Transform,and other drag modes use
+engine bounds. Serialized PhysicsManager auto-sync is false;runtime overrides
+and bound freshness remain unknown. Check actual frontend/input phase during
+nonzero smoothing against zero-offset control before changing synchronization.
+Health/fog consume shared positions;camera already reads root position. Static
+evidence does not close global reader/input gates. No production/runtime change;
+helper108/Actual81 stay prepared,not launched. prediction-correction-motion.txt.
+
+2026-11-11 Actual80 peer-stage analysis is complete:145 complete ordered
+presentations0..144. Normal presentation median1.175ms,p953.489ms;actor wrapper
+median0.386ms,p951.499ms. Peak105.712ms lies mainly in original actor update
+(91.106ms wall/15.625ms accounted CPU),not ordinary repair checks. Initial
+frame0 takes3530.687ms,mostly original post-actor presentation. Subject timing
+is missing;no causal claim for competing load or retrospective79 attribution.
+Actual81 is prepared/preflight PASS using unchanged helper108 and gates,with
+low-rate OS resource observation;not launched pending the local test window.
+
+2026-11-11 Actual80 stage-attribution run FAILED before movement:the subject
+fell behind and stopped with unexpected LAN frame around100;both clients were
+reaped through owned cleanup. It does not qualify smoothing or the79 delay.
+Helper108/41 C++ programs and224 Python checks PASS. Opt-in buffered stages
+bracket original presentation/actor work and retain coarse thread CPU time.
+Separate local workload overlapped80;resource pressure is a confounder,not a
+proven cause. Analyze the retained peer stages,then use a suitable performance
+window before the next native run. Original failed captures remain unchanged.
+
+2026-11-11 Actual79 completes both matches and natural Quit,source/runtime
+unchanged,no force or cleanup errors,but FAILS the initial pre-authority visible
+movement check. The900ms correction candidate is therefore not qualified.
+Helper107/41 C++ programs and224 Python checks PASS. Frozen Actual78 analysis
+attributes its holds to correction decay cancelling forward motion;the new
+regression reproduces that600ms failure. Next:inspect79's exact command/pose/
+authority window before changing code or repeating a native run. Existing
+pause/backtrack/input gates remain unchanged;no installer/live/manual update.
+
+2026-11-11 Actual78 passes both natural matches/Continue/rematch/Quit with the
+peer identity fix;all owned clients/workers exit0,no force/cleanup errors and
+source/runtime unchanged. Full result remainsFAILED:unfinished displayed holds
+127.767/171.117ms exceed the unchanged100ms gate;publication84.054/81.055ms stays
+within it. Both fresh transition-order gates and native position trace pass.
+Analyze recorded raw/alpha/offset/Transform samples to distinguish correction
+curve cancellation from renderer recurrence before changing the implementation.
+No smoothing acceptance,installer or live/manual change.
+
+2026-11-11 visual ownership cause identified by77:peer current-frame LocalArmyId
+is0 at both frame0 and refusal713,but SimPlayer ArmyID,player/frame alliance and
+assigned slot consistently identify1. The field was an invalid ownership source,
+not an observed terminal transition. Renderer now uses simulation-owned ArmyID
+with assigned-slot/frame-alliance validation;perspective and actor/metadata guards
+remain strict. Independent review and helper106/41 C++ executables PASS. Actual
+followup78 next;77 remainsFAILED/preserved. Full smoothing acceptance stillOPEN.
+
+2026-11-11 visual followup76 FAILED after first-world gameplay:the startup fix
+works and subject joined poses cover400..650,but peer's local-army equality
+guard fails after authority703. Numeric field values were not logged;late first
+scan does not prove a terminal change. Source review confirms UInt32 layout and
+does not justify relaxing ownership. Original capture retained,source/runtime
+unchanged,both handles reaped/closed,Jobs3/0/0,forced cleanup. Next:one initial
+peer ownership baseline plus refusal values,then resolve the proven discrepancy.
+Smoothing remains unqualified;no installer or live/manual change.
+
+2026-11-11 first visual capture75 FAILED before gameplay:the optional join
+observer ran62ms before OfflineInitialUpdate retained Unity's thread and failed
+the connection. Original report/capture preserved;owned deadline cleanup forced,
+both retained process handles reaped/closed and Jobs inactive0. No smoothing
+result. The wrapper now forwards these pre-initialization joins without observer
+work;initialized thread checks remain strict. Read-only source review agrees.
+Helper104 builds/all41 C++ executables PASS and is installed only in the owned
+automation copy.224 capture/controller Python checks pass. Actual followup next;
+N35/live/manual unchanged,no new installer. See prediction-correction-motion.txt.
+
+2026-11-11 correction integration IN PROGRESS:600ms policy and joined renderer
+consumer implemented;helper103 compiles/all41 C++ executables PASS,227 source
+pins unchanged.114 related Python checks PASS. Original-native enabled/disabled
+query control now PASSES372 identical ordinary own-view buffers and exact input
+bytes,362 own-component comparisons per role and terminal full-state equality;
+one added own-H query,query-free metadata,both workers natural0/Jobs2/0/0.
+Actual Unity smoothing/decay,input/lifetime and overhead qualification remains
+OPEN. Helper103/current visual-join recipe installed only in owned automation
+copy,prior files preserved;N35/live/manual unchanged. No new installer.
+Details:prediction-correction-motion.txt.
 
 2026-11-11 large-correction attribution:Actual74 PASSES two natural client/server
 rounds with controlled100ms C2S delay windows after RTT falls. Original turn2

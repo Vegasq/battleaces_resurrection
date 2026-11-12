@@ -207,6 +207,94 @@ class PredictionActorGuardTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, 'call guard/mapping mismatch'):
                         actor.validate_original(data, expected_sha256=sha)
 
+    def test_visual_join_is_only_the_original_final_step_call(self):
+        hooks = [h for h in actor.CALL_HOOKS if h['name'] == 'OfflinePredictionVisualJoin']
+        self.assertEqual(hooks, [dict(name='OfflinePredictionVisualJoin', rva=0x3c563cf,
+                                      offset=0x3c549cf, before='e86cfcffff')])
+        call = bytes.fromhex(hooks[0]['before'])
+        self.assertEqual(hooks[0]['rva'] + 5 + struct.unpack_from('<i', call, 1)[0], 0x3c56040)
+        guards = {g['rva']: g['before'] for g in actor.BODY_GUARDS}
+        self.assertEqual(guards[0x3c563be], '85db74303bde0f851808000033d2488bcf')
+        self.assertEqual(guards[0x3c563d4], '488b4f104885c90f842c080000')
+        self.assertEqual(guards[0x3c56040], '48895c2408574883ec204883b9a800000000488bd97431')
+        for ordinary in (patch_client.CALL_HOOKS, patch_client.COMMUNITY_CALL_HOOKS,
+                         patch_client.COSMETIC_CALL_HOOKS, patch_client.QUIT_CALL_HOOKS):
+            self.assertNotIn('OfflinePredictionVisualJoin', [h['name'] for h in ordinary])
+
+    def test_visual_join_wrong_call_mapping_or_body_refuses_admission(self):
+        selected = next(h for h in actor.CALL_HOOKS if h['name'] == 'OfflinePredictionVisualJoin')
+        hook = dict(selected, rva=0x4018, offset=0x518)
+        guards = {g['rva']: g['before'] for g in actor.BODY_GUARDS}
+        body = [dict(rva=target, before=guards[source]) for source, target in
+                ((0x3c563be, 0x1003), (0x3c563d4, 0x1030), (0x3c56040, 0x4100))]
+        data = bytearray(self.original)
+        data[0x518:0x51d] = bytes.fromhex(hook['before'])
+        for guard in body:
+            raw = bytes.fromhex(guard['before']); at = actor.rva_to_offset(data, guard['rva'], len(raw))
+            data[at:at+len(raw)] = raw
+        original = bytes(data); sha = hashlib.sha256(original).hexdigest()
+        with self.admitted_fixture(), patch.object(actor, 'SUPPORTED_ORIGINAL_SHA256', sha), \
+                patch.object(actor, 'CALL_HOOKS', [hook]), patch.object(actor, 'BODY_GUARDS', body):
+            self.assertEqual(actor.validate_original(original, expected_sha256=sha)['call_hooks'], [hook])
+            for change in (dict(offset=0x519), dict(before='e86dfcffff')):
+                with self.subTest(change=change), patch.object(actor, 'CALL_HOOKS', [dict(hook, **change)]):
+                    with self.assertRaisesRegex(ValueError, 'call guard/mapping mismatch'):
+                        actor.validate_original(original, expected_sha256=sha)
+            for guard in body:
+                changed = bytearray(original); at = actor.rva_to_offset(changed, guard['rva'], 1)
+                changed[at] ^= 1; changed = bytes(changed); changed_sha = hashlib.sha256(changed).hexdigest()
+                with self.subTest(body=guard['rva']), patch.object(actor, 'SUPPORTED_ORIGINAL_SHA256', changed_sha):
+                    with self.assertRaisesRegex(ValueError, 'body guard mismatch'):
+                        actor.validate_original(changed, expected_sha256=changed_sha)
+
+    def test_visual_join_patch_requires_movement_and_leaves_other_paths_untouched(self):
+        selected = next(h for h in actor.CALL_HOOKS if h['name'] == 'OfflinePredictionVisualJoin')
+        hook = dict(selected, rva=0x4018, offset=0x518)
+        original = bytearray(self.original); original[0x518:0x51d] = bytes.fromhex(hook['before'])
+        original = bytes(original); sha = hashlib.sha256(original).hexdigest()
+
+        def imports(data, dll, exports, *, thunk_exports):
+            self.assertEqual(dll, 'BattleAcesOffline.dll'); self.assertEqual(exports, thunk_exports)
+            return data, {}, {name: 0x8000 for name in exports}
+
+        with self.admitted_fixture() as stack:
+            for module, name, value in ((actor, 'SUPPORTED_ORIGINAL_SHA256', sha),
+                                        (actor, 'CALL_HOOKS', [hook]),
+                                        (patch_client, 'ORIGINAL_SHA256', sha)):
+                stack.enter_context(patch.object(module, name, value))
+            for name in ('PATCHES', 'HOOKS', 'TAIL_HOOKS', 'CALL_HOOKS', 'COMMUNITY_CALL_HOOKS',
+                         'COMMUNITY_TAIL_HOOKS', 'COSMETIC_PATCHES', 'COSMETIC_CALL_HOOKS',
+                         'COSMETIC_TAIL_HOOKS', 'QUIT_CALL_HOOKS', 'QUIT_POINTER_HOOKS', 'DLSS_PRIVACY_PATCHES'):
+                stack.enter_context(patch.object(patch_client, name, []))
+            stack.enter_context(patch.object(patch_client.prediction_worker_patch, 'CALL_HOOKS', []))
+            imported = stack.enter_context(patch.object(patch_client, 'extend_imports_with_thunks', side_effect=imports))
+            guarded = stack.enter_context(patch.object(actor, 'validate_original', wraps=actor.validate_original))
+            ordinary = patch_client.build_patch(original, include_telemetry=False)
+            worker = patch_client.build_patch(original, include_telemetry=False, community=True, prediction_worker=True)
+            guarded.assert_not_called()
+            self.assertEqual(imported.call_args_list[0].args[2], [])
+            self.assertEqual(imported.call_args_list[1].args[2], [])
+            for data in (ordinary, worker):
+                self.assertEqual(data[0x518:0x51d], original[0x518:0x51d])
+            movement = patch_client.build_patch(original, include_telemetry=False, community=True,
+                                                prediction_worker=True, prediction_movement=True)
+            guarded.assert_called_once_with(original, expected_sha256=sha)
+            self.assertEqual(imported.call_args.args[2], ['OfflinePredictionVisualJoin'])
+            self.assertEqual(movement[0x518], 0xe8)
+            self.assertEqual(0x4018 + 5 + struct.unpack_from('<i', movement, 0x519)[0], 0x8000)
+        self.assertEqual(original[0x518:0x51d], bytes.fromhex(selected['before']))
+
+    def test_visual_join_pinned_original_admission_when_available(self):
+        path = Path(__file__).resolve().parents[2] / 'investigation/original/GameAssembly.dll'
+        if not path.is_file():
+            self.skipTest('private pinned original DLL is not available')
+        original = path.read_bytes(); before = hashlib.sha256(original).hexdigest()
+        admitted = actor.validate_original(original, expected_sha256=patch_client.ORIGINAL_SHA256)
+        self.assertEqual(before, actor.SUPPORTED_ORIGINAL_SHA256)
+        self.assertIn(dict(name='OfflinePredictionVisualJoin', rva=0x3c563cf,
+                           offset=0x3c549cf, before='e86cfcffff'), admitted['call_hooks'])
+        self.assertEqual(hashlib.sha256(original).hexdigest(), before)
+
 
 if __name__ == '__main__':
     unittest.main()

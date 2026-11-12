@@ -6,8 +6,8 @@
 #include <iostream>
 namespace p=ba_prediction_pacing;
 static uint64_t nowUs=0;
-static bool active=true,requested=false,matchActive=false,failed=false;
-static unsigned originals=0,movementPublications=0,timingPublications=0;
+static bool active=true,requested=false,matchActive=false,failed=false,refuseVisual=false;
+static unsigned originals=0,movementPublications=0,timingPublications=0,visualPublications=0;
 struct FakeSim {unsigned char bytes[0x118]{};};
 static FakeSim primary,foreign;
 static void* expected=nullptr;
@@ -53,10 +53,20 @@ static void published(void* simulation,uint64_t now){
 namespace ba_frame_timing {
 static void published(void*,size_t){++timingPublications;}
 }
+namespace ba_prediction_stages {static void mark(const char*,void*){}}
+namespace ba_prediction_visual {
+static void published(void* simulation) {
+    assert(simulation==expected && policy.observedPresented()==get<int>(simulation,0xac));
+    assert(movementPublications==visualPublications+1 && timingPublications==visualPublications);
+    ++visualPublications;
+    if(refuseVisual)throw std::runtime_error("authored correction metadata refusal");
+}
+}
 #include "online_presentation.cpp"
 static void reset() {
     primary=FakeSim{};foreign=FakeSim{};put(&primary,0xac,-1);put(&foreign,0xac,-1);
-    active=true;requested=matchActive=failed=false;originals=movementPublications=timingPublications=0;
+    active=true;requested=matchActive=failed=refuseVisual=false;
+    originals=movementPublications=timingPublications=visualPublications=0;
     nowUs=0;expected=&primary;policy.reset();ba_lan::presentationClock.reset();
 }
 static void available(void* simulation){put<void*>(simulation,0x110,reinterpret_cast<void*>(1));}
@@ -67,16 +77,16 @@ static void queued(int frame,uint64_t at) {
 }
 int main() {
     reset();available(&primary);present(&primary);
-    assert(originals==1 && get<int>(&primary,0xac)==0 && movementPublications==0);
+    assert(originals==1 && get<int>(&primary,0xac)==0 && movementPublications==0 && visualPublications==0);
     available(&primary);nowUs=10000;present(&primary);assert(originals==1);
     nowUs=50000;present(&primary);assert(originals==2 && get<int>(&primary,0xac)==1);
     assert(ba_lan::presentationClock.started() && !failed); // Ordinary phase unchanged.
 
     reset();requested=true;matchActive=false;available(&primary);present(&primary);
-    assert(originals==1 && movementPublications==0 && ba_lan::presentationClock.started());
+    assert(originals==1 && movementPublications==0 && visualPublications==0 && ba_lan::presentationClock.started());
 
     reset();requested=matchActive=true;available(&foreign);present(&foreign);
-    assert(originals==1 && movementPublications==0 && ba_lan::presentationClock.started());
+    assert(originals==1 && movementPublications==0 && visualPublications==0 && ba_lan::presentationClock.started());
 
     reset();requested=matchActive=true;policy.authorityReceived(0,0);queued(0,0);
     nowUs=100000;present(&primary);
@@ -88,9 +98,14 @@ int main() {
     assert(get<int>(&primary,0xac)==1 && originals==2); // Actual publication gap24ms.
     nowUs=1026000;present(&primary);
     assert(get<int>(&primary,0xac)==2 && policy.observedPresented()==2 && originals==3);
-    assert(timingPublications==3 && !ba_lan::presentationClock.started() && !failed);
+    assert(timingPublications==3 && visualPublications==3 && !ba_lan::presentationClock.started() && !failed);
+    present(&primary);assert(originals==3 && visualPublications==3); // No pending frame: no second metadata consumption.
 
     reset();requested=matchActive=true;available(&primary);present(&primary);
     assert(failed && originals==0 && get<int>(&primary,0xac)==-1);
-    std::cout<<"PASS 5 actual-wrapper pacing/inactive/foreign/spacing/failure cases; authored host only\n";
+    reset();requested=matchActive=refuseVisual=true;policy.authorityReceived(0,0);queued(0,0);
+    nowUs=100000;present(&primary);
+    assert(failed && originals==1 && movementPublications==1 && visualPublications==1 && timingPublications==0);
+    assert(get<int>(&primary,0xac)==0); // Consumer failure never retries original publication.
+    std::cout<<"PASS 6 actual-wrapper pacing/inactive/foreign/spacing/failure/consumer cases; authored host only\n";
 }

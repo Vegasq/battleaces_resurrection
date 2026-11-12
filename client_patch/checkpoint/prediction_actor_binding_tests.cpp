@@ -416,6 +416,7 @@ MovementAdmission movementAdmission(){return {};}
 void movementFail(const char*)noexcept{}
 }
 namespace ba_prediction_movement {bool ownsPresentation(void*){return host::presentationOwned;}}
+namespace ba_prediction_stages {static void mark(const char*,void*){}}
 #ifndef BA_ACTOR_SOURCE
 #define BA_ACTOR_SOURCE "../src/prediction_actor_repair.cpp"
 #endif
@@ -516,6 +517,24 @@ static void absentUnchangedAndBoundActorsAreStable(){
 static void explicitRecreationCanReuseSamePointer(){
     Fixture f(105,100);f.cache();f.state.identities.erase(&f.actor);f.state.confirmedRecreation.insert(7);
     f.after();check(f.token()==900 && f.state.confirmedRecreation.empty(),"explicitly retired same-address new lifetime failed to bind");
+    Fixture same(105,100);same.after();
+    const auto firstLease=same.state.identities.at(&same.actor).presentationLease;
+    check(firstLease && same.token()==900,"first observed actor did not acquire a presentation lease");
+    same.after();
+    check(same.state.identities.at(&same.actor).presentationLease==firstLease,"ordinary actor observation replaced its presentation lease");
+    // The repair's erase can be followed by reuse of the exact same Unit,
+    // native ID and canonical incarnation. Only this local lease must change.
+    same.state.identities.erase(&same.actor);same.state.confirmedRecreation.insert(7);same.after();
+    const auto recreatedLease=same.state.identities.at(&same.actor).presentationLease;
+    check(same.token()==900 && recreatedLease>firstLease && same.state.confirmedRecreation.empty(),
+          "same-pointer/token recreation reused the retired presentation lease");
+    same.state.identities.clear();same.after();
+    check(same.state.identities.at(&same.actor).presentationLease>recreatedLease,
+          "observer cache clear recycled a presentation lease");
+    Fixture exhausted;exhausted.state.nextPresentationLease=UINT64_MAX;bool refused=false;
+    try{exhausted.after();}catch(const std::exception& error){refused=std::string(error.what())=="actor presentation lease exhausted";}
+    check(refused && exhausted.state.identities.empty() && exhausted.state.nextPresentationLease==UINT64_MAX,
+          "presentation lease exhaustion wrapped or inserted an unleased actor");
 }
 static void cachedZeroCannotPromoteEvenWithKnownMapBeforeOriginal(){
     Fixture f(105,100);f.cache();f.retirement();check(!f.token(),"old speculative actor rebound to a known numeric ID");
