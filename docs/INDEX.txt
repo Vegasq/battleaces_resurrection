@@ -1,5 +1,5 @@
 BATTLE ACES - DOCUMENTATION INDEX
-Updated:2026-11-11. Paths below are relative to docs/.
+Updated:2026-11-12. Paths below are relative to docs/.
 
 START WITH THREE FILES
   REMAINING_DELIVERY_PLAN.txt - what is next and which D1-D9 gates remain
@@ -16,6 +16,8 @@ A historical NEXT,pending candidate or user request may have been superseded.
 Use the current roadmap and DEV answers first;retain original failure scopes.
 The full pre-cleanup instruction/roadmap/status/checklist text is preserved in
 history/2026-10-24/ with exact hashes in manifest.json. See history/README.txt.
+The exact pre-consolidation prediction roadmap is in history/2026-11-12/;
+its manifest binds the prior checklist and unchanged acceptance requirements.
 Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 

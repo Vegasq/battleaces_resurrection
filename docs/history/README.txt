@@ -1,5 +1,10 @@
 DOCUMENTATION HISTORY
 
+2026-11-12/ preserves the exact roadmap before the prediction queue was
+consolidated. Its manifest binds all former completed milestones,detailed
+D1-D9 requirements and historical failures. The active roadmap keeps current
+work separate from earlier next-step labels;no requirement was accepted here.
+
 2026-10-26/ preserves the exact roadmap before189's active-queue consolidation.
 Its manifest binds the former completed milestones and unchanged D1-D9 gates.
 The live roadmap now leads with remaining work;no requirement or failed evidence

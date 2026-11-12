@@ -87,6 +87,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Prediction input-observer test build failed.' }
     & (Join-Path $OutputDirectory 'prediction_input_observer_tests.exe')
     if ($LASTEXITCODE -ne 0) { throw 'Prediction input-observer tests failed.' }
+    & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /WX /std:c++17 (Join-Path $PSScriptRoot 'src/prediction_visual_click_protocol_tests.cpp') "/Fe:$OutputDirectory/prediction_visual_click_protocol_tests.exe"
+    if ($LASTEXITCODE -ne 0) { throw 'Prediction visual-click protocol test build failed.' }
+    & (Join-Path $OutputDirectory 'prediction_visual_click_protocol_tests.exe')
+    if ($LASTEXITCODE -ne 0) { throw 'Prediction visual-click protocol tests failed.' }
     & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /WX /std:c++17 (Join-Path $PSScriptRoot 'src/prediction_click_provenance_tests.cpp') "/Fe:$OutputDirectory/prediction_click_provenance_tests.exe"
     if ($LASTEXITCODE -ne 0) { throw 'Prediction click-provenance policy test build failed.' }
     & (Join-Path $OutputDirectory 'prediction_click_provenance_tests.exe')

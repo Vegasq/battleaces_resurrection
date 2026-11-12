@@ -169,7 +169,15 @@ static Obj ownerGraph(actors::State& owner,Obj selector) {
     const bool expired=ba::flag(L"-prediction-expired-click-smoke"),held=ba::flag(L"-prediction-held-click-smoke");
     const bool mobileHeld=ba::flag(L"-prediction-mobile-held-click-smoke");
     const bool mobileContext=ba::flag(L"-prediction-mobile-context-move-smoke");
-    require((unsigned(expired)+unsigned(held)+unsigned(mobileHeld)+unsigned(mobileContext)==1)&&
+    const bool visual=ba::flag(L"-prediction-visual-click-smoke");
+    const bool visualScope=visual&&ba::flag(L"-prediction-visual-input-smoke")&&
+        ba::flag(L"-prediction-visual-observe")&&ba::flag(L"-prediction-movement-smoke")&&
+        ba_prediction_worker::visualCorrectionsEnabled()&&!ba_lan::publicMatch&&
+        !ba::argument(L"-prediction-movement-smoke-transition-gates=","").empty()&&
+        !ba::flag(L"-prediction-actor-correction-smoke")&&!ba::flag(L"-prediction-mobile-correction-smoke")&&
+        !ba::flag(L"-prediction-actor-mirror-smoke")&&!ba::flag(L"-prediction-close-formation-smoke")&&
+        !ba::flag(L"-prediction-queued-orders-smoke");
+    require((unsigned(expired)+unsigned(held)+unsigned(mobileHeld)+unsigned(mobileContext)+unsigned(visual)==1)&&
         (!mobileHeld||(ba::flag(L"-prediction-mobile-correction-smoke")&&!ba_prediction_actor_fixture_smoke::mirrored()))&&
         (!mobileContext||(ba::flag(L"-prediction-mobile-correction-smoke")&&!ba_prediction_actor_fixture_smoke::mirrored()&&
             ba_prediction_actor_fixture_smoke::victimSlot()==1&&ba::lanSlot()==1))&&
@@ -177,7 +185,8 @@ static Obj ownerGraph(actors::State& owner,Obj selector) {
         GetCurrentThreadId()==ba_local::updateThread&&owner.thread==GetCurrentThreadId()&&!owner.failed&&owner.world&&
         owner.world==ba_prediction_worker::movementWorldId()&&owner.match==ba_prediction_worker::movementMatchId()&&
         owner.match.size()==32&&owner.manager&&owner.simulation&&ba_prediction_movement::ownsPresentation(owner.simulation->get())&&
-        ba_prediction_actor_fixture_smoke::validScope()&&ba::lanSlot()==ba_prediction_actor_fixture_smoke::victimSlot(),
+        (visual?visualScope:(ba_prediction_actor_fixture_smoke::validScope()&&
+            ba::lanSlot()==ba_prediction_actor_fixture_smoke::victimSlot())),
         "virtual mouse lost its original frontend/presentation owner");
     actors::classIs(selector,"Uncapped","UnitSelector");Obj server=ba_local::server();actors::classIs(server,"Uncapped","GameServerIntegration");
     require(ba_local::isTarget(server)&&referenceField(server,"_gameSimulation",0x140,actors::type("Uncapped","Simulation"))==owner.simulation->get()&&
@@ -248,7 +257,7 @@ static bool includes(Obj action,Obj expected,ControlScan* scan=nullptr,unsigned 
 enum class SessionKind : uint8_t {Primary,Context};
 struct Session {
     actors::State* owner=nullptr;uint64_t world=0,sequence=0;std::string match;
-    int victimSlot=-1;bool mirror=false;
+    int victimSlot=-1;bool mirror=false,visual=false;
     SessionKind kind=SessionKind::Primary;
     bool active=false,closed=false,failed=false,queueUncertain=false,lastHeld=false,sawPress=false,sawRelease=false;
     std::unique_ptr<Root> selector,handler,server,manager,simulation,device,controls[3],references[3],actions[3];
@@ -312,8 +321,10 @@ static void bindingRequire(bool value,unsigned index,const char* condition) {
 }
 static void live(bool audit=false) {
     auto& s=session();require(s.active&&!s.closed&&!s.failed&&s.owner&&s.selector&&s.device,"virtual mouse session unavailable");
-    require(s.victimSlot==ba_prediction_actor_fixture_smoke::victimSlot()&&
-        s.mirror==ba_prediction_actor_fixture_smoke::mirrored()&&
+    require(s.visual==ba::flag(L"-prediction-visual-click-smoke")&&
+        (s.visual?(s.victimSlot==ba::lanSlot()&&!s.mirror):
+            (s.victimSlot==ba_prediction_actor_fixture_smoke::victimSlot()&&
+             s.mirror==ba_prediction_actor_fixture_smoke::mirrored()))&&
         ownerGraph(*s.owner,s.selector->get())==s.handler->get()&&s.owner->world==s.world&&s.owner->match==s.match&&
         s.owner->manager->get()==s.manager->get()&&s.owner->simulation->get()==s.simulation->get()&&ba_local::server()==s.server->get()&&
         instanceOf(s.device->get(),api().mouse),"virtual mouse retained owner changed");
@@ -361,7 +372,9 @@ static void beginSession(actors::State& owner,Obj selector,SessionKind kind) {
     Obj handler=ownerGraph(owner,selector);resolve();auto choice=choose(handler);released(selector,choice);
     s=Session{};s.owner=&owner;s.world=owner.world;s.match=owner.match;s.active=true;
     s.kind=kind;
-    s.victimSlot=ba_prediction_actor_fixture_smoke::victimSlot();s.mirror=ba_prediction_actor_fixture_smoke::mirrored();
+    s.visual=ba::flag(L"-prediction-visual-click-smoke");
+    s.victimSlot=s.visual?ba::lanSlot():ba_prediction_actor_fixture_smoke::victimSlot();
+    s.mirror=s.visual?false:ba_prediction_actor_fixture_smoke::mirrored();
     try {
         s.selector=root(selector);s.handler=root(ownerGraph(owner,selector));s.server=root(ba_local::server());
         s.manager=root(owner.manager->get());s.simulation=root(owner.simulation->get());s.device=std::move(choice.device);

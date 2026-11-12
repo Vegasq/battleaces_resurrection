@@ -9,6 +9,10 @@ byte-for-byte;client compatibility needs no server-code upgrade on that evidence
 Current SSH/TLS probes time out;observed egress differs from the previously
 allowed address. Cause is unconfirmed;the existing N35 network question is
 pending. No live server change,restart or new Internet-readiness claim is made.
+Read-only DigitalOcean API17:36UTC on2026-11-12 confirms the same Droplet/IP
+active,2vCPU/4096MiB and no associated cloud firewall. Guest service/allowlist
+health is not established by cloud metadata. The existing named CLI context
+was used without changing its default or requesting another login.
 The2026-11-11 installers/deployment below remain historical evidence.
 
 Actual serverAI04 - PASS (normal bundled frontend/worker/runtime)

@@ -1,5 +1,33 @@
 BATTLE ACES - MULTI-UNIT MOVEMENT PREDICTION
-Reviewed:2026-11-11. N33 remains ACTIVE;full feature/Internet acceptance OPEN.
+Reviewed:2026-11-12. N33 remains ACTIVE;full feature/Internet acceptance OPEN.
+
+FORCED GROUP/TYPE RETIREMENT - CONFIG REVIEW COMPLETE; RUNTIME UNQUALIFIED
+The bounded original1v1 config review finds no justified next native candidate.
+All64 entity/34 ability definitions decode with zero unknown game-schema fields;
+asset/descriptor/decoder hashes remain pinned. There are no instantiated Summon
+actions. Autonomous Worker7,attack-created types10/23/65/95/96/99,expansions18/19
+and AttachUnitArmy92's GuardianShield105 all have selectable=false. The attach
+schema supplies a target filter/type,not a new-army operand. No original group
+assignment or same-full-ID type/army mutation is established for these candidates.
+Canonical Build and the already-ruled-out Mortar setup route were not rerun.
+
+This is configuration/static evidence,not proof of every native engine path or
+automatic group API. In particular,selectable=false is not universal proof of
+group ineligibility. Prior actual release/restoration/partial purge cases remain
+qualified separately. The missing repair() branch is forced retirement of an
+active actor after type/army/known-incarnation change,with affectedGroups>0 and
+original raw-group pruning before pooling/UnitsInitialized. Authored guards do
+not substitute for that missing integration witness.
+
+Stop this branch until concrete original-input/callback evidence supplies a
+genuinely grouped mismatch within Move/Hold prediction. Then use one finite
+native baseline/one-Move pair before a Unity case. No quiet fixture rerun is
+justified now. Type7 is Worker;an older private note's projectile label is
+superseded without altering its bytes or its affectedGroups0 observations.
+Private receipt:local/forced-group-config-applicability01/findings.txt
+SHA2566a8dc3dd422db4d724d3ef1ee3cad19ab5033d5e5e46ba651cafec6af57ebcd8.
+Queries receipt SHA256f6e574131062820c12bc8669e7895e0bd77d05cecec5a5b311f7de4759d13a6e.
+No game,build,installer,source mutation or server operation occurred in this review.
 
 FOUR-UNIT CLOSE-FORMATION - ACTUAL71 FILE-ONLY QUALIFICATION PASS
 Two actual Custom rounds now qualify the ordinary four-Gunbot group through

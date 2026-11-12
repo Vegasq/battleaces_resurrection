@@ -35,6 +35,7 @@ static void authoritative(const std::vector<uint8_t>&,const std::string&);
 }
 namespace ba_prediction_actor_smoke {static void tick();}
 namespace ba_prediction_visual_input {static void tick();}
+namespace ba_prediction_visual_click {static void tick();}
 namespace ba_prediction_visual {void clearInactive(const char*);}
 namespace ba_prediction_selection {static void focusClearInactive();}
 namespace ba_dedicated_results { static void receive(const std::string&); }
@@ -328,6 +329,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         else if(offlinePractice())ba_practice::offlineUpdate(front);
         else if(lan())lanFrontUpdate(front);
         ba_prediction_visual_input::tick();
+        ba_prediction_visual_click::tick();
         ba_prediction_movement_smoke::tick();
         ba_prediction_actor_smoke::tick();
         ba_prediction_cohort::tick();
@@ -415,6 +417,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "prediction_movement_smoke.cpp"
 #include "prediction_actor_smoke.cpp"
 #include "prediction_visual_input_smoke.hpp"
+#include "prediction_visual_click_smoke.hpp"
 #include "prediction_cohort_smoke.cpp"
 #include "prediction_cohort_survivor_smoke.cpp"
 #include "prediction_close_formation_smoke.cpp"

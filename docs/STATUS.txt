@@ -4,6 +4,27 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+2026-11-12 Actual88 PASSES two actual rounds with all2892 native-state rows,
+wire/command,response,visual,original ray/drag/click and lifetime gates. Four
+balanced click episodes include nonzero offsets1.102/1.251units. All48 original
+matched-point rays are phase-stable:zero P/Q/R/Mhit74;nonzero P/Qhit74,R/Mmiss.
+No P-vs-Q difference or phase flip is observed. Both games/workers/authorities
+exit naturally0 in141.255s,Jobs inactive0,no force/errors,source/files unchanged.
+This does not explain87's preserved miss or qualify physical/Internet feel.
+No production synchronization change;helper114 adds opt-in diagnostics only.
+Frozen helper111 installers remain unchanged. prediction-correction-motion.txt.
+
+2026-11-12 Actual87 finishes two rounds/natural Quit with all native/wire/feel/
+visual/lifetime checks and four balanced original click components passing.
+Overall remainsFAILED:world2 root-center ray misses although a nearby fixed
+click point hits at the same completed pose. Point and gesture phase differ;
+no collider/synchronization cause is established. Actual88 above adds the bounded
+matched-point phase observation;all misses and parent gates remain. Actual86's
+driver retarget-at-press failure is preserved;immutable-point controls repair
+that diagnostic. Helper113/44 C++ programs and14 focused click checks pass.
+The verified afb5f20/helper111 installer pair and live/manual copies are unchanged.
+Details:prediction-correction-motion.txt.
+
 2026-11-12 New local AI+visual preview pair passes actual ServerAI04 using clean
 afb5f20,normal human assembly,new bundled worker/runtime and helper111. At475ms
 simulated RTT the original Move responds47ms,468ms before bridge/484ms before65,

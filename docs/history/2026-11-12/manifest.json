@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "date": "2026-11-12",
+  "purpose": "Exact roadmap before prediction queue consolidation; historical requirements and evidence retained",
+  "files": [
+    {
+      "original": "docs/REMAINING_DELIVERY_PLAN.txt",
+      "archived": "REMAINING_DELIVERY_PLAN.txt",
+      "sha256": "1b5a4519581dfe524c9cd849504b6d85fa8e89333b1e3a62439ca8726a17dde5",
+      "bytes": 157830,
+      "lines": 2187
+    }
+  ]
+}

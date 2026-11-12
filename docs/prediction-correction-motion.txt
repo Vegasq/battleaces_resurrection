@@ -1,12 +1,100 @@
-N33 - LARGE COMMAND-RETIME CORRECTIONS - 2026-11-11
+N33 - LARGE COMMAND-RETIME CORRECTIONS - 2026-11-12
 
-Latest result and next work - 2026-11-12
+Actual88 - combined original click and matched-point observation PASS
+The normal human frontend3e7bea... and helper114 pass both actual rounds in
+141.255s,including all2892 native-state rows,wire/command conservation,movement
+response,900ms visual correction,original ray/drag queries,balanced primary
+clicks and lifetime gates. Both games/workers and authorities exit naturally0;
+Jobs3/0/0 and2/0/0,no force or cleanup errors,source/runtime files unchanged.
+The new spatial diagnostic is explicitly enabled and changes no production
+selection,history,command,physics or default launcher behavior.
+
+All48 original friendly-ray observations are retained across12 phase records.
+At each zero control,P(consumed click),Q(displayed root),R(raw root) and
+M=Single(R+Single(P-Q)) hit subject74. At both nonzero controls,P and Q hit74
+while R and M miss/null,identically before Down,before ProcessClick and after
+ProcessClick returns. Each comparison freezes exact Single point bits and the
+completed pose,camera,actor/incarnation/lease/generation and original ticket.
+Offsets are1.102048units(world1 frame539) and1.251231(world2 frame542).
+P-Q distances are4.526728/1.518784pixels. No same-point phase change or P-vs-Q
+result difference occurs. Guarded four-ray observations cost0.655..1.123ms;
+individual original rays3..70us. Every probe ends before original Down returns.
+All four click episodes release15 borrowed roots to0;visual retirement also
+passes. Independent closed-file analysis rebuilds the observations and gates.
+
+This qualifies the named scripted callback path,not physical input or every
+selection transition. Actual87's separate Q miss is NOT reproduced or explained
+retrospectively;its FAILED report remains unchanged. No collider geometry or
+physics-synchronization cause is inferred,and no synchronization is added.
+The frozen afb5f20/helper111 human preview is unchanged;helper114 adds diagnostics.
+Actual88:local/prediction-runtime/movement88-visual-click-spatial/run/verification.json
+SHA256acb0e8485a0ca66a9c77eebacc9ad4cbbfea2be0e6462f3f821dc0be57b94227.
+Helper114 SHA2560a198e34278dff165e9fe43139aed5d159a463ee34e104fc59cca32b7a9ab7cf.
+Independent receipt:local/prediction-correction-motion01/actual88-aim-audit01/receipt.json
+SHA25649fe9d9ed9a1f3eaa8b214599f31969b4f6bc9bbe3319e4d47c1e5c357263c07.
+All44 C++ executables pass;7 protocol/math and21 actual-source observer groups
+include unchanged original forwarding. Spatial analyzer10 new checks and2
+affected CLI checks pass,including changed coordinates,phase order,source
+binding and refusal to promote a failed parent. Earlier click checks remain
+qualified at the exact retained source;full N33/D8 and human acceptance stay open.
+
+Actual87 - natural core/visual pass; combined input gate incomplete
+The normal human frontend3e7bea... and helper113 complete two rounds naturally
+in143.120s:all original native/wire/movement-response/visual/lifetime parent
+checks pass,both games/workers and both authorities exit0,Jobs3/0/0 and2/0/0,
+retained game handles close,no force or cleanup errors,source/files unchanged.
+Four actual primary-click components pass:zero controls at514 and nonzero Down
+at541 in both worlds,with correction magnitudes1.688283/1.884306units. Each uses
+ordinary bound-Mouse InputSystem delivery,original Down,nested ProcessClick
+return,Single-mode subject and original Up,then releases15 borrowed roots to0.
+The subject need not change from another selection;this is programmatic input,
+not physical or Internet acceptance and not a distinct inner SingleProcessClick
+entry claim. No new commands or native-state changes are introduced by the probe.
+
+The overall report remainsFAILED. Its separate Stage1 root-center query world2
+has one nonzero displayed-ray miss;the click's paired gate therefore remains
+parent_unqualified. At541,successful Down and the later root-center query share
+the exact completed pose,frame,revision,alpha,actor,lease and root. The frozen
+click point(562.580627,309.367584) hits the subject;projected root-center point
+(560.167664,307.831512) misses2.860404pixels away,1.932ms later and after Down
+returns. Both raw-center rays miss. Displayed drag=true/raw drag=false DOES
+discriminate,but lacks the required paired displayed-ray binding. At540 both
+rays hit and do not discriminate. Revision4 exhausts its two existing sample
+slots;later missing samples do not erase the recorded miss.
+
+Spatial point and gesture phase differ,so neither collider freshness nor a
+synchronization defect is established. The old click's raw counterfactual also
+uses raw root-center rather than the same relative screen offset as its frozen
+click point. Actual88 above adds one explicit matched-point/phase observation:
+retain original center results and query frozen click P,display center Q,raw
+center R,and R+(P-Q),before/after original ProcessClick with exact Single
+operands and complete pose/owner/QPC binding. Preserve every miss and all parent
+gates. It does not reproduce this miss or establish its cause.
+Actual87:local/prediction-runtime/movement87-visual-click-fixed-point/run/verification.json
+SHA256fe3a3f189a088eb69f1c727700756ec7d2a485f497ce85bb68fa10d9e137473b.
+Helper113 SHA256a62f2d33b757ac9853ae2b420c9bf4612534d77a24d88b4375029ee1891c6697.
+All44 C++ executables pass;14 click checks pass after the new immutable-point
+regression is RED against the prior checker. Earlier60 combined focused checks
+cover the initial integration;the changed point case was checked separately.
+The afb5f20/helper111 handoff pair remains frozen;no live/manual changes occurred.
+
+Actual86 - preserved diagnostic failure
+The first click fixture queued positionA,observed A consumed,then reprojected
+and queued different pointB together with Down. The original callback pointer
+guard refused before its first receipt. Its actual callback coordinates were
+not logged and remain unknown. The corrected driver binds one exact Single
+point through press/release and uses that point for eligibility queries.
+86 remainsFAILED/forced after55.240s,both game handles reaped/closed,Jobs3/0/0,
+authority Job2/0/0 and two bridge WinError64 cleanup errors;source/files unchanged.
+Report SHA256e58b1bf48ac9dee4b15d6ecc3e332ef2ff014fd7c097989b8632692c23fd4e66.
+
+Earlier qualified baseline and handoff - 2026-11-12
 Actual85/helper111 PASSES the complete bounded two-round native/wire/response,
 900ms visual,onscreen original selection-query and normal-drain retirement gates.
 One original camera focus per world fixes diagnostic acquisition without changing
 query geometry,viewport margins or motion limits. The exact local paired preview
 and normal bundled server-AI path now pass ServerAI04 below;the local pair is
-staged. Next:resolve current live reachability and finish the existing N35 handoff.
+staged and the existing N35 handoff refreshed. Current live reachability is pending.
 Physical gestures,unit-target callbacks,forced group/type retirement and human
 Internet feel remain open. Full N33 and final release are not accepted.
 

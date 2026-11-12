@@ -4,3 +4,5 @@
 *.txt text eol=lf
 *.ps1 text eol=crlf
 deploy/linux/* text eol=lf
+# Byte-for-byte historical snapshot; its manifest includes original line endings.
+docs/history/2026-11-12/REMAINING_DELIVERY_PLAN.txt -text

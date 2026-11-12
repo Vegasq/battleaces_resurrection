@@ -38,7 +38,7 @@ SOURCE_FIXTURES = {
 # bypasses only the generic size warning, never the content/path checks below.
 REVIEWED_LARGE_SOURCES = {
     "tools/verify_prediction_multiplayer.py": (
-        270502, "c434521815a5d99c5b99f281680aab23a19859446e70fb4a34327fb1ec9562fc"),
+        271482, "23b9c6b9fc08671e6568de7d876df5e7341bd3c708cba4d6479fbd09c77b6002"),
 }
 
 

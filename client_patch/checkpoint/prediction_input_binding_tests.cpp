@@ -48,7 +48,7 @@ static std::function<void(size_t)> originalBody;
 static std::function<void(Obj,Obj)> processBody;
 static Obj selected=nullptr;
 static bool active=true,stopped=false,presentationOwned=true,presentationThrows=false;
-static bool mobileDiagnostic=false,contextDiagnostic=false;
+static bool mobileDiagnostic=false,contextDiagnostic=false,visualDiagnostic=false;
 static uint64_t world=91;
 static std::string match(32,'a'),lastFailure;
 static unsigned failures=0,processCalls=0;
@@ -104,6 +104,7 @@ static bool flag(const wchar_t* name) {
     host::check(name,"null authored input flag");
     if(std::wstring(name)==L"-prediction-mobile-held-click-smoke")return host::mobileDiagnostic;
     if(std::wstring(name)==L"-prediction-mobile-context-move-smoke")return host::contextDiagnostic;
+    if(std::wstring(name)==L"-prediction-visual-click-smoke")return host::visualDiagnostic;
     throw std::runtime_error("unexpected authored input flag");
 }
 template<class T>T read(Obj value,size_t offset){return host::read<T>(value,offset);}
@@ -201,7 +202,9 @@ static void reset() {
     originals.fill(0);calls.clear();logs.clear();originalBody={};processBody=&single;
     failures=0;processCalls=0;processSelector=nullptr;processInfo=nullptr;lastFailure.clear();
     active=true;stopped=false;presentationOwned=true;presentationThrows=false;world=91;match.assign(32,'a');
-    mobileDiagnostic=false;contextDiagnostic=false;ba_prediction_input::mobileReturnedInput.reset();
+    mobileDiagnostic=false;contextDiagnostic=false;visualDiagnostic=false;ba_prediction_input::mobileReturnedInput.reset();
+    ba_prediction_input::visualProbe=nullptr;
+    ba_prediction_input::visualProcessProbe=nullptr;
     ba_prediction_input::contextPrimaryReturnedInput.reset();ba_prediction_input::contextReturnedInput.reset();
     ba_prediction_input::contextProbe=nullptr;
     memories.clear();selector=Node{};otherSelector=Node{};manager=Node{};simulation=Node{};
@@ -509,6 +512,69 @@ static void nestedContextCallbackKeepsNewestReturnAndCorrectDispatch() {
         !ba_prediction_input::currentDispatch&&!ba_prediction_actors::state().inputIntent.accepted(),
         "older ContextDown return replaced its newer child or leaked nested dispatch");
 }
+static std::vector<std::string> visualEvents;
+static std::string visualFault;
+static void visualProbe(bool before,const ba_prediction_input_observer::Ticket& ticket,
+                        Obj instance,Obj info,const void* receivedContext,bool,uint64_t) {
+    const bool down=ticket.kind==ba_prediction_input_observer::Kind::Down;
+    check(instance==&selector&&receivedContext==&context&&info==&methods[down?9:10],
+        "visual callback witness substituted original arguments");
+    check(ba_prediction_input::currentDispatch&&ba_prediction_input::currentDispatch->ticket.serial==ticket.serial,
+        "visual callback lost actual dispatch ticket");
+    const std::string event=std::string(down?"Down":"Up")+(before?".before":".returned");
+    visualEvents.push_back(event);if(event==visualFault)throw std::runtime_error("authored visual callback fault");
+}
+static void visualProcessProbe(bool before,const ba_prediction_input_observer::Ticket& ticket,
+                               Obj instance,Obj downInfo,const void* receivedContext,Obj originalInfo) {
+    check(instance==&selector&&downInfo==&methods[9]&&receivedContext==&context&&!originalInfo&&
+        ticket.kind==ba_prediction_input_observer::Kind::Down&&ba_prediction_input::currentDispatch&&
+        ba_prediction_input::currentDispatch->ticket.serial==ticket.serial,
+        "visual ProcessClick witness has another original Down");
+    const std::string event=before?"Process.before":"Process.returned";
+    visualEvents.push_back(event);if(event==visualFault)throw std::runtime_error("authored visual ProcessClick fault");
+}
+static void startVisualDiagnostic() {
+    reset();visualEvents.clear();visualFault.clear();visualDiagnostic=true;
+    ba_prediction_input::visualProbe=&visualProbe;ba_prediction_input::visualProcessProbe=&visualProcessProbe;
+    originalBody=[](size_t index){if(index==9)OfflinePredictionClickDownAccepted(&selector,nullptr);};
+}
+static void visualObservationIsDefaultOffAndBindsActualNestedOriginals() {
+    startVisualDiagnostic();visualDiagnostic=false;const auto unchangedContext=context.bytes;
+    invoke(9);invoke(10);check(visualEvents.empty()&&processCalls==1&&!failures,"disabled visual observer changed original delivery");
+    startVisualDiagnostic();invoke(9);exact(9,&selector,&context,&methods[9]);
+    invoke(10);check(calls.size()==2&&calls[1].route==10&&calls[1].selector==&selector&&
+        calls[1].context==&context&&calls[1].info==&methods[10]&&originals[10]==1,
+        "visual original Up arguments/count differ");
+    check(visualEvents==std::vector<std::string>{"Down.before","Process.before","Process.returned","Down.returned","Up.before","Up.returned"}&&
+        processCalls==1&&!failures&&context.bytes==unchangedContext&&!ba_prediction_input::currentDispatch&&
+        !ba_prediction_input::mobileReturnedInput&&!ba_prediction_input::contextReturnedInput,
+        "visual receipts reordered, modified borrowed context or contaminated other diagnostics");
+}
+static void visualFaultsCannotSkipOrRetryOriginals() {
+    for(const char* phase:{"Down.before","Down.returned","Process.before","Process.returned"}) {
+        startVisualDiagnostic();visualFault=phase;invoke(9);exact(9,&selector,&context,&methods[9]);
+        check(processCalls==1&&failures==1&&stopped&&!ba_prediction_actors::state().inputIntent.accepted(),
+            "visual observer failure skipped/retried original or retained authorization");
+    }
+}
+static void visualOriginalExceptionAndObserverReplacementCannotFabricateReturn() {
+    startVisualDiagnostic();processBody=[](Obj,Obj){throw OriginalError{73};};bool propagated=false;
+    try{invoke(9);}catch(const OriginalError& error){propagated=error.tag==73;}
+    exact(9,&selector,&context,&methods[9]);check(propagated&&processCalls==1&&!failures&&
+        visualEvents==std::vector<std::string>{"Down.before","Process.before"},
+        "visual diagnostic fabricated return or swallowed original exception");
+    startVisualDiagnostic();processBody=[](Obj instance,Obj info){single(instance,info);ba_prediction_input::visualProcessProbe=nullptr;};
+    invoke(9);check(processCalls==1&&failures==1&&visualEvents==std::vector<std::string>{"Down.before","Process.before"},
+        "replaced visual ProcessClick probe fabricated completion");
+    startVisualDiagnostic();originalBody=[](size_t){ba_prediction_input::visualProbe=nullptr;};invoke(9);
+    check(originals[9]==1&&failures==1&&visualEvents==std::vector<std::string>{"Down.before"},
+        "replaced primary visual probe fabricated completion");
+}
+static void visualRetiredOwnerNeverObservesAnUnownedOriginal() {
+    startVisualDiagnostic();presentationOwned=false;invoke(9);invoke(10);
+    check(originals[9]==1&&originals[10]==1&&processCalls==1&&visualEvents.empty()&&!failures,
+        "visual observer captured callbacks after presentation retirement");
+}
 static void retiredPresentationInputPassesThroughButActiveMismatchStillFails() {
     for(size_t index=0;index<exports.size();++index) {
         reset();presentationOwned=false;contextDiagnostic=true;mobileDiagnostic=true;
@@ -540,7 +606,9 @@ int main(){try{
     host::contextProbeFailuresCannotSkipOrRetryOriginal();
     host::nestedContextCallbackKeepsNewestReturnAndCorrectDispatch();
     host::retiredPresentationInputPassesThroughButActiveMismatchStillFails();
-    std::cout<<"input binding:17 authored actual-source groups PASS; ordinary runtime qualification remains separate\n";
+    host::visualObservationIsDefaultOffAndBindsActualNestedOriginals();host::visualFaultsCannotSkipOrRetryOriginals();
+    host::visualOriginalExceptionAndObserverReplacementCannotFabricateReturn();host::visualRetiredOwnerNeverObservesAnUnownedOriginal();
+    std::cout<<"input binding:21 authored actual-source groups PASS; ordinary runtime qualification remains separate\n";
     return 0;
 }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 catch(...){std::cerr<<"unexpected authored input exception\n";return 1;}}

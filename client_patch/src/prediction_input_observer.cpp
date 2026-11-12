@@ -80,6 +80,13 @@ static std::optional<ReturnedInput> mobileReturnedInput;
 static std::optional<ReturnedInput> contextPrimaryReturnedInput,contextReturnedInput;
 using ContextProbe=void(*)(bool,const observer::Ticket&,Obj,bool,uint64_t);
 static ContextProbe contextProbe=nullptr;
+// Separately opted-in primary diagnostic. The callback context is borrowed only
+// for this call; no fabricated callback or change to Single authorization.
+using VisualProbe=void(*)(bool,const observer::Ticket&,Obj,Obj,const void*,bool,uint64_t);
+static VisualProbe visualProbe=nullptr;
+using VisualProcessProbe=void(*)(bool,const observer::Ticket&,Obj,Obj,const void*,Obj);
+static VisualProcessProbe visualProcessProbe=nullptr;
+static bool visualEnabled(){return ba::flag(L"-prediction-visual-click-smoke");}
 static bool contextEnabled(){return ba::flag(L"-prediction-mobile-context-move-smoke");}
 static bool contextKind(Kind kind){return kind==Kind::ContextDown||kind==Kind::ContextUp;}
 static void remember(std::optional<ReturnedInput>& target,const observer::Ticket& ticket,bool completed,uint64_t serial) {
@@ -96,6 +103,7 @@ struct Dispatch {
     Dispatch* previous=nullptr;
     bool entered=false;
     ContextProbe retainedContextProbe=nullptr;
+    VisualProbe retainedVisualProbe=nullptr;
     explicit Dispatch(const Route& value,Obj instance,const void* input,Obj method)
         :route(value),selector(instance),context(input),info(method){}
     ~Dispatch(){leave();}
@@ -123,6 +131,10 @@ struct Dispatch {
         if(contextEnabled()&&contextKind(ticket.kind)&&contextProbe) {
             retainedContextProbe=contextProbe;
             retainedContextProbe(true,ticket,selector,false,ledger->serial());
+        }
+        if(visualEnabled()&&(ticket.kind==Kind::Down||ticket.kind==Kind::Up)&&visualProbe) {
+            retainedVisualProbe=visualProbe;
+            retainedVisualProbe(true,ticket,selector,info,context,false,ledger->serial());
         }
         return true;
     }
@@ -158,6 +170,10 @@ struct Dispatch {
                     retainedContextProbe(false,ticket,selector,completed,ledger->serial());
                 }
             }
+        }
+        if(retainedVisualProbe) {
+            actors::require(retainedVisualProbe==visualProbe,"visual click probe changed during original callback");
+            retainedVisualProbe(false,ticket,selector,info,context,completed,ledger->serial());
         }
         leave();
     }
@@ -209,7 +225,26 @@ BA_INPUT_OBSERVER_EXPORT(ContextUp,ContextUp)
 
 extern "C" __declspec(dllexport) void OfflinePredictionClickDownAccepted(void* selector,void* info) {
     ba::init();
+    auto* visualDispatch=ba_prediction_input::currentDispatch;
+    ba_prediction_input::VisualProcessProbe processProbe=nullptr;
+    if(visualDispatch&&visualDispatch->entered&&visualDispatch->selector==selector&&
+       visualDispatch->route.kind==ba_prediction_input::Kind::Down&&ba_prediction_input::visualEnabled()&&
+       ba_prediction_input::visualProcessProbe) {
+        try {
+            processProbe=ba_prediction_input::visualProcessProbe;
+            processProbe(true,visualDispatch->ticket,selector,visualDispatch->info,visualDispatch->context,info);
+        } catch(const std::exception& error){processProbe=nullptr;visualDispatch->failed(error.what());}
+        catch(...){processProbe=nullptr;visualDispatch->failed("unknown visual ProcessClick preparation exception");}
+    }
     ba::native<void(*)(ba::Obj,ba::Obj)>(0x3bf4a60)(selector,info); // Exactly once, even without an observer.
+    if(processProbe) {
+        try {
+            ba_prediction_actors::require(visualDispatch==ba_prediction_input::currentDispatch&&visualDispatch->entered&&
+                processProbe==ba_prediction_input::visualProcessProbe,"visual ProcessClick observer changed during original call");
+            processProbe(false,visualDispatch->ticket,selector,visualDispatch->info,visualDispatch->context,info);
+        } catch(const std::exception& error){visualDispatch->failed(error.what());}
+        catch(...){visualDispatch->failed("unknown visual ProcessClick completion exception");}
+    }
     if(!ba_prediction_selection::active() || !ba::initialThread || GetCurrentThreadId()!=ba::initialThread)return;
     auto* dispatch=ba_prediction_input::currentDispatch;
     if(!dispatch || dispatch->selector!=selector || dispatch->route.kind!=ba_prediction_input::Kind::Down)return;
