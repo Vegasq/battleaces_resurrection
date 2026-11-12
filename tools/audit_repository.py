@@ -33,6 +33,13 @@ SOURCE_FIXTURES = {
     "tests/fixtures/ads_caller181/host.cpp",
     "tests/fixtures/ads_watch471/host.cpp",
 }
+# Reviewed authored controller source; native captures remain under ignored local/.
+# These are exact Git-blob bytes. Changes require review again; this exception
+# bypasses only the generic size warning, never the content/path checks below.
+REVIEWED_LARGE_SOURCES = {
+    "tools/verify_prediction_multiplayer.py": (
+        270502, "c434521815a5d99c5b99f281680aab23a19859446e70fb4a34327fb1ec9562fc"),
+}
 
 
 def inspect_content(name: str, data: bytes) -> list[str]:
@@ -52,7 +59,8 @@ def inspect_content(name: str, data: bytes) -> list[str]:
         reasons.append("not an allowed source/documentation path")
     if name not in SOURCE_FIXTURES and any(part.lower() in FORBIDDEN_PARTS for part in path.parts):
         reasons.append("runtime/capture/asset directory")
-    if len(data) > 256 * 1024:
+    if (len(data) > 256 * 1024 and
+            REVIEWED_LARGE_SOURCES.get(name) != (len(data), hashlib.sha256(data).hexdigest())):
         reasons.append("source file over 256 KiB; review for embedded payload")
     if data.startswith((b"MZ", b"\x7fELF", b"PK\x03\x04", b"\x1f\x8b")) or b"\0" in data:
         reasons.append("binary or archive content")

@@ -1,6 +1,66 @@
-SERVER-HOSTED SOLO AI PREDICTION -2026-11-11
+SERVER-HOSTED SOLO AI PREDICTION -2026-11-12
 
-Status:ACTUAL SERVER-AI MOVE/REPLAY PASS;PRIVATE INSTALLERS/DEPLOYMENT READY.
+Latest:SERVER-AI04 NORMAL BUNDLED CLIENT PASS;NEW LOCAL PAIR VERIFIED.
+The afb5f20/helper111 preview pair is locally verified with visual correction
+enabled. Local distribution is staged atdist/prediction-ai-visual-20261112/.
+This records a verified local pair,not publication,deployment or renewed live
+access. The39 packaged server authority modules match the earlier64e21c6 pair
+byte-for-byte;client compatibility needs no server-code upgrade on that evidence.
+Current SSH/TLS probes time out;observed egress differs from the previously
+allowed address. Cause is unconfirmed;the existing N35 network question is
+pending. No live server change,restart or new Internet-readiness claim is made.
+The2026-11-11 installers/deployment below remain historical evidence.
+
+Actual serverAI04 - PASS (normal bundled frontend/worker/runtime)
+Root95651 terminal0;101.804seconds,475ms simulated RTT,publicmode1 with genuine
+human0/nativebot1. Uses clean afb5f205526706ae7f5951e5c9b710fba32c12a1,
+Python3.14.8 and helper111
+63a3589e988cda51b804ea92d82f474fc8d92e43ccd6de3acdc302d24b3a86a7.
+Actual normal human GameAssembly is
+3e7bea191f390bcaf13fa20d386acd74505260d77c7e00d2ba658434521eb2a5;
+the optional Quit instrumentation used by Actual85 is absent. The run uses the
+new packaged worker/runtime and enabled visual correction,with explicit smoke
+observation;ordinary bundled launch arguments contain no automated commands.
+
+Original Build300 commits310;original Move440 for actual entity75/type1 responds
+in47ms,468ms before raw public64 delivery and484ms before accepted native65.
+Actual67/canonical phase is441/441;exact original submitted/canonical bytes and
+20 matching continuation frames pass. The Move needs no correction itself.
+Independent native AI action131 causes correction1/replay11 plus20 matching
+continuations through151. All630 full parsed native states match authority;
+eight frames contain non-Join AI actions. Result/Continue/menu Quit pass.
+Game35832,worker49124 and authority50016 finish naturally0;Jobs3/0/0 and2/0/0,
+retained handles closed,no force/cleanup errors,source/runtime unchanged.
+Original reportSHA256
+d0a3d3078e08f9dc47c2db1826db7bd213a2e25681084e55bdded53db411b2fc.
+Private run:local/prediction-runtime/server-ai04-package-visual/run/.
+Closed summary:local/prediction-handoff-20261112/analysis04/.
+This qualifies the local normal bundled route with smoothing enabled. Actual85
+separately proves its900ms visual envelope/onscreen queries;04 does not repeat
+that measurement or accept physical input,unit-target callbacks or Internet feel.
+
+New locally verified installer pair
+BattleAces-Client-Prediction-AI-Visual-20261112.exe
+  SHA2565545e2fa9a7429e476b3c98b25def6cc02c08c1b5def4ae34b74ef37943e7457
+BattleAces-Server-Prediction-AI-Visual-20261112.exe
+  SHA2564e4170da1c0214774d6f6a0c1d13bfaf0f9486e9bdd61120c5187624ee824dd2
+Client/server embedded payload extraction,exact packaged source bindings and
+isolated shortcuts pass verification01. Owned bundled install/check/prepare/
+intercepted normal-launch arguments pass install-check03 with smoothing enabled;
+the previous automated bytes and mtimes are restored exactly. User/manual games
+and desktop are unchanged. prepare04c binds that normal frontend to actual04.
+Evidence:local/prediction-handoff-20261112/{build-report,verification01,
+install-check03,prepare04c}.json. Build-report's pre-run publicAI qualification
+flag is historical;the closed actual04 report supplies the later runtime result.
+
+Failed build01's pure normal-vs-diagnostic assembly equality assertion is
+preserved. Exact review binds the optional Quit recipe difference instead.
+Failed install-check02's180-second timeout is also preserved with exact restore;
+03 passes the same180-second deadline. The timeout's I/O/cause is not established.
+No package success reclassifies either failure. Full N33/human Internet and
+broader physical/callback/group/type scopes remain open.
+
+Earlier server-AI route and2026-11-11 delivery
 Nick's intended first test uses solo_ai_host=server so one human can exercise
 client/server prediction against the real server AI. The frozen19b5aa5 draft
 installers do not support this route;they remain two-human Custom1v1 only.

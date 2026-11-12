@@ -1,16 +1,21 @@
 BATTLE ACES - CURRENT DELIVERY ROADMAP
 Updated:2026-11-12. ACTIVE. Single current work queue;final release is not accepted.
 
-NEXT DELIVERY - prediction AI + visual correction preview
+CURRENT HANDOFF - prediction AI + visual correction preview READY
 Actual85 PASSES the complete two-round native/wire/response,900ms visual,
 onscreen original selection-query and prompt root-retirement gates. Every
 child exits naturally;source/runtime unchanged. Helper111 is qualified for
 this bounded scope. Actual84 stays failed for offscreen acquisition.
-1. Freeze reviewed source and build paired client/server preview installers.
-2. Verify embedded payloads,isolated desktop shortcuts,owned installation and
-   the actual bundled normal launcher with smoothing enabled/no automation.
-3. Qualify that exact bundled client on public1v1 server AI at475ms RTT with
-   smoothing enabled;then refresh existing N35 with the verified installer.
+[x] Clean afb5f20 source and paired client/server preview installers built.
+[x] Embedded payloads,isolated desktop shortcuts,actual owned installation and
+    bundled normal launcher with smoothing enabled/no automation verified.
+[x] Actual normal-human assembly/new packaged worker/runtime public1v1 AI passes
+    at475ms RTT:Move47ms,468ms before authority,630 full-state matches,AI replay,
+    result/Continue/Quit and natural empty Jobs. Existing N35 handoff refreshed.
+Kit:dist/prediction-ai-visual-20261112. Server39module bytes match64e21c6;no live
+deployment/restart needed for compatibility. Current SSH/TLS access could not
+be confirmed;N35 records the VPN/network question. No live changes were made.
+[ ] Existing N35 human Internet feel/selection feedback remains pending.
 The installed helper88 explains Nick's Custom-only rejection. A config edit
 cannot upgrade it. Usual/manual games and live host remain untouched during
 local qualification. Full N33,physical gestures/unit-target callbacks with

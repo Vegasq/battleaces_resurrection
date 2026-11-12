@@ -4,10 +4,26 @@ Latest result and next work - 2026-11-12
 Actual85/helper111 PASSES the complete bounded two-round native/wire/response,
 900ms visual,onscreen original selection-query and normal-drain retirement gates.
 One original camera focus per world fixes diagnostic acquisition without changing
-query geometry,viewport margins or motion limits. Next:qualify the exact paired
-preview package and bundled server-AI path,then refresh the existing N35 handoff.
+query geometry,viewport margins or motion limits. The exact local paired preview
+and normal bundled server-AI path now pass ServerAI04 below;the local pair is
+staged. Next:resolve current live reachability and finish the existing N35 handoff.
 Physical gestures,unit-target callbacks,forced group/type retirement and human
 Internet feel remain open. Full N33 and final release are not accepted.
+
+Normal bundled preview qualification - ServerAI04
+Clean afb5f20/helper111/Python3.14.8 client/server pair passes embedded extraction,
+isolated shortcuts and owned install/normal-launch argument checks with exact
+automated-file restore. Actual04 then uses the normal human assembly and new
+bundled worker/runtime with visual correction enabled at475ms simulated RTT.
+Original Move responds47ms,468ms before raw bridge/484ms before native65,phase
+441/441. All630 native states match;AI131 causes correction1/replay11+20. Natural
+game/worker/authority shutdown,no force,source/files unchanged;101.804seconds.
+This adds normal bundled compatibility,not a new900ms envelope or physical-input
+claim. Local pair is staged/verified,not published/deployed;current SSH/TLS access is
+unavailable and the N35 network question is pending. No live change is made.
+Failed build01 assembly assertion and install02 timeout remain preserved;03
+passes the same180-second deadline with exact restore,without proven I/O cause.
+Details:prediction-server-ai.txt. Evidence:local/prediction-handoff-20261112/analysis04.
 
 Actual85 results
 Root61882 terminal0,142.868seconds;games32172/35720 exit0,reaped/handles closed,

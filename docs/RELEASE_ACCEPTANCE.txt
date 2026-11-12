@@ -3,6 +3,20 @@ Reviewed:2026-11-12. FINAL RELEASE:NOT ACCEPTED.
 Work queue:REMAINING_DELIVERY_PLAN.txt. Latest results:STATUS.txt.
 Exact prior checklist/history:history/2026-10-24/RELEASE_ACCEPTANCE.txt.
 
+New bounded preview-kit gate:PASSED locally by ServerAI04 on clean afb5f20 with
+normal human assembly,new packaged worker/runtime,helper111 and smoothing enabled.
+Embedded payloads/isolated shortcuts,owned install/normal-launch arguments and
+exact prior-file restore pass. At475ms simulated RTT,original Move47ms,468/484ms
+before bridge/native65,phase441/441;all630 native states and AI replay11+20 match.
+Every owned child finishes naturally0,no force/source drift. This verifies the
+local client/server installer pair staged atdist/prediction-ai-visual-20261112/;
+it is not publication,deployment or human Internet acceptance. Current SSH/TLS
+access is unavailable,N35 network question pending,no live changes. Failed
+build01 assertion/install02 timeout remain failures;03's same180s deadline passes
+with exact restore but does not establish the original timeout cause.
+Physical gestures,unit-target callbacks,forced group/type retirement and full
+N33/human acceptance remain OPEN. Details:prediction-server-ai.txt.
+
 Latest bounded visual-correction scope:PASSED in Actual85/helper111 with two
 natural rounds,all2892 native-state/wire comparisons,pre-authority response,
 900ms visual correction,onscreen original ray/drag queries and four main-thread
@@ -15,8 +29,8 @@ This stage1 read-only query proof does not accept physical gestures,unit-target
 callbacks or commands under smoothing. Forced group/type retirement,broader
 input/lifetime and human Internet gates remain open. Actual84's original
 offscreen failure and Actual78/79/80/81/82/83 failures remain preserved. All
-numeric acceptance limits and the N35 kit/live host are unchanged. Next:exact
-paired preview/bundled launcher and server-AI qualification before user handoff.
+numeric acceptance limits and the N35 kit/live host are unchanged. The later
+ServerAI04 result above closes the named local bundled-kit qualification only.
 Details:prediction-correction-motion.txt.
 
 Nick's requested0.4.0 publication/public-game reopening is COMPLETE. Paired

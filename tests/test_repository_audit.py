@@ -1,9 +1,29 @@
 import unittest
+import hashlib
 from pathlib import Path
+from unittest.mock import patch
+from tools import audit_repository
 from tools.audit_repository import inspect_content
 
 
 class PublicationAuditTests(unittest.TestCase):
+    def test_only_exact_reviewed_large_source_allowed(self):
+        name = 'tools/verify_prediction_multiplayer.py'
+        data = (Path(__file__).resolve().parents[1] / name).read_bytes()
+        self.assertGreater(len(data), 256 * 1024)
+        self.assertEqual(inspect_content(name, data), [])
+        reason = 'source file over 256 KiB; review for embedded payload'
+        for changed in (data + b'\n', b'#' + data[1:]):
+            self.assertIn(reason, inspect_content(name, changed))
+        self.assertIn(reason, inspect_content('tools/unreviewed.py', data))
+
+    def test_reviewed_size_does_not_bypass_secret_checks(self):
+        name = 'tools/reviewed_example.py'
+        data = b'\n' * (256 * 1024) + b'-----BEGIN ' + b'PRIVATE KEY-----'
+        reviewed = (len(data), hashlib.sha256(data).hexdigest())
+        with patch.dict(audit_repository.REVIEWED_LARGE_SOURCES, {name: reviewed}):
+            self.assertEqual(inspect_content(name, data), ['private key'])
+
     def test_only_exact_reviewed_documentation_media_allowed(self):
         root = Path(__file__).resolve().parents[1]
         for name in ('crabs-2026.gif', 'discord-server.webp'):

@@ -4,6 +4,21 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+2026-11-12 New local AI+visual preview pair passes actual ServerAI04 using clean
+afb5f20,normal human assembly,new bundled worker/runtime and helper111. At475ms
+simulated RTT the original Move responds47ms,468ms before bridge/484ms before65,
+phase441/441. All630 full native states match;AI correction1/replay11+20 passes.
+Game/worker/authority finish naturally0 in101.804s,no force,source/files unchanged.
+Embedded payloads/isolated shortcuts and owned bundled install/normal-launch
+arguments pass;prior automated bytes/mtimes restored exactly. Failed build01
+assembly assertion and install02 timeout stay preserved;03 passes the same180s
+deadline without proving the timeout cause. The locally verified pair is staged
+atdist/prediction-ai-visual-20261112/,not published/deployed. Its39 authority
+modules match64e21c6 exactly,so no server-code upgrade is required by this pair.
+Current SSH/TLS probes fail,N35 network question is pending,no live/manual change.
+Physical gestures,unit-target callbacks and human Internet/full N33 remain open.
+Details:prediction-server-ai.txt;local/prediction-handoff-20261112/analysis04.
+
 2026-11-12 Actual85/helper111 PASSES the complete bounded two-round native/wire,
 pre-authority movement,900ms visual,onscreen original ray/drag-query and prompt
 visual-root retirement gates. All2892 native-state rows pass;both games/workers
@@ -14,9 +29,9 @@ before bridge. Original camera focus once/world makes both539/540 ray+drag
 comparisons usable inside the viewport;zero controls and actual/displayed roots
 match. Four completed drains each release three roots to zero before nextworld/
 exit. This accepts read-only original queries,not physical gestures or callbacks.
-Actual84's original offscreen failure remains preserved. Next:paired preview
-package/bundled server-AI qualification and refreshed N35 handoff;no new package
-or live/manual change follows from this run. Installed helper88 still explains
+Actual84's original offscreen failure remains preserved. ServerAI04 above adds
+the later normal bundled preview qualification;no live/manual change follows
+from these owned tests. Installed helper88 still explains
 Nick's Custom-only dialog. Full N33 and human Internet feedback remain open.
 Details:prediction-correction-motion.txt.
 
