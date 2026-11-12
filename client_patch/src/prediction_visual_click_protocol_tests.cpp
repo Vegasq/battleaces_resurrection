@@ -101,6 +101,38 @@ static void firstAcquisitionRequiresActualCorrectedUpCommit() {
     check(!acquireSelection(true,std::numeric_limits<double>::infinity(),74,{74},{},{}),"nonfinite correction qualified");
     check(!acquireSelection(true,std::numeric_limits<double>::quiet_NaN(),74,{74},{},{}),"unknown correction qualified");
 }
+static void neutralPrefixPreservesActualFourEventOrdinals() {
+    Progress p;p.afterNeutral(10,100,11,110);
+    refuses([&]{p.queue(1,12,120);});refuses([&]{p.queue(3,12,120);});
+    refuses([&]{p.before(true,7,12,120);});refuses([&]{p.close(12,120,true);});
+    p.queue(2,12,120);p.queue(3,13,130);p.before(true,7,13,131);p.returned(true,7,132,true);
+    refuses([&]{p.queue(3,14,140);});p.queue(4,14,140);
+    p.before(false,9,14,141);p.returned(false,9,142,false);p.close(15,143,true);
+    check(p.stage==Stage::Closed&&p.neutralPrefix,"four actual events did not close one balanced first click");
+    refuses([&]{p.queue(1,16,160);});
+    Progress legacy;legacy.queue(1,10,100);refuses([&]{legacy.queue(3,11,110);});
+}
+static void neutralPrefixRequiresBoundedActualConsumption() {
+    Progress p;
+    refuses([&]{p.afterNeutral(10,100,10,110);});
+    refuses([&]{p.afterNeutral(10,100,11,100);});
+    refuses([&]{p.afterNeutral(10,100,11,250101);});
+    refuses([&]{p.afterNeutral(0,100,11,110);});
+    p.afterNeutral(10,100,11,250100);
+    refuses([&]{p.afterNeutral(10,100,12,250100);});
+    refuses([&]{p.queue(2,11,250101);});
+    refuses([&]{p.queue(2,12,250100);});
+    p.queue(2,12,250101);
+    auto alreadyStarted=waitingDown();refuses([&]{alreadyStarted.afterNeutral(10,100,12,120);});
+}
+static void neutralAndSubjectPointsAreSeparateImmutableControls() {
+    Point neutral,subject;neutral.bind(480,270);subject.bind(558.1957397460938f,319.71246337890625f);
+    check(!neutral.matches(subject.x(),subject.y()),"neutral control was relabeled as subject delivery");
+    refuses([&]{neutral.bind(subject.x(),subject.y());});
+    refuses([&]{subject.bind(neutral.x(),neutral.y());});
+    check(neutral.matches(480,270)&&subject.matches(558.1957397460938f,319.71246337890625f),
+        "subject acquisition retargeted a consumed neutral event");
+}
 static void nestedWorldResetRetainsDefaultProtocol() {
     struct Nested {Progress progress;};struct World {Nested click;Point point;};
     World world{};world.click.progress=waitingUp();world.point.bind(1,2);
@@ -117,5 +149,7 @@ int main(){try{
     test::matchedCounterfactualPreservesTheSameSeparatelyRoundedOffset();
     test::firstAcquisitionRequiresNaturalEmptySelection();test::firstAcquisitionRequiresActualCorrectedUpCommit();
     test::nestedWorldResetRetainsDefaultProtocol();
-    std::cout<<"visual click protocol:10 authored groups PASS; original runtime remains separate\n";return 0;
+    test::neutralPrefixPreservesActualFourEventOrdinals();test::neutralPrefixRequiresBoundedActualConsumption();
+    test::neutralAndSubjectPointsAreSeparateImmutableControls();
+    std::cout<<"visual click protocol:13 authored groups PASS; original runtime remains separate\n";return 0;
 }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}}

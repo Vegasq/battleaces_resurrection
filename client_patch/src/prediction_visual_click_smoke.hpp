@@ -32,7 +32,11 @@ struct State {
     std::string match;
     unsigned episode=0;
     bool failed=false,active=false,complete=false;
-    protocol::Point point;
+    protocol::Point point,neutralPoint;
+    unsigned neutralStage=0,neutralCallbackCount=0;
+    int neutralWidth=0,neutralHeight=0,neutralCommands=0,neutralMode=0;
+    float neutralLastUp=0;
+    uint64_t neutralQueuedUs=0,neutralQueuedOrdinal=0;
     int beforeCommands=-1,processCommands=-1;
     unsigned processStage=0;
     uint64_t processUs=0;
@@ -105,12 +109,13 @@ static bool acquireSelection(const Sample& value,bool committed) {
     return !acquireEnabled()||protocol::acquireSelection(committed,magnitude(value.pose),value.pose.identity.entity,
         value.current,value.preview,value.casting);
 }
-static std::string fields(const Sample& value,const char* event,uint64_t sequence) {
+static std::string fields(const Sample& value,const char* event,uint64_t sequence,const char* control=nullptr,const protocol::Point* alternatePoint=nullptr) {
     const auto& s=state();
     const auto& p=value.pose;const auto& h=value.click;const auto& m=value.mouse;
+    const auto& point=alternatePoint?*alternatePoint:s.point;
     std::ostringstream out;out.imbue(std::locale::classic());out<<std::setprecision(17)<<std::boolalpha;
     out<<"{\"schema\":1,\"event\":\""<<event<<"\",\"world\":"<<s.world<<",\"match\":\""<<s.match
-       <<"\",\"episode\":"<<s.episode<<",\"control\":\""<<(zeroControl()?"zero":"nonzero")<<"\",\"sequence\":"<<sequence
+       <<"\",\"episode\":"<<s.episode<<",\"control\":\""<<(control?control:zeroControl()?"zero":"nonzero")<<"\",\"sequence\":"<<sequence
        <<",\"frontend_ordinal\":"<<ordinal()<<",\"sampled_us\":"<<value.stamp<<",\"frame\":"<<p.frame
        <<",\"entity\":"<<p.identity.entity<<",\"unit_type\":"<<p.identity.unitType<<",\"army\":"<<p.identity.army
        <<",\"incarnation\":"<<p.identity.incarnation<<",\"lease\":"<<p.lease<<",\"generation\":"<<p.generation
@@ -121,7 +126,7 @@ static std::string fields(const Sample& value,const char* event,uint64_t sequenc
        <<",\"focus_ordinal\":"<<ui::state().focusOrdinal<<",\"focus_returned_us\":"<<ui::state().focusReturned
        <<",\"pending_commands\":"<<value.commands<<",\"current_ids\":"<<ids(value.current)
        <<",\"preview_ids\":"<<ids(value.preview)<<",\"casting_ids\":"<<ids(value.casting)
-       <<",\"pointer\":["<<value.x<<','<<value.y<<"],\"queued_point\":["<<s.point.x()<<','<<s.point.y()<<']'
+       <<",\"pointer\":["<<value.x<<','<<value.y<<"],\"queued_point\":["<<point.x()<<','<<point.y()<<']'
        <<",\"history\":{\"id\":"<<h.id<<",\"mode\":"<<h.mode<<",\"primary\":"<<h.primary
        <<",\"context\":"<<h.context<<",\"drag\":"<<h.drag<<",\"now\":"<<value.now
        <<",\"last_up\":"<<h.lastUp<<",\"window\":"<<h.window<<'}'
@@ -328,6 +333,38 @@ static unsigned roots() {
     for(const auto* p:{&s.selector,&s.handler,&s.server,&s.manager,&s.simulation,&s.device})if(*p)++count;
     for(unsigned i=0;i<3;++i){if(s.controls[i])++count;if(s.actions[i])++count;if(s.references[i])++count;}return count;
 }
+static void neutralProbe(bool,const ba_prediction_input_observer::Ticket&,Obj,Obj,const void*,bool,uint64_t) {
+    auto& s=state();++s.neutralCallbackCount;
+    ba::log("Visual preposition unexpected primary callback: world=%llu count=%u",
+        static_cast<unsigned long long>(s.world),s.neutralCallbackCount);
+    require(false,"visual preposition observed an original primary callback before its first click");
+}
+static void neutralGuard(const Sample& value) {
+    auto& s=state();
+    const bool valid=value.current.empty()&&value.casting.empty()&&!value.click.primary&&!value.click.context&&!value.click.drag&&
+        !value.mouse.ownedButtonPressed&&!value.context&&value.click.mode==s.neutralMode&&value.click.lastUp==s.neutralLastUp&&
+        (s.neutralStage==2||value.commands==s.neutralCommands)&&!s.neutralCallbackCount&&roots()==15;
+    if(!valid)ba::log("Visual preposition refused: world=%llu currentEmpty=%u castingEmpty=%u primary=%u context=%u drag=%u mousePrimary=%u mouseContext=%u mode=%u expectedMode=%u lastUp=%.9g expectedLastUp=%.9g pending=%d expectedPending=%d callbacks=%u roots=%u",
+        static_cast<unsigned long long>(s.world),unsigned(value.current.empty()),unsigned(value.casting.empty()),unsigned(value.click.primary),
+        unsigned(value.click.context),unsigned(value.click.drag),unsigned(value.mouse.ownedButtonPressed),unsigned(value.context),
+        unsigned(value.click.mode),unsigned(s.neutralMode),double(value.click.lastUp),double(s.neutralLastUp),value.commands,s.neutralCommands,s.neutralCallbackCount,roots());
+    require(valid,"visual preposition lost its natural empty released owner");
+}
+static void neutralRecord(const Sample& value,const char* event,unsigned sequence) {
+    const auto& s=state();std::ostringstream out;
+    out<<fields(value,event,sequence,"neutral",&s.neutralPoint)<<",\"viewport\":["<<s.neutralWidth<<','<<s.neutralHeight
+       <<"],\"queued_us\":"<<s.neutralQueuedUs<<",\"queued_ordinal\":"<<s.neutralQueuedOrdinal
+       <<",\"primary_callback_count\":"<<s.neutralCallbackCount<<",\"roots_retained\":"<<roots()<<'}';
+    ba::log("VISUAL PREPOSITION %s",out.str().c_str());
+}
+static void requireAcquireSelection(const Sample& value,bool committed,const char* why) {
+    if(acquireSelection(value,committed))return;
+    ba::log("Visual acquire selection refused: world=%llu committed=%u currentEmpty=%u soleSubject=%u previewEmpty=%u castingEmpty=%u offset=%.9g frame=%d",
+        static_cast<unsigned long long>(state().world),unsigned(committed),unsigned(value.current.empty()),
+        unsigned(value.current==std::vector<uint32_t>{value.pose.identity.entity}),unsigned(value.preview.empty()),
+        unsigned(value.casting.empty()),magnitude(value.pose),value.pose.frame);
+    require(false,why);
+}
 static void update() {
     require(ui::enabled()&&vm::session().kind==vm::SessionKind::Primary,"visual click requires its primary visual input diagnostic");
     auto& s=state();const uint64_t world=ba_prediction_worker::movementWorldId();const auto match=ba_prediction_worker::movementMatchId();
@@ -341,6 +378,40 @@ static void update() {
     const auto& acquired=ui::state();if(acquired.world!=world||acquired.match!=match||!acquired.zeroBefore)return;
     visual::FrontendObservation pose;if(!visual::frontendObservation(pose))return;
     require(pose.frame<=600,"visual click bounded acquisition window exhausted");
+    if(acquireEnabled()&&!s.episode) {
+        if(!s.active) {
+            require(magnitude(pose)==0,"visual preposition missed the original zero-before control");
+            auto& owner=actors::state();Obj selector=ba_prediction_selection::currentSelector();
+            s.anchor=pose;vm::begin(owner,selector);s.active=true;
+            input::visualProbe=&neutralProbe;input::visualProcessProbe=nullptr;
+            const auto before=sample();s.neutralCommands=before.commands;s.neutralMode=before.click.mode;s.neutralLastUp=before.click.lastUp;
+            neutralGuard(before);
+            s.neutralWidth=history::screenDimension("get_width",0x06000479,0x5038860,
+                "\x48\x83\xec\x28\x48\x8b\x05\x45\xa1\xe2\x01\x48\x85\xc0\x75\x18");
+            s.neutralHeight=history::screenDimension("get_height",0x0600047a,0x50388b0,
+                "\x48\x83\xec\x28\x48\x8b\x05\xfd\xa0\xe2\x01\x48\x85\xc0\x75\x18");
+            require(s.neutralWidth>6&&s.neutralHeight>6,"visual preposition viewport is too small");
+            s.neutralPoint.bind(float(s.neutralWidth)*0.5f,float(s.neutralHeight)*0.5f);
+            vm::queueNeutralPosition(s.neutralPoint.x(),s.neutralPoint.y());
+            s.neutralQueuedUs=visual::stamp();s.neutralQueuedOrdinal=ordinal();
+            const auto queued=sample();neutralGuard(queued);require(queued.mouse.queuedSequence==1,"visual preposition raw sequence is not one");
+            neutralRecord(queued,"queued",1);s.neutralStage=1;return;
+        }
+        const auto value=sample();neutralGuard(value);
+        require(value.mouse.queuedSequence==1,"visual preposition raw sequence changed before first click");
+        if(s.neutralStage==1) {
+            require(value.stamp>=s.neutralQueuedUs&&value.stamp-s.neutralQueuedUs<=250000,"visual preposition delivery was not observed within250ms");
+            if(ordinal()<=s.neutralQueuedOrdinal||!s.neutralPoint.matches(value.x,value.y))return;
+            s.progress.afterNeutral(s.neutralQueuedOrdinal,s.neutralQueuedUs,ordinal(),value.stamp);
+            neutralRecord(value,"consumed",2);s.neutralStage=2;return;
+        }
+        require(s.neutralStage==2&&s.neutralPoint.matches(value.x,value.y),"visual preposition consumed pointer changed before acquisition");
+        if(magnitude(value.pose)<0.5||value.now-value.click.lastUp<=value.click.window)return;
+        requireAcquireSelection(value,false,"visual acquire first acquisition is not naturally empty");
+        const auto projected=ui::project(value.camera,value.actual);s.point.bind(projected.x,projected.y);
+        s.episode=1;input::visualProbe=&probe;input::visualProcessProbe=&process;
+        queue(false,"position_queued");return;
+    }
     if(!s.active) {
         const double amount=magnitude(pose);if(acquireEnabled()?amount<0.5:(s.episode==0?amount!=0:amount<0.5))return;
         auto& owner=actors::state();Obj selector=ba_prediction_selection::currentSelector();
@@ -357,7 +428,7 @@ static void update() {
     }
     if(s.progress.stage==protocol::Stage::PositionQueued) {
         if(ordinal()<=s.progress.queuedOrdinal)return;
-        const auto value=sample();require(acquireSelection(value,false),"visual acquire consumed position lost empty selection");
+        const auto value=sample();requireAcquireSelection(value,false,"visual acquire consumed position lost empty selection or correction");
         if(!s.point.matches(value.x,value.y))return;
         require(!value.click.primary&&!value.click.context&&!value.click.drag&&!value.mouse.ownedButtonPressed&&!value.context,
             "visual click position event delivered an unexpected gesture");
@@ -396,7 +467,8 @@ static void tick() {
         require(!ba::flag(L"-prediction-visual-click-empty"),"removed empty-ground diagnostic is unsupported");
         require(!acquireEnabled()||(!legacyEnabled()&&!spatialEnabled()),"visual acquire is exclusive of legacy click/spatial diagnostics");
         static bool marked=false;if(!marked){ba::log(acquireEnabled()?"BA_RESURRECTION_VISUAL_ACQUIRE_V1":"BA_RESURRECTION_VISUAL_CLICK_SMOKE_V1");
-            if(spatialEnabled())ba::log("BA_RESURRECTION_VISUAL_AIM_V1");marked=true;}
+            if(spatialEnabled())ba::log("BA_RESURRECTION_VISUAL_AIM_V1");
+            if(acquireEnabled())ba::log("BA_RESURRECTION_VISUAL_PREPOSITION_V1");marked=true;}
         require(ordinal()!=UINT64_MAX,"visual click frontend ordinal exhausted");++ordinal();update();
     } catch(const std::exception& error) {
         state().failed=true;input::visualProbe=nullptr;input::visualProcessProbe=nullptr;

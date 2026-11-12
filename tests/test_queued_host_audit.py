@@ -188,6 +188,7 @@ class Tests(unittest.IsolatedAsyncioTestCase):
         from types import SimpleNamespace
         config = SimpleNamespace(data_directory=self.root/'drain', assets_directory=self.root/'assets',
             log_max_bytes=65536, log_backups=2, diagnostic_audit=True, dashboard_port=0,
+            minimum_client_revision=0, client_update_message='', experimental_command_scheduling=False,
             max_rooms=4, input_window=64, access_mode='rc-open', listen_host='127.0.0.1', listen_port=0)
         ready, stopped = asyncio.Event(), asyncio.Event()
         audits, streams = [], []
@@ -249,6 +250,7 @@ class Tests(unittest.IsolatedAsyncioTestCase):
         from types import SimpleNamespace
         config = SimpleNamespace(data_directory=self.root/'host', assets_directory=self.root/'assets',
             log_max_bytes=65536, log_backups=2, diagnostic_audit=True, dashboard_port=0,
+            minimum_client_revision=0, client_update_message='', experimental_command_scheduling=False,
             max_rooms=4, input_window=64, access_mode='rc-open', listen_host='127.0.0.1', listen_port=0)
         manifest = dict(game_build=37822, asset_format=1, files={})
         audits, held = [], []

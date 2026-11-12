@@ -50,9 +50,12 @@ ConvertTo-Json -InputObject @($global:practiceLaunches) -Depth 4 -Compress
         shutil.rmtree(target)
 
     def launch(self):
+        environment = os.environ.copy()
+        # Let the selected PowerShell version build its own standard module path.
+        environment.pop('PSModulePath', None)
         return subprocess.run([POWERSHELL, '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
             '-File', str(self.script), '-Launcher', str(ROOT / 'client_patch/launcher/Launch-Client.ps1'),
-            '-Config', str(self.config)], capture_output=True, text=True, timeout=20)
+            '-Config', str(self.config)], capture_output=True, text=True, timeout=20, env=environment)
 
     def test_no_server_settings_launch_one_visible_game_with_normal_ai(self):
         result = self.launch()

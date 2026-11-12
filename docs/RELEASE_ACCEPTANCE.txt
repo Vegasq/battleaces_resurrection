@@ -10,6 +10,9 @@ Four balanced click episodes include offsets1.102/1.251units. All48 matched
 P/Q/R/M queries are phase-stable;every old parent gate remains unchanged. The
 zero control commits an empty selection to74;the nonzero control reselects74.
 Fresh selection during nonzero correction remains a separate pending check.
+Actual92 observes that transition in both rounds with balanced original release,
+but full qualification remainsOPEN because its unchanged Stage1 query parent
+records a later displayed-root miss. The failed overall report stays preserved.
 Both games/workers/authorities exit naturally0,no force/errors or source drift.
 Actual87's root-center miss remains FAILED and unexplained;88 does not reproduce
 it or establish a physics-synchronization cause. Physical/Internet and full N33

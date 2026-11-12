@@ -38,6 +38,40 @@ affected CLI checks pass,including changed coordinates,phase order,source
 binding and refusal to promote a failed parent. Earlier click checks remain
 qualified at the exact retained source;full N33/D8 and human acceptance stay open.
 
+Actual92 - first acquisition observed; overall query gate remains FAILED
+Both original first clicks now commit naturally empty selection to74 during
+nonzero correction:Down frames543/538,offsets1.236352/1.560398units. Current stays
+empty through ProcessClick return and Up-before;original Up commits74 and clears
+preview/casting. A separate real position-only event places the pointer at
+(480,270),observed consumed3.579/3.183ms later. The same borrowed Mouse retains
+15 roots through actual queues1(neutral),2(position),3(Down),4(Up),then releases
+all15 after balanced original release. No zero click or selection/history reset.
+These acquisition components pass,but the overall report correctly staysFAILED.
+
+The unchanged Stage1 query gate records a world1/frame546 displayed-root ray
+miss/null at(555.609314,318.068390),inside the viewport,with offset2.971248units.
+The raw ray also misses;displayed drag istrue/raw dragfalse. Earlier543/544/545
+ray+drag queries discriminate correctly,and world2 qualifies. The miss occurs
+103.371ms after the actual Up,at a later point;it is not an observed failed click.
+No stale completed join or root mismatch is recorded. Actual87's similar miss
+is now a recurring issue;neither geometry nor physics synchronization is proven.
+The generic acquisition parent error reflects this earlier Stage1 failure,
+not a new native-state/wire failure. Preserve every original result.
+
+Both rounds finish naturally in144.019s. All2892 full native-state hashes match
+1446 unique authority frames;2892 bridge payloads match authority/native65.
+Movement,900ms visual correction and four prompt visual retirements pass.
+Games32424/47380 exit0,reaped/handlesclosed,Jobs3/0/0;authorities48780/42648 exit0,
+Jobs2/0/0. No forced cleanup or errors;1072 source snapshots and inputs agree.
+Report:local/prediction-runtime/movement92-neutral-first-selection/run/verification.json
+SHA2564b19cf465190abc2f29e5b32ce8cc8d85cc581f9dad166de32bbb8d7929335aa.
+Helper119 SHA2562d1bf9a1b7e54898f0cf0350e162528536b7e45df4bb21058ac4b76591a99ecc.
+All44 helper executables and27 focused Python tests pass at their authored scope.
+Next:resolve an exact original physics-synchronization binding before any
+same-point pre/post intervention. The stripped managed method is absent;no
+guessed call,production synchronization change or failed-report promotion.
+Hold-with-smoothing remains planned. The frozen human kit/live host are unchanged.
+
 Actual91 - first-selection setup FAILED before Down
 The explicit acquisition-only mode retains naturally empty committed selection
 at frame539,but its first frozen subject point is outside the viewport:
@@ -50,6 +84,9 @@ place its pointer inside the viewport;91 has no corresponding early event.
 At553 the retained correction magnitude is below0.5units,which independently
 fails the combined acquisition guard. Its wording does not prove that selection
 changed. This failed/forced capture cannot qualify click or movement acceptance.
+Elapsed55.591s;games22772/13856 exit92,reaped/handlesclosed,Jobs3/0/0.
+Authority16064 is cancelled/forced exit1,Job2/0/0;two bridge Win64 cleanup errors
+remain. Source maps agree and runtime files are unchanged.
 Next:add one explicit position-only neutral control while the zero query is
 settled,retain the same borrowed Mouse session,and observe actual consumption
 before the first nonzero click. Preserve real queue ordinals and naturally empty

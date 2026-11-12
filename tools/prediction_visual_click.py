@@ -100,9 +100,10 @@ def _hit(value):
 
 
 def rows(log, *, contract='legacy_two_episode'):
-    require(contract in ('legacy_two_episode','first_nonzero'), 'unknown explicit callback-record contract')
+    require(contract in ('legacy_two_episode','first_nonzero','first_nonzero_preposition'), 'unknown explicit callback-record contract')
     first_nonzero=contract=='first_nonzero'
-    prefix='VISUAL ACQUIRE ' if first_nonzero else PREFIX
+    preposition=contract=='first_nonzero_preposition'
+    prefix='VISUAL PREPOSITION ' if preposition else 'VISUAL ACQUIRE ' if first_nonzero else PREFIX
     require(type(log) is str and len(log.encode('utf-8')) <= 64*1024*1024, 'bounded closed log required')
     require(FAILURE not in log, 'original click producer failed')
     def unique(pairs):
@@ -117,8 +118,8 @@ def rows(log, *, contract='legacy_two_episode'):
         raw = line.split(prefix,1)[1]
         require(len(raw.encode('utf-8')) <= 16384, 'click row exceeds byte bound')
         row = json.loads(raw,object_pairs_hook=unique,parse_constant=constant)
-        require(type(row) is dict and row.get('event') in set(EVENTS), 'unknown click event')
-        extra = set()
+        require(type(row) is dict and row.get('event') in ({'queued','consumed'} if preposition else set(EVENTS)), 'unknown click event')
+        extra = {'viewport','queued_us','queued_ordinal','primary_callback_count','roots_retained'} if preposition else set()
         if row['event'].startswith('callback_'):
             extra |= CALLBACK
             if row.get('kind') == 'Down' and row['event'] == 'callback_before': extra.add('hit_test')
@@ -126,9 +127,10 @@ def rows(log, *, contract='legacy_two_episode'):
         if row['event'] == 'closed': extra |= {'roots_before','roots_after','balanced'}
         require(set(row) == COMMON|extra and type(row['schema']) is int and row['schema'] == 1, 'click schema differs')
         require(queries.integer(row['world'],1) and type(row['match']) is str and re.fullmatch('[a-f0-9]{32}',row['match']) and
-                (type(row['episode']) is int and row['episode']==1 and row['control']=='nonzero' if first_nonzero else
+                (type(row['episode']) is int and row['episode']==0 and row['control']=='neutral' if preposition else
+                 type(row['episode']) is int and row['episode']==1 and row['control']=='nonzero' if first_nonzero else
                  queries.integer(row['episode'],1,2) and row['control'] == ('zero' if row['episode'] == 1 else 'nonzero')) and
-                queries.integer(row['sequence'],1,10 if first_nonzero else 20) and queries.integer(row['frontend_ordinal'],1) and
+                queries.integer(row['sequence'],1,2 if preposition else 10 if first_nonzero else 20) and queries.integer(row['frontend_ordinal'],1) and
                 queries.integer(row['sampled_us'],1) and queries.integer(row['frame'],400,650) and
                 all(queries.integer(row[k],0,0xffffffff) for k in ('entity','unit_type','army')) and
                 all(queries.integer(row[k],1) for k in ('incarnation','lease','generation','focus_ordinal','focus_returned_us')),
@@ -159,7 +161,7 @@ def rows(log, *, contract='legacy_two_episode'):
         require(history['now'] >= history['last_up'], 'original Single clock regressed')
         mouse = row['mouse']
         require(type(mouse) is dict and set(mouse) == MOUSE and all(queries.pointer(mouse[k]) for k in ('action','control','device')) and
-                len({mouse[k] for k in ('action','control','device')}) == 3 and queries.integer(mouse['queued_sequence'],1,3) and
+                len({mouse[k] for k in ('action','control','device')}) == 3 and queries.integer(mouse['queued_sequence'],1,1 if preposition else 4 if first_nonzero else 3) and
                 all(type(mouse[k]) is bool for k in ('primary','context')), 'bound original Mouse schema differs')
         pose = row['pose']
         require(type(pose) is dict and set(pose) == POSE and queries.integer(pose['frame'],400,650) and pose['frame'] == row['frame'] and
@@ -172,6 +174,14 @@ def rows(log, *, contract='legacy_two_episode'):
         require(pose['actual'] == pose['displayed'], 'callback root differs from joined display')
         visual.close(pose['displayed'],motion.vec(motion.add(pose['raw'],pose['offset'])), 'click offset differs from actual display')
         if row['control'] == 'zero': require(all(v == 0 for v in pose['offset']) and pose['raw'] == pose['displayed'], 'zero episode has correction')
+        if preposition:
+            require(type(row['viewport']) is list and len(row['viewport'])==2 and
+                    all(queries.integer(v,7,65535) for v in row['viewport']) and
+                    queries.integer(row['queued_us'],1,row['sampled_us']) and
+                    queries.integer(row['queued_ordinal'],1,row['frontend_ordinal']) and
+                    type(row['primary_callback_count']) is int and row['primary_callback_count']==0 and
+                    type(row['roots_retained']) is int and row['roots_retained']==15,
+                    'neutral position queue/callback/root schema differs')
         if row['event'].startswith('callback_'):
             require(row['kind'] in METHODS and (row['method_token'],row['method_rva']) == METHODS[row['kind']] and
                     all(queries.pointer(row[k]) for k in ('method_info','dispatch_thunk','context_pointer')) and
@@ -189,7 +199,7 @@ def rows(log, *, contract='legacy_two_episode'):
             require(type(row['roots_before']) is int and row['roots_before'] == 15 and
                     type(row['roots_after']) is int and row['roots_after'] == 0 and row['balanced'] is True,
                     'bound Mouse roots or release balance survived close')
-        result.append(row); require(len(result) <= (20 if first_nonzero else MAX_ROWS), 'click row budget exceeded')
+        result.append(row); require(len(result) <= (4 if preposition else 20 if first_nonzero else MAX_ROWS), 'click row budget exceeded')
     return result
 
 
@@ -209,7 +219,8 @@ def _join(row, poses, binding, focus):
     return pose
 
 
-def _episode(own):
+def _episode(own, *, queue_contract='three_events'):
+    require(queue_contract in ('three_events','neutral_prefix_four_events'), 'unknown explicit queue contract')
     require([r['event'] for r in own] == list(EVENTS), 'episode event order/coverage differs')
     pos,downq,down,process,processed,downret,upq,up,upret,closed = own
     require([r['kind'] for r in (down,downret,up,upret)] == ['Down','Down','Up','Up'], 'callback kinds reordered')
@@ -225,7 +236,8 @@ def _episode(own):
               'thread','owner_thread','focus_ordinal','focus_returned_us',*sorted(POINTERS))
     require(all(all(r[k] == pos[k] for k in stable) for r in own), 'click lifetime/owner changed within episode')
     require(all(r['mouse'][k] == pos['mouse'][k] for r in own for k in ('action','control','device')), 'bound action/control/device changed')
-    require([r['mouse']['queued_sequence'] for r in own] == [1,2,2,2,2,2,3,3,3,3], 'queue receipts do not bind actual callbacks')
+    expected=[1,2,2,2,2,2,3,3,3,3] if queue_contract=='three_events' else [2,3,3,3,3,3,4,4,4,4]
+    require([r['mouse']['queued_sequence'] for r in own] == expected, 'queue receipts do not bind actual callbacks')
     require(downq['frontend_ordinal'] > pos['frontend_ordinal'] and upq['frontend_ordinal'] > downq['frontend_ordinal'] and
             closed['frontend_ordinal'] > upq['frontend_ordinal'], 'normal frontend delivery observations did not advance')
     require(pos['sampled_us'] < downq['sampled_us'] < down['sampled_us'] <= process['sampled_us'] <=

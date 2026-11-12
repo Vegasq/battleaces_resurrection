@@ -4,6 +4,17 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+2026-11-12 Actual92 observes both genuine first selections[]->74 while correction
+is nonzero,with truthful neutral/position/Down/Up events and15->0 Mouse roots.
+All2892 native/wire comparisons,movement,900ms visual correction and four normal
+retirements pass;natural144.019s cleanup,no force/errors,source/inputs unchanged.
+Overall remainsFAILED:Stage1 world1/frame546 displayed-root ray misses at an
+interior point with2.971unit offset,103ms after the actual successful Up.
+The acquisition component is observed but its unchanged parent stays unqualified.
+Investigate exact original synchronization binding before a same-point probe;
+no camera/physics cause or production fix is established. Hold is deferred.
+Details:prediction-correction-motion.txt. Frozen helper111/live host unchanged.
+
 2026-11-12 Actual91 first-selection setup remains FAILED before any Down/Up:
 the projected point is offscreen,and correction later drops below0.5units.
 The combined guard message does not prove a selection change. A separate

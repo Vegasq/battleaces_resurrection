@@ -163,6 +163,7 @@ class HostDashboardTests(unittest.IsolatedAsyncioTestCase):
         from server import host
         config = NS(data_directory=Path('unused-data'), assets_directory=Path('unused-assets'),
                     log_max_bytes=65536, log_backups=2, diagnostic_audit=False,
+                    minimum_client_revision=0, client_update_message='', experimental_command_scheduling=False,
                     max_rooms=4, input_window=64, access_mode='rc-open',
                     listen_host='127.0.0.1', listen_port=47623,
                     dashboard_host='127.0.0.1', dashboard_port=47624)

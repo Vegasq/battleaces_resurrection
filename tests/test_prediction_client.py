@@ -16,7 +16,7 @@ from tools import prediction_client as p
 class PredictionClientTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
-        self.root=Path(self.temp.name);self.package=self.root/'private';self.game=self.root/'working game'
+        self.root=Path(self.temp.name).resolve();self.package=self.root/'private';self.game=self.root/'working game'
         self.package.mkdir();self.game.mkdir();self.original=b'ORIGINAL';self.ordinary=b'ORDINARY';self.prediction=b'PREDICTION'
         helper=b'MZ'+b' '.join((b'BA_RESURRECTION_MOVEMENT_PIPELINE_V1',b'BA_RESURRECTION_NATIVE_WORKER_PROXY_V1',
             b'BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1'))

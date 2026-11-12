@@ -41,16 +41,24 @@ inline bool acquireSelection(bool committed,double correction,uint32_t subject,
 enum class Stage {Ready,PositionQueued,DownQueued,DownEntered,DownReturned,UpQueued,UpEntered,UpReturned,Closed};
 struct Progress {
     Stage stage=Stage::Ready;
+    bool neutralPrefix=false;
     uint64_t queuedOrdinal=0,queuedUs=0,enteredUs=0,ticket=0,downTicket=0,returnedUs=0;
     static void require(bool value,const char* why){if(!value)throw std::invalid_argument(why);}
+    void afterNeutral(uint64_t requestedOrdinal,uint64_t requestedUs,uint64_t consumedOrdinal,uint64_t consumedUs) {
+        require(stage==Stage::Ready&&!neutralPrefix&&!queuedOrdinal&&!queuedUs&&!ticket&&requestedOrdinal&&requestedUs&&
+            consumedOrdinal>requestedOrdinal&&consumedUs>requestedUs&&consumedUs-requestedUs<=250000,
+            "visual click neutral prefix lacks a distinct bounded consumed event");
+        neutralPrefix=true;queuedOrdinal=consumedOrdinal;queuedUs=consumedUs;
+    }
     void queue(unsigned sequence,uint64_t ordinal,uint64_t stamp) {
         require(ordinal&&stamp,"visual click queue has no clock/ordinal");
-        const Stage expected=sequence==1?Stage::Ready:sequence==2?Stage::PositionQueued:Stage::DownReturned;
-        require(sequence>=1&&sequence<=3&&stage==expected,"visual click queue order differs");
+        const unsigned position=neutralPrefix?2u:1u,down=position+1,up=position+2;
+        const Stage expected=sequence==position?Stage::Ready:sequence==down?Stage::PositionQueued:Stage::DownReturned;
+        require(sequence>=position&&sequence<=up&&stage==expected,"visual click queue order differs");
         require(!queuedOrdinal||(ordinal>queuedOrdinal&&stamp>queuedUs),"visual click queue lacks later frontend delivery observation");
-        require(sequence!=3||stamp>returnedUs,"visual click Up was queued before Down returned");
+        require(sequence!=up||stamp>returnedUs,"visual click Up was queued before Down returned");
         queuedOrdinal=ordinal;queuedUs=stamp;
-        stage=sequence==1?Stage::PositionQueued:sequence==2?Stage::DownQueued:Stage::UpQueued;
+        stage=sequence==position?Stage::PositionQueued:sequence==down?Stage::DownQueued:Stage::UpQueued;
     }
     void before(bool down,uint64_t serial,uint64_t ordinal,uint64_t stamp) {
         require(stage==(down?Stage::DownQueued:Stage::UpQueued),"visual click callback was not requested");

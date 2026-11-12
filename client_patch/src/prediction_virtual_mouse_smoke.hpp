@@ -257,7 +257,7 @@ static bool includes(Obj action,Obj expected,ControlScan* scan=nullptr,unsigned 
 enum class SessionKind : uint8_t {Primary,Context};
 struct Session {
     actors::State* owner=nullptr;uint64_t world=0,sequence=0;std::string match;
-    int victimSlot=-1;bool mirror=false,visual=false;
+    int victimSlot=-1;bool mirror=false,visual=false,neutralPrefix=false;
     SessionKind kind=SessionKind::Primary;
     bool active=false,closed=false,failed=false,queueUncertain=false,lastHeld=false,sawPress=false,sawRelease=false;
     std::unique_ptr<Root> selector,handler,server,manager,simulation,device,controls[3],references[3],actions[3];
@@ -397,8 +397,8 @@ static Snapshot observe() {
     result.selectorPrimaryHeld=selectorFlag(result.selector,0x16c);result.selectorContextHeld=selectorFlag(result.selector,0x16d);
     Root pressed(actors::invoke(api().isPressed,result.control));require(pressed.get()&&ba::klass(pressed.get())==api().boolean,"virtual mouse original button observation differs");
     result.ownedButtonPressed=actors::unbox<bool>(pressed.get());
-    if(s.sequence==2&&result.selectorPrimaryHeld&&!result.selectorContextHeld&&result.ownedButtonPressed)s.sawPress=true;
-    if(s.sequence==3&&s.sawPress&&!result.selectorPrimaryHeld&&!result.selectorContextHeld&&!result.ownedButtonPressed)s.sawRelease=true;
+    if(s.sequence==2u+unsigned(s.neutralPrefix)&&result.selectorPrimaryHeld&&!result.selectorContextHeld&&result.ownedButtonPressed)s.sawPress=true;
+    if(s.sequence==3u+unsigned(s.neutralPrefix)&&s.sawPress&&!result.selectorPrimaryHeld&&!result.selectorContextHeld&&!result.ownedButtonPressed)s.sawRelease=true;
     return result;
 }
 static ContextSnapshot observeContext() {
@@ -414,10 +414,21 @@ static ContextSnapshot observeContext() {
     if(s.sequence==3&&s.sawPress&&!result.selectorContextHeld&&!result.ownedContextPressed)s.sawRelease=true;
     return result;
 }
-static QueueReceipt queueButtonEvent(float x,float y,bool held,SessionKind kind) {
+static QueueReceipt queueButtonEvent(float x,float y,bool held,SessionKind kind,bool neutral=false) {
     live();auto& s=session();auto& a=api();require(s.kind==kind,"mouse queue API differs from its retained session kind");
-    require(std::isfinite(x)&&std::isfinite(y)&&s.sequence<3&&
-        held==(s.sequence==1)&&(!s.sequence||s.sequence!=2||s.sawPress),"virtual mouse diagnostic queue order/position differs");
+    if(neutral) {
+        require(ba::flag(L"-prediction-visual-click-acquire")&&s.visual&&kind==SessionKind::Primary&&!s.sequence&&!s.neutralPrefix&&!held&&
+            !selectorFlag(s.selector->get(),0x16c)&&!selectorFlag(s.selector->get(),0x16d)&&!selectorFlag(s.selector->get(),0x119)&&
+            !originalBoolean(a.isPressed,s.controls[1]->get())&&!originalBoolean(a.isPressed,s.controls[2]->get()),
+            "visual neutral position requires a fresh released acquire session");
+    } else {
+        const unsigned prefix=unsigned(s.neutralPrefix);
+        require(!ba::flag(L"-prediction-visual-click-acquire")||s.neutralPrefix,
+            "visual acquire cannot queue its click before the neutral prefix");
+        require(s.sequence<3u+prefix&&held==(s.sequence==1u+prefix)&&
+            (s.sequence!=2u+prefix||s.sawPress),"virtual mouse diagnostic queue order differs");
+    }
+    require(std::isfinite(x)&&std::isfinite(y),"virtual mouse diagnostic position is nonfinite");
     if(kind==SessionKind::Context) {
         require(!selectorFlag(s.selector->get(),0x16c)&&!selectorFlag(s.selector->get(),0x119)&&
             !originalBoolean(a.isPressed,s.controls[1]->get()),"context mouse queue has an active primary button or drag");
@@ -441,13 +452,13 @@ static QueueReceipt queueButtonEvent(float x,float y,bool held,SessionKind kind)
         require(position.get()&&ba::klass(position.get())==a.vector&&button.get()&&ba::klass(button.get())==a.single&&
             right.get()&&ba::klass(right.get())==a.single,"virtual mouse original value boxing differs");
         Root* values[]={&position,&button,&right};
-        for(unsigned i=0;i<3;++i){void* args[]={s.controls[i]->get(),&event,values[i]->get()};actors::invoke(a.write,nullptr,args);}
+        for(unsigned i=0;i<(neutral?1u:3u);++i){void* args[]={s.controls[i]->get(),&event,values[i]->get()};actors::invoke(a.write,nullptr,args);}
         // Unity InputSystem 1.7 official API promises a complete event copy before
         // return, and documents using StateEvent.From + QueueEvent. The retained
         // original image stops at an engine icall: no machine-code copy proof or
         // exact package patch identity is claimed. Never retain Temp across calls.
         void* args[]={&event};s.queueUncertain=true;actors::invoke(a.queue,nullptr,args);
-        ++s.sequence;s.lastHeld=held;dispose();s.queueUncertain=false;
+        ++s.sequence;s.lastHeld=held;if(neutral)s.neutralPrefix=true;dispose();s.queueUncertain=false;
         if(kind==SessionKind::Context)
             ba::log("Bound process Mouse context queued only: world=%llu sequence=%llu rightHeld=%d deliveryObserved=0 input_source=bound_existing_mouse native_device_removed=0",
                 static_cast<unsigned long long>(s.world),static_cast<unsigned long long>(s.sequence),held?1:0);
@@ -466,6 +477,7 @@ static QueueReceipt queueButtonEvent(float x,float y,bool held,SessionKind kind)
         throw;
     }
 }
+static QueueReceipt queueNeutralPosition(float x,float y) {return queueButtonEvent(x,y,false,SessionKind::Primary,true);}
 static QueueReceipt queuePositionButton(float x,float y,bool held) {return queueButtonEvent(x,y,held,SessionKind::Primary);}
 static QueueReceipt queueContextPositionButton(float x,float y,bool rightHeld) {return queueButtonEvent(x,y,rightHeld,SessionKind::Context);}
 static bool tuple(const Snapshot& value,const Session& s) {
@@ -474,11 +486,13 @@ static bool tuple(const Snapshot& value,const Session& s) {
 }
 static void close(const ReleaseObservation& observation) {
     live();auto& s=session();const auto& press=observation.pressedSnapshot;const auto& release=observation.releasedSnapshot;
-    require(s.kind==SessionKind::Primary&&s.sequence==3&&!s.lastHeld&&!s.queueUncertain&&s.sawPress&&s.sawRelease&&tuple(press,s)&&tuple(release,s)&&
-        press.queuedSequence==2&&press.selectorPrimaryHeld&&!press.selectorContextHeld&&press.ownedButtonPressed&&
-        release.queuedSequence==3&&!release.selectorPrimaryHeld&&!release.selectorContextHeld&&!release.ownedButtonPressed&&
+    const unsigned prefix=unsigned(s.neutralPrefix);
+    require(!s.neutralPrefix||ba::flag(L"-prediction-visual-click-acquire"),"neutral prefix cannot close outside acquire diagnostic");
+    require(s.kind==SessionKind::Primary&&s.sequence==3u+prefix&&!s.lastHeld&&!s.queueUncertain&&s.sawPress&&s.sawRelease&&tuple(press,s)&&tuple(release,s)&&
+        press.queuedSequence==2u+prefix&&press.selectorPrimaryHeld&&!press.selectorContextHeld&&press.ownedButtonPressed&&
+        release.queuedSequence==3u+prefix&&!release.selectorPrimaryHeld&&!release.selectorContextHeld&&!release.ownedButtonPressed&&
         observation.pressUpdate&&observation.releaseUpdate>observation.pressUpdate,"virtual mouse balanced original callback observations differ");
-    const auto actual=observe();require(tuple(actual,s)&&actual.queuedSequence==3&&!actual.selectorPrimaryHeld&&
+    const auto actual=observe();require(tuple(actual,s)&&actual.queuedSequence==3u+prefix&&!actual.selectorPrimaryHeld&&
         !actual.selectorContextHeld&&!actual.ownedButtonPressed,"virtual mouse original release no longer holds");
     require(!selectorFlag(actual.selector,0x119)&&!originalBoolean(api().isPressed,s.controls[2]->get()),
         "borrowed process Mouse cannot close with an active drag/context button");

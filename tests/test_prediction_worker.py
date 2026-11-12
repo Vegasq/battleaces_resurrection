@@ -328,7 +328,7 @@ class StreamTests(unittest.TestCase):
             receipt={'experimental':True,'dll_sha256':hashlib.sha256(p.read_bytes()).hexdigest(),
                      'source_sha256':'a'*64,'page_source_sha256':'b'*64}
             (p.parent/'build.json').write_text(json.dumps(receipt))
-            self.assertEqual(helper_receipt(p,arena=True)[0],p)
+            self.assertEqual(helper_receipt(p,arena=True)[0],p.resolve())
             p.write_bytes(b'changed')
             with self.assertRaises(HostError):helper_receipt(p,arena=True)
 

@@ -14,11 +14,26 @@ from server.protobuf_wire import field_bytes, field_packed_uint, field_uint
 from tools import verify_prediction_multiplayer as verifier
 
 
+class CanonicalPreparationTests(unittest.TestCase):
+    def test_aliased_temporary_root_keeps_the_real_prepare_and_verify_contract(self):
+        with tempfile.TemporaryDirectory() as directory:
+            anchor = Path(directory) / 'alias'
+            anchor.mkdir()
+            temporary = SimpleNamespace(name=str(anchor / '..'), cleanup=lambda: None)
+            case = PreparationTests('test_default_prepare_never_spawns_and_does_not_mutate_game')
+            try:
+                with patch.object(tempfile, 'TemporaryDirectory', return_value=temporary):
+                    case.setUp()
+                case.test_default_prepare_never_spawns_and_does_not_mutate_game()
+            finally:
+                case.doCleanups()
+
+
 class PreparationTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
+        self.root = Path(self.temp.name).resolve()
         self.game = self.root / 'local/prediction-runtime/game'
         self.assets = self.root / 'assets'
         self.game.mkdir(parents=True); self.assets.mkdir()

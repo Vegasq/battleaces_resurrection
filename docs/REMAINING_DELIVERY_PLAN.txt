@@ -48,9 +48,10 @@ Try Deck is local;public2vAI is outside this prediction preview's scope.
     no direct selection writes,point search or invented zero-click episode.
     Actual89/90 remain FAILED. The90 observation shows the original empty-ground
     click keeps74 selected;that unsuitable deselection setup is retired.
-    Actual91 fails before Down with an offscreen projected point. Add one
-    observed neutral position control before waiting for the nonzero click;
-    retain real event ordinals,natural empty selection and every parent gate.
+    Actual91 fails before Down with an offscreen projected point. Actual92 adds
+    an observed neutral position;both first-click components pass with real
+    queues1/2/3/4 and natural cleanup. Full qualification remains blocked by the
+    separate Stage1 ray miss below;all original parent gates remain strict.
 [ ] Measure original Hold while a nonzero visual correction decays. Actual66's
     original Hold qualification predates smoothing. A stationary raw position
     can retain a decaying display offset;no actual Hold defect is established.
@@ -58,9 +59,12 @@ Try Deck is local;public2vAI is outside this prediction preview's scope.
     acceptance as a distinct criterion. Do not append Hold to an unchanged
     three-Move claim. Details:prediction-original-hold.txt.
 [ ] Explain any concrete recurring displayed-root selection miss. Actual87's
-    world2 root-center miss remainsFAILED and unexplained;88 does not reproduce
-    it. No synchronization fix is justified by current evidence. Preserve the
-    failed capture;do not retry unchanged cases. prediction-correction-motion.txt.
+    world2 miss and92's world1/frame546 miss remainFAILED and unexplained;88 does
+    not reproduce them. Investigate an exact original synchronization binding
+    before one same-point pre/post diagnostic. No guessed call or production
+    fix yet. Preserve failures;do not retry unchanged cases.
+    This concrete issue takes priority over the planned Hold follow-up.
+    Details:prediction-correction-motion.txt.
 [x] Complete the bounded forced-retirement config review. No justified grouped
     native candidate found;64 entities/34 abilities reviewed. No extra run.
 [ ] Forced active-actor/group retirement integration remains unqualified. Reopen
