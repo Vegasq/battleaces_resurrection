@@ -6,7 +6,7 @@ All credentials and PKI are generated under ignored local/ and are test-only.
 """
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-from contextlib import redirect_stderr, redirect_stdout
+from contextlib import contextmanager, redirect_stderr, redirect_stdout
 import hashlib
 import io
 import json
@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import secrets
 import ssl
+import threading
 import unittest
 from unittest import mock
 import uuid
@@ -169,6 +170,45 @@ class EnrollmentTests(unittest.TestCase):
         with self.assertRaises(e.EnrollmentError): e.enroll(self.request, self.config)
         self.assertEqual(self.config.read_bytes(), before)
         self.assertEqual(len(list((self.folder/'private').glob('enrollment-*'))), 1)
+
+    def test_lock_creator_does_not_write_after_a_competitor_acquires(self):
+        directory = self.folder/'lock-only'
+        directory.mkdir()
+        path = directory/'configuration.lock'
+        created, competitor_locked, creator_closed = (threading.Event() for _ in range(3))
+        entered = []
+
+        @contextmanager
+        def paused_create(selected):
+            # Same shared x+b boundary as these logic tests, but force the
+            # competitor to own the real OS byte-range lock before creation
+            # returns. A byte initialization would now race that lock.
+            stream = selected.open('x+b')
+            try:
+                created.set()
+                self.assertTrue(competitor_locked.wait(5), 'competitor did not acquire the real lock')
+                yield stream
+            finally:
+                try: stream.close()
+                finally: creator_closed.set()
+
+        def acquire(role):
+            with e._configuration_lock(directory):
+                entered.append(role)
+                if role == 'competitor':
+                    competitor_locked.set()
+                    self.assertTrue(creator_closed.wait(5), 'creator did not close its empty handle')
+
+        with mock.patch.object(c, '_private_create', side_effect=paused_create):
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                creator = executor.submit(acquire, 'creator')
+                self.assertTrue(created.wait(5), 'creator did not expose the lock file')
+                competitor = executor.submit(acquire, 'competitor')
+                competitor.result(timeout=10)
+                creator.result(timeout=10)
+        self.assertEqual(entered, ['competitor', 'creator'])
+        self.assertEqual(path.read_bytes(), b'')
+        self.assertEqual(sum(call.args == (path,) for call in self.boundaries[1].call_args_list), 2)
 
     def test_existing_unrelated_json_is_not_overwritten(self):
         self.config.write_bytes(b'{"unrelated":"preserve"}')

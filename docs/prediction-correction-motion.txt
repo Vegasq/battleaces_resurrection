@@ -1,5 +1,44 @@
 N33 - LARGE COMMAND-RETIME CORRECTIONS - 2026-11-12
 
+Actual93 - same-point synchronization intervention OBSERVED; not acceptance
+The original world2/frame538 displayed-root ray misses/null. An immediate repeat
+at the exact Single point also misses/null. The recovered original engine
+Physics.SyncTransforms call takes39us;the same ray afterward hits the exact
+subject74/type1/army0/incarnation75/lease279. Its post query begins136us after
+Sync returns;original-query end to post-query end is949us. Before/after completed
+pose,root/projection,camera,owner,selection/history,Mouse and command predicates
+stay identical. World1 has no eligible miss and truthfully records no intervention.
+The diagnostic is bounded to once/world and preserves every original query.
+
+The binding is recovered from the pinned original engine registration tables:
+UnityEngine.Physics::SyncTransforms -> UnityPlayer+0x1771f0 -> +0x6d8c80.
+Exact module SHA256935c78e7a1b7fae3f0bc6892e390d521e5d24cf40539112559d64312df6107e4
+is checked at prepare,before execution and after execution. Runtime verifies
+loaded PE identity,resolver target,executable allocation and wrapper/target bytes.
+The call is void/no-arguments,on the retained original owner thread. Independent
+static review and source review pass;no guessed MethodInfo or guessed call ABI.
+
+Both rounds finish naturally in142.583s,no force or cleanup errors;core native/
+wire,movement and visual gates pass,source/runtime inputs stay unchanged. The
+original Stage1 failure remainsFAILED. Probe protocol/observation validity is
+true,but overall/full-feature acceptance is deliberately false. Later world2
+observations follow a global physics intervention and cannot qualify unchanged
+production behavior. This associates the observed hit change with synchronization;
+it does not establish an exclusive collider cause or retrospectively explain87/92.
+Next:review one batch synchronization after changed visual Transform writes,
+then qualify that candidate with the ordinary strict query/click gates and the
+intervention flag OFF. No production synchronization change is qualified yet.
+
+Run:local/prediction-runtime/movement93-sync-before-after/run/verification.json
+SHA25613f5d28f06611537235fe8848dc9eaabce8034a1bcd2ddf54d97e6ba24cc58b2.
+Invocation SHA256aeefc50ef1f3c11f833af7f0e324448063e7ced0791c8e24233a34578eac6ff8.
+Helper120 SHA256a1d66e24fd10892a7e6afd4cbc71a0fe7c8150af2d7279751cb5146a6f9ff11d;
+all44 authored C++ executables and full helper compile pass. Python22 focused
+checks pass;source/publication index audit1591objects/zero findings. Exact
+static evidence:local/prediction-presentation-smoothing01/static-sync04/receipt.json
+SHA256e1f19863d64b14924d160a2805ed763ae85430ff95b600cb8609e4fcce314e59.
+Frozen helper111 kit and live/manual copies remain unchanged.
+
 Actual88 - combined original click and matched-point observation PASS
 The normal human frontend3e7bea... and helper114 pass both actual rounds in
 141.255s,including all2892 native-state rows,wire/command conservation,movement

@@ -345,7 +345,7 @@ def prepare(args):
         'gameassembly': game / 'GameAssembly.dll', 'python': Path(args.python),
         'patch_manifest': game / '.battleaces-resurrection/patch-manifest.json',
     }.items()}
-    if visual_sync_enabled:
+    if visual_enabled:
         path=game/'UnityPlayer.dll';files['unityplayer']=dict(path=str(path.resolve(strict=True)),sha256=sha(path))
         require(files['unityplayer']['sha256']==visual_sync.UNITYPLAYER_SHA256,'original UnityPlayer differs from sync probe pin')
     require(files['helper']['sha256'] == args.expected_helper_sha256 and

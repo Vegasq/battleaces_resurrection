@@ -110,7 +110,7 @@ class VisualSyncWiring(unittest.TestCase):
 
     def test_optional_central_unityplayer_pin_and_subject_flag_preserve_default_plan(self):
         f=acquisition.VisualAcquirePlan();f.setUp();self.addCleanup(f.doCleanups);args=f.args
-        original_sha=controller.sha;ordinary=controller.prepare(args);self.assertNotIn('unityplayer',ordinary['files'])
+        original_sha=controller.sha;ordinary=controller.prepare(args);self.assertIn('unityplayer',ordinary['files'])
         ordinary_output=args.output;args.output=ordinary_output.with_name(ordinary_output.name+'-sync-bad')
         args.visual_sync_probe=True;helper=Path(args.game)/'BattleAcesOffline.dll'
         helper.write_bytes(helper.read_bytes()+evidence.MARKER+evidence.PREFIX.encode()+'-prediction-visual-sync-smoke'.encode('utf-16-le'))

@@ -4,6 +4,15 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+2026-11-12 Actual93 observes a same-point original miss,repeat miss,then subject
+hit after one recovered original Physics.SyncTransforms call39us. All recorded
+pose/projection/owner/input/selection/command predicates stay unchanged. World1
+has no trigger. Two rounds exit naturally142.583s,core/native/wire/movement/visual
+checks pass,no force/errors/source drift. Original Stage1 remainsFAILED;the
+intervention is not production acceptance or an exclusive collider-cause proof.
+Review one batch sync after changed visual writes,then ordinary strict gates
+with the diagnostic intervention OFF. prediction-correction-motion.txt.
+
 2026-11-12 Actual92 observes both genuine first selections[]->74 while correction
 is nonzero,with truthful neutral/position/Down/Up events and15->0 Mouse roots.
 All2892 native/wire comparisons,movement,900ms visual correction and four normal

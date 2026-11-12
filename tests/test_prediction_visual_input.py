@@ -202,6 +202,8 @@ class VisualInputRecords(unittest.TestCase):
 class VisualInputPlan(unittest.TestCase):
     def setUp(self):
         self.fixture=delay_tests.InputDelayPreparationTests();self.fixture.setUp();self.addCleanup(self.fixture.doCleanups)
+        from tests.test_prediction_visual_correction import pin_unityplayer_fixture
+        pin_unityplayer_fixture(self,self.fixture.args)
         self.args=self.fixture.args;self.args.visual_correction=True;self.args.visual_input=True
         helper=Path(self.args.game)/'BattleAcesOffline.dll'
         helper.write_bytes(helper.read_bytes()+b'OfflinePredictionVisualJoin\0'+b'PREDICTION VISUAL INPUT '+b'VISUAL INPUT FOCUS '+

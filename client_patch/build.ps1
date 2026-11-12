@@ -143,6 +143,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Prediction visual correction policy test build failed.' }
     & (Join-Path $OutputDirectory 'prediction_visual_correction_tests.exe')
     if ($LASTEXITCODE -ne 0) { throw 'Prediction visual correction policy tests failed.' }
+    & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /WX /std:c++17 (Join-Path $PSScriptRoot 'src/prediction_visual_batch_tests.cpp') "/Fe:$OutputDirectory/prediction_visual_batch_tests.exe"
+    if ($LASTEXITCODE -ne 0) { throw 'Prediction visual batch test build failed.' }
+    & (Join-Path $OutputDirectory 'prediction_visual_batch_tests.exe')
+    if ($LASTEXITCODE -ne 0) { throw 'Prediction visual batch tests failed.' }
     & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /WX /std:c++17 (Join-Path $PSScriptRoot 'src/prediction_visual_lifetime_tests.cpp') "/Fe:$OutputDirectory/prediction_visual_lifetime_tests.exe"
     if ($LASTEXITCODE -ne 0) { throw 'Prediction visual lifetime test build failed.' }
     & (Join-Path $OutputDirectory 'prediction_visual_lifetime_tests.exe')

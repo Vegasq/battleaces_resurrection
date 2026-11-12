@@ -72,8 +72,13 @@ def configuration_digest(path):
 @contextmanager
 def _configuration_lock(directory):
     path = directory / 'configuration.lock'
-    try: private._write_file(path, b'\0')
-    except FileExistsError: private._assert_private_path(path)
+    # A competitor may lock byte zero as soon as creation exposes this path.
+    # Windows permits byte-range locks beyond EOF, so initialization must not
+    # write into that range before this handle has acquired its own lock.
+    try:
+        with private._private_create(path): pass
+    except FileExistsError: pass
+    private._assert_private_path(path)
     stream = path.open('r+b')
     acquired = False
     try:

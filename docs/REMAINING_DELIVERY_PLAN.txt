@@ -60,9 +60,12 @@ Try Deck is local;public2vAI is outside this prediction preview's scope.
     three-Move claim. Details:prediction-original-hold.txt.
 [ ] Explain any concrete recurring displayed-root selection miss. Actual87's
     world2 miss and92's world1/frame546 miss remainFAILED and unexplained;88 does
-    not reproduce them. Investigate an exact original synchronization binding
-    before one same-point pre/post diagnostic. No guessed call or production
-    fix yet. Preserve failures;do not retry unchanged cases.
+    not reproduce them. Actual93 recovers the exact original synchronization
+    binding and observes miss/repeat-miss -> Sync39us -> exact subject hit at
+    unchanged point/pose/input. Diagnostic overall staysFAILED;later world2
+    observations are intervention-scoped. Review one batch sync after changed
+    visual writes,then qualify with original strict gates and the diagnostic
+    OFF. No production fix is qualified yet;preserve all earlier failures.
     This concrete issue takes priority over the planned Hold follow-up.
     Details:prediction-correction-motion.txt.
 [x] Complete the bounded forced-retirement config review. No justified grouped

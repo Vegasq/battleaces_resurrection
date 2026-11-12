@@ -22,7 +22,8 @@ UNITYPLAYER_SHA256='935c78e7a1b7fae3f0bc6892e390d521e5d24cf40539112559d64312df61
 PRODUCERS=('client_patch/src/prediction_visual_sync_smoke.hpp','client_patch/src/prediction_visual_input_smoke.hpp',
            'client_patch/src/offline_client.cpp','client_patch/src/prediction_visual_correction.cpp',
            'client_patch/src/prediction_visual_click_smoke.hpp','client_patch/src/prediction_virtual_mouse_smoke.hpp',
-           'client_patch/src/prediction_visual_click_protocol.hpp')
+           'client_patch/src/prediction_visual_click_protocol.hpp','client_patch/src/prediction_visual_physics.hpp',
+           'client_patch/src/prediction_visual_batch.hpp')
 FIELDS={'schema','event','world','match','sequence','source','module','point','point_bits','pre','sync','post',
         'before','after','checked_us','invariants_unchanged','selection_writes','history_writes','physical_input'}
 SNAPSHOT={'checked_us','selector','camera','camera_controller','actor','transform','manager','simulation','handler',

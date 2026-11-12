@@ -4,6 +4,7 @@ import contextlib
 import io
 import json
 from pathlib import Path
+from pathlib import Path
 import unittest
 from unittest.mock import patch
 
@@ -213,11 +214,22 @@ class VisualRecordTests(unittest.TestCase):
                 evaluate(data)
 
 
+def pin_unityplayer_fixture(testcase,args):
+    """Authored file identity only, never an engine/module execution witness."""
+    from tools.prediction_visual_sync import UNITYPLAYER_SHA256
+    player=Path(args.game)/'UnityPlayer.dll';body=b'authored UnityPlayer native-binding fixture';player.write_bytes(body)
+    original=controller.sha
+    def sha(path):
+        return UNITYPLAYER_SHA256 if Path(path)==player and player.read_bytes()==body else original(path)
+    replacement=patch.object(controller,'sha',side_effect=sha);replacement.start();testcase.addCleanup(replacement.stop)
+
+
 class VisualPlanTests(unittest.TestCase):
     def setUp(self):
         self.fixture = delay_tests.InputDelayPreparationTests()
         self.fixture.setUp(); self.addCleanup(self.fixture.doCleanups)
         self.args = self.fixture.args
+        pin_unityplayer_fixture(self,self.args)
         self.args.visual_correction = True
         base = self.fixture.fixture
         helper = base.game/'BattleAcesOffline.dll'

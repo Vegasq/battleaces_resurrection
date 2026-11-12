@@ -3,6 +3,8 @@
 // by the game. Only joined shared presentation output and its Transform change.
 #include "prediction_visual_correction.hpp"
 #include "prediction_visual_lifetime.hpp"
+#include "prediction_visual_physics.hpp"
+#include "prediction_visual_batch.hpp"
 #include <iomanip>
 #include <locale>
 #include <sstream>
@@ -37,7 +39,7 @@ struct FrontendObservation {
     Obj actor=nullptr,transform=nullptr,simulation=nullptr,manager=nullptr;
 };
 struct State {
-    uint64_t world=0,revision=0,publicationUs=0,traceRows=0;
+    uint64_t world=0,revision=0,publicationUs=0,traceRows=0,physicsRows=0;
     std::string match;
     std::unique_ptr<Root> simulation,manager,interpolator;
     int frame=-1;
@@ -459,13 +461,39 @@ static void afterJoin(Obj interpolate,Obj methodInfo) {
     }
     require(ba::read<float>(timing.time,0x18)==timing.now && ba::read<float>(interpolate,0x100)==timing.start &&
         ba::read<int>(simulation,0xac)==s.frame,"visual correction original clock/frame changed after join");
-    for(auto& write:writes) {
-        auto& entry=s.entries.at(write.entity);
-        if(write.mutate) {
+    ba_prediction_visual_physics::Module physics;
+    size_t restorations=0;
+    uint64_t prepareStarted=0,prepared=0;
+    const bool observePhysics=observeFrame&&ba::flag(L"-prediction-visual-observe");
+    ba_prediction_visual_batch::publish(writes,[&]() {
+        if(observePhysics)prepareStarted=stamp();
+        // Resolve and authenticate the original engine entry before any pose
+        // changes, so a binding refusal leaves this batch untouched.
+        physics=ba_prediction_visual_physics::checked();
+        if(observePhysics)prepared=stamp();
+    },[&](Write& write) {
+            auto& entry=s.entries.at(write.entity);
             void* args[]={&write.displayed};actors::invoke(write.setter,entry.transform->get(),args);
             storage.output.values[write.index]=write.displayed;
             entry.wrote=write.sampled.offset.x!=0 || write.sampled.offset.y!=0 || write.sampled.offset.z!=0;
+            if(!entry.wrote)++restorations;
+    },[&](size_t changed) {
+        const auto entered=observePhysics?stamp():0;
+        // The original jobs are joined and every helper Transform/output write
+        // is complete. Flush once before any completed-pose receipt or later
+        // original reader; the final restoration to raw is also a real write.
+        physics.sync();
+        if(observePhysics) {
+            const auto returned=stamp();require(returned>=entered&&entered>=prepared&&prepared>=prepareStarted&&prepareStarted>=now,
+                "visual physics batch clock order differs");
+            require(++s.physicsRows<=100000,"visual physics bounded batch trace exhausted");
+            ba::log("VISUAL PHYSICS SYNC {\"schema\":1,\"event\":\"batch\",\"world\":%llu,\"match\":\"%s\",\"frame\":%d,\"revision\":%llu,\"policy_us\":%llu,\"prepare_started_us\":%llu,\"prepared_us\":%llu,\"entered_us\":%llu,\"returned_us\":%llu,\"thread\":%lu,\"owner_thread\":%lu,\"writes\":%zu,\"restorations\":%zu}",
+                static_cast<unsigned long long>(s.world),s.match.c_str(),s.frame,static_cast<unsigned long long>(s.revision),
+                static_cast<unsigned long long>(now),static_cast<unsigned long long>(prepareStarted),static_cast<unsigned long long>(prepared),
+                static_cast<unsigned long long>(entered),static_cast<unsigned long long>(returned),GetCurrentThreadId(),owner.thread,changed,restorations);
         }
+    },[&](Write& write) {
+        auto& entry=s.entries.at(write.entity);
         if(traced(entry,s.frame)) {
             require(++s.traceRows<=100000,"visual correction bounded trace exhausted");
             Root boxed(ba::call(entry.transform->get(),"get_position"));
@@ -488,7 +516,7 @@ static void afterJoin(Obj interpolate,Obj methodInfo) {
                 ",\"displayed\":"<<xyz(write.displayed)<<",\"output\":"<<xyz(output)<<",\"transform\":"<<xyz(actual)<<"}";
             ba::log("PREDICTION VISUAL %s",line.str().c_str());
         }
-    }
+    });
     for(auto it=s.entries.begin();it!=s.entries.end();)
         if(!it->second.correction.activePulses() && !it->second.wrote && !traced(it->second,s.frame))it=s.entries.erase(it);else ++it;
 }

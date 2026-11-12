@@ -15,7 +15,10 @@ but full qualification remainsOPEN because its unchanged Stage1 query parent
 records a later displayed-root miss. The failed overall report stays preserved.
 Both games/workers/authorities exit naturally0,no force/errors or source drift.
 Actual87's root-center miss remains FAILED and unexplained;88 does not reproduce
-it or establish a physics-synchronization cause. Physical/Internet and full N33
+it or establish a physics-synchronization cause. Actual93 separately observes
+same-point miss/repeat-miss -> original Sync -> hit with unchanged pose/input;
+this is an intervention observation,not production or full-feature acceptance.
+The original Stage1 failure remainsFAILED. Physical/Internet and full N33
 remain OPEN. Frozen helper111 installers are unchanged. prediction-correction-motion.txt.
 
 New bounded preview-kit gate:PASSED locally by ServerAI04 on clean afb5f20 with
