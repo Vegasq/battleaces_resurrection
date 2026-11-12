@@ -1,4 +1,8 @@
 #pragma once
+namespace ba_prediction_visual_sync {
+static void observe(const ba_prediction_visual::FrontendObservation&,ba::Obj,ba::Obj,
+    ba_prediction_visual::Vec3,bool,bool,const char*,const std::string&);
+}
 // Stage 1: one original camera acquisition, then original frontend queries. This does not
 // inject input, mutate selection, synchronize physics, or qualify callbacks.
 // Include after actor smoke, whose existing metadata helpers are reused only.
@@ -238,6 +242,8 @@ static void observe() {
        <<"\",\"physical_input\":false,\"selection_writes\":0,\"sync_transforms\":false}";
     ba::log("PREDICTION VISUAL INPUT %s",out.str().c_str());s.lastFrame=value.frame;
     if(zero){if(s.nonzero)s.zeroAfter=true;else s.zeroBefore=true;}else{++s.nonzero;++s.revisions[value.revision];}
+    ba_prediction_visual_sync::observe(value,selector.get(),camera.get(),displayedScreen,
+        inside(displayedScreen),displayedRay.hit&&displayedRay.unit==actor.get(),control,out.str());
 }
 static void tick() {
     if(!enabled() || state().failed)return;

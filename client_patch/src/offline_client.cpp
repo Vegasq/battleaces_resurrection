@@ -418,6 +418,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "prediction_actor_smoke.cpp"
 #include "prediction_visual_input_smoke.hpp"
 #include "prediction_visual_click_smoke.hpp"
+#include "prediction_visual_sync_smoke.hpp"
 #include "prediction_cohort_smoke.cpp"
 #include "prediction_cohort_survivor_smoke.cpp"
 #include "prediction_close_formation_smoke.cpp"

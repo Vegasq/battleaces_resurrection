@@ -49,6 +49,7 @@ from tools import prediction_visual_input as visual_input
 from tools import prediction_visual_click as visual_click
 from tools import prediction_visual_aim as visual_aim
 from tools import prediction_visual_acquire as visual_acquire
+from tools import prediction_visual_sync as visual_sync
 
 MAX_LOG = 64 * 1024 * 1024
 HEX64 = re.compile(r'[0-9a-f]{64}')
@@ -220,6 +221,7 @@ def prepare(args):
     visual_click_enabled = visual_click.option(args,frames,position_trace,delay_config)
     visual_aim_enabled = visual_aim.option(args,frames,position_trace,delay_config)
     visual_acquire_enabled = visual_acquire.option(args,frames,position_trace,delay_config)
+    visual_sync_enabled = visual_sync.option(args,frames,position_trace,delay_config)
     actor_correction = bool(getattr(args, 'actor_correction', False))
     mobile_correction = bool(getattr(args, 'mobile_correction', False))
     mobile_group_intent = bool(getattr(args, 'mobile_group_intent', False))
@@ -343,6 +345,9 @@ def prepare(args):
         'gameassembly': game / 'GameAssembly.dll', 'python': Path(args.python),
         'patch_manifest': game / '.battleaces-resurrection/patch-manifest.json',
     }.items()}
+    if visual_sync_enabled:
+        path=game/'UnityPlayer.dll';files['unityplayer']=dict(path=str(path.resolve(strict=True)),sha256=sha(path))
+        require(files['unityplayer']['sha256']==visual_sync.UNITYPLAYER_SHA256,'original UnityPlayer differs from sync probe pin')
     require(files['helper']['sha256'] == args.expected_helper_sha256 and
             files['gameassembly']['sha256'] == args.expected_gameassembly_sha256,
             'installed helper/GameAssembly differs from explicit pins')
@@ -352,6 +357,7 @@ def prepare(args):
     visual_click.helper(visual_click_enabled,helper)
     visual_aim.helper(visual_aim_enabled,helper)
     visual_acquire.helper(visual_acquire_enabled,helper)
+    visual_sync.helper(visual_sync_enabled,helper)
     if queued_orders:
         require(b'BA_RESURRECTION_PREDICTION_QUEUED_ORDERS_V1' in helper,
                 'helper lacks queued-orders schema marker')
@@ -486,6 +492,7 @@ def prepare(args):
     if visual_click_enabled:invocation['visual_click']=True
     if visual_aim_enabled:invocation['visual_click_spatial']=True
     if visual_acquire_enabled:invocation['visual_click_acquire']=True
+    if visual_sync_enabled:invocation['visual_sync_probe']=True
     if expired_click:
         invocation['expired_click'] = True
         validate_expired_click_plan(invocation)
@@ -592,6 +599,7 @@ def verify_prepared(output):
     visual_click.validate_plan(plan)
     visual_aim.validate_plan(plan)
     visual_acquire.validate_plan(plan)
+    visual_sync.validate_plan(plan)
     if plan.get('scenario') == 'mobile':
         validate_mobile_plan(plan)
     validate_expired_click_plan(plan)
@@ -3497,6 +3505,7 @@ async def run_prepared(output):
         visual_click.finalize(plan,report,run)
         visual_aim.finalize(plan,report,run)
         visual_acquire.finalize(plan,report,run)
+        visual_sync.finalize(plan,report,run)
         write(run / 'verification.json', report)
     return report
 
@@ -3714,6 +3723,7 @@ def main(argv=None):
     parser.add_argument('--visual-click',action='store_true',help='Balanced original primary callbacks with visual input/correction diagnostics')
     parser.add_argument('--visual-click-spatial',action='store_true',help='Read-only matched spatial/phase rays during the explicit visual click diagnostic')
     parser.add_argument('--visual-click-acquire',action='store_true',help='First original nonzero subject click from naturally empty committed selection')
+    parser.add_argument('--visual-sync-probe',action='store_true',help='Optional original same-point Physics.SyncTransforms attribution after a Stage1 miss')
     parser.add_argument('--scenario', choices=('startup', 'movement', 'mobile', 'close-formation', 'queued-orders'), default='startup')
     parser.add_argument('--lifecycle', choices=('natural', 'prefix'), default='natural')
     parser.add_argument('--frames', type=int); parser.add_argument('--timeout', type=float, default=180)

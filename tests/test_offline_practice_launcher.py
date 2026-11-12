@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import unittest
+from unittest import mock
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -50,9 +51,10 @@ ConvertTo-Json -InputObject @($global:practiceLaunches) -Depth 4 -Compress
         shutil.rmtree(target)
 
     def launch(self):
-        environment = os.environ.copy()
         # Let the selected PowerShell version build its own standard module path.
-        environment.pop('PSModulePath', None)
+        # Windows os.environ normalizes keys to uppercase; its copied dict does not.
+        environment = {key: value for key, value in os.environ.items()
+                       if key.casefold() != 'psmodulepath'}
         return subprocess.run([POWERSHELL, '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
             '-File', str(self.script), '-Launcher', str(ROOT / 'client_patch/launcher/Launch-Client.ps1'),
             '-Config', str(self.config)], capture_output=True, text=True, timeout=20, env=environment)
@@ -69,6 +71,20 @@ ConvertTo-Json -InputObject @($global:practiceLaunches) -Depth 4 -Compress
         self.assertIn('-practice-ai-profile=18', args)
         self.assertFalse(any(a.startswith(('-dedicated', '-offline-lan', '-secure-transport', '-room=',
             '-lan-smoke', '-practice-ai-smoke', '-lan-audit')) for a in args))
+
+    def test_child_shell_does_not_inherit_foreign_module_search_path(self):
+        foreign = self.folder / 'foreign-modules'
+        foreign.mkdir()
+        self.script.write_text(self.script.read_text().replace(
+            "$ErrorActionPreference='Stop'", """$ErrorActionPreference='Stop'
+if (($env:PSModulePath -split ';') -contains $env:BA_TEST_FOREIGN_MODULES) {
+    throw 'Child inherited another PowerShell version module search path.'
+}"""))
+        with mock.patch.dict(os.environ, {'PSMODULEPATH': str(foreign),
+                                         'BA_TEST_FOREIGN_MODULES': str(foreign)}):
+            result = self.launch()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len(json.loads(result.stdout)), 1)
 
     def test_old_helper_is_rejected_before_launch(self):
         self.manifest['practice']['standalone'] = False

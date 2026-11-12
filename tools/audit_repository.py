@@ -38,7 +38,7 @@ SOURCE_FIXTURES = {
 # bypasses only the generic size warning, never the content/path checks below.
 REVIEWED_LARGE_SOURCES = {
     "tools/verify_prediction_multiplayer.py": (
-        272006, "872bd37fea2eeac4210dd3044fa22fc04b981b3514dea6c8bec5a62f1d193c29"),
+        272778, "91d3ca5ab198ec6f823a980e6c706903d25b76637d260a0ee1d9a9449b8ec804"),
 }
 
 # Exact, already-published blobs reviewed independently of the current index.
@@ -60,6 +60,9 @@ REVIEWED_HISTORICAL_FINDINGS = {
         frozenset({"source file over 256 KiB; review for embedded payload"}),
     ("tools/verify_prediction_multiplayer.py", 271482,
      "23b9c6b9fc08671e6568de7d876df5e7341bd3c708cba4d6479fbd09c77b6002"):
+        frozenset({"source file over 256 KiB; review for embedded payload"}),
+    ("tools/verify_prediction_multiplayer.py", 272006,
+     "872bd37fea2eeac4210dd3044fa22fc04b981b3514dea6c8bec5a62f1d193c29"):
         frozenset({"source file over 256 KiB; review for embedded payload"}),
 }
 
