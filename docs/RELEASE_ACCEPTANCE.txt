@@ -3,6 +3,16 @@ Reviewed:2026-11-12. FINAL RELEASE:NOT ACCEPTED.
 Work queue:REMAINING_DELIVERY_PLAN.txt. Latest results:STATUS.txt.
 Exact prior checklist/history:history/2026-10-24/RELEASE_ACCEPTANCE.txt.
 
+New named first-selection/physics subcase:PASSED by Actual94/helper121.
+Both actual empty-to-subject first clicks during nonzero correction and all
+unchanged ray/drag/native/wire/feel/visual/lifetime gates pass,natural143.816s.
+One batch synchronization follows all helper visual writes before frontend
+poses;final raw restorations are included.236/243 calls join exactly to observed
+changed poses;the one-shot intervention is OFF. Independent closed-file audit
+confirms2892 fullnative/wire comparisons and complete normal cleanup. This does
+not accept physical/Internet,combined Hold or broader combat/abilities. The old
+Actual87/92/93 failures remain unchanged. prediction-correction-motion.txt.
+
 Named original-click/smoothing subcase:PASSED in Actual88/helper114 on the normal
 human frontend. Both rounds,all2892 native-state/wire comparisons,movement and
 visual limits,original ray/drag/click callbacks and normal lifetime gates pass.

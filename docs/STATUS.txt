@@ -4,6 +4,16 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+2026-11-12 Actual94/helper121 PASSES ordinary two-round first selection during
+smoothing,all strict ray/drag/movement/visual/lifetime gates and2892 fullnative/
+wire comparisons. Batched Sync follows all changed visual writes and precedes
+frontend poses;236/243 observed calls include both final raw restorations.
+Maximum Sync68/48us. Natural143.816s,no force/errors/source drift,diagnostic OFF.
+Independent closed-file audit confirms the result;the separate file-only lexical
+parser failure is preserved and requires an explicitly versioned reanalysis.
+This closes the named selection/physics subcases,not physical/Internet or full
+N33 acceptance. Details:prediction-correction-motion.txt. Packaging refresh next.
+
 2026-11-12 Actual93 observes a same-point original miss,repeat miss,then subject
 hit after one recovered original Physics.SyncTransforms call39us. All recorded
 pose/projection/owner/input/selection/command predicates stay unchanged. World1

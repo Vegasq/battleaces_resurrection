@@ -16,6 +16,7 @@ FIELDS={'schema','event','world','match','frame','revision','policy_us','prepare
         'entered_us','returned_us','thread','owner_thread','writes','restorations'}
 PRODUCERS=('client_patch/src/prediction_visual_physics.hpp','client_patch/src/prediction_visual_batch.hpp',
     'client_patch/src/prediction_visual_correction.cpp','client_patch/src/prediction_visual_correction.hpp')
+OFFLINE_PATHS=('tools/prediction_visual_physics.py','tests/test_prediction_visual_physics.py')
 
 
 def require(value,why):
@@ -89,7 +90,26 @@ def evaluate(records,poses,bindings,*,completed_joins=()):
             'This proof supplements the unchanged full native/wire/movement/visual/query/callback/lifetime parent gates.'])
 
 
-def analyze(plan,report,run):
+def _analysis_revision(plan,revision):
+    prepared=plan['source_sha256'];actual=motion.sha(__file__)
+    if revision is None:
+        require(actual==prepared[OFFLINE_PATHS[0]],'consumed batch checker differs')
+        return dict(scope='prepared_checker',prepared_checker_sha256=actual,current_checker_sha256=actual,offline_checker_revision=None)
+    require(type(revision) is dict and set(revision)=={'schema','scope','prepared_source_sha256','current_source_sha256'} and
+        type(revision['schema']) is int and revision['schema']==1 and revision['scope']=='offline_checker_lexical_parser_fix',
+        'explicit offline checker revision schema differs')
+    from tools.verify_prediction_multiplayer import source_hashes
+    current=source_hashes()
+    require(set(current)==set(prepared) and set(revision['prepared_source_sha256'])==set(revision['current_source_sha256'])==set(OFFLINE_PATHS) and
+        revision['prepared_source_sha256']=={p:prepared[p]for p in OFFLINE_PATHS} and
+        revision['current_source_sha256']=={p:current[p]for p in OFFLINE_PATHS} and current[OFFLINE_PATHS[0]]==actual and
+        {p for p in current if current[p]!=prepared[p]}==set(OFFLINE_PATHS),
+        'offline revision must bind exact checker/test delta and unchanged full runtime/source inventory')
+    return dict(scope=revision['scope'],prepared_checker_sha256=prepared[OFFLINE_PATHS[0]],current_checker_sha256=actual,
+        offline_checker_revision=revision)
+
+
+def analyze(plan,report,run,*,offline_checker_revision=None):
     require(plan.get('visual_correction') is True and plan.get('visual_input') is True and plan.get('visual_click_acquire') is True and
             not plan.get('visual_sync_probe'),'normal visual/query/acquisition candidate required; diagnostic flag must be off')
     visual.parent_gate(plan,report)
@@ -115,7 +135,7 @@ def analyze(plan,report,run):
     for number,line in enumerate(log.splitlines()):
         if PREFIX in line:
             r=json.loads(line.split(PREFIX,1)[1]);batch_lines[(r['world'],r['policy_us'])]=number
-        if visual.PREFIX in line:
+        if visual.PREFIX in line and line.split(visual.PREFIX,1)[1].lstrip().startswith('{'):
             for p in visual.rows(line):
                 if p['event']=='visual_pose':pose_lines.append((number,p))
     for number,p in pose_lines:
@@ -127,9 +147,9 @@ def analyze(plan,report,run):
         require(motion.sha(path)==plan['source_sha256'][name],'consumed production join source differs');producers[name]=motion.sha(path)
     for m in (visual,queries,acquire,intervention,motion):
         require(motion.sha(m.__file__)==plan['source_sha256']['tools/'+Path(m.__file__).name],'consumed checker differs')
-    require(motion.sha(__file__)==plan['source_sha256']['tools/prediction_visual_physics.py'],'consumed batch checker differs')
+    analysis_version=_analysis_revision(plan,offline_checker_revision)
     require(all(motion.sha(r['path'])==r['sha256']for r in plan['files'].values()),'consumed prepared file changed')
     require(all(motion.sha(path)==digest for path,digest in inputs.items()),'closed captures changed')
     result.update(file_only=True,input_sha256=inputs,producer_sha256=producers,original_report_passed=True,
-        original_report_sha256=motion.sha(run/'verification.json'),runtime_module=module)
+        original_report_sha256=motion.sha(run/'verification.json'),runtime_module=module,analysis_version=analysis_version)
     return result

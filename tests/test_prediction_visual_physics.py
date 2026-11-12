@@ -7,6 +7,7 @@ import unittest
 from unittest.mock import patch
 
 from tests.test_prediction_visual_correction import authored
+from tests import test_prediction_visual_input as input_tests
 from tools import prediction_visual_physics as evidence
 
 
@@ -62,6 +63,23 @@ class VisualPhysicsProtocol(unittest.TestCase):
 
 
 class VisualPhysicsFiles(unittest.TestCase):
+    def test_explicit_post_only_revision_requires_exact_two_path_inventory_delta(self):
+        from tools import verify_prediction_multiplayer as controller
+        names=evidence.OFFLINE_PATHS
+        prepared={names[0]:'0'*64,names[1]:'1'*64,'client_patch/prediction_worker/native.py':'2'*64}
+        current=dict(prepared);current[names[0]]=evidence.motion.sha(evidence.__file__);current[names[1]]=evidence.motion.sha(__file__)
+        revision=dict(schema=1,scope='offline_checker_lexical_parser_fix',prepared_source_sha256={n:prepared[n]for n in names},
+            current_source_sha256={n:current[n]for n in names})
+        plan=dict(source_sha256=prepared)
+        with self.assertRaisesRegex(AssertionError,'checker differs'):evidence._analysis_revision(plan,None)
+        with patch.object(controller,'source_hashes',return_value=current):
+            self.assertEqual(evidence._analysis_revision(plan,revision)['prepared_checker_sha256'],'0'*64)
+            for key in ('prepared_source_sha256','current_source_sha256'):
+                bad=deepcopy(revision);bad[key].pop(names[1])
+                with self.assertRaises(AssertionError):evidence._analysis_revision(plan,bad)
+            current['client_patch/prediction_worker/native.py']='3'*64
+            with self.assertRaisesRegex(AssertionError,'unchanged full runtime'):evidence._analysis_revision(plan,revision)
+
     def test_closed_production_summary_pins_sources_and_rejects_early_publication_or_intervention(self):
         records,poses,bindings=fixture();batch={(r['world'],r['policy_us']):r for r in records}
         lines=[]
@@ -69,6 +87,10 @@ class VisualPhysicsFiles(unittest.TestCase):
             if p['event']=='visual_pose' and (p['world'],p['sampled_us'])in batch:
                 lines.append(evidence.PREFIX+json.dumps(batch[(p['world'],p['sampled_us'])]))
             lines.append(evidence.visual.PREFIX+json.dumps(p))
+        original_queries,_,_=input_tests.fixture()
+        # Genuine INPUT subrecords are valid in the complete log but produce no
+        # visual_pose in a one-line parser call (Actual94 line3029 regression).
+        lines.extend(evidence.queries.PREFIX+json.dumps(q)for q in original_queries)
         with tempfile.TemporaryDirectory()as directory:
             run=Path(directory)/'run';run.mkdir();player=Path(directory)/'UnityPlayer.dll';player.write_bytes(b'authored module')
             (run/'native-0.log').write_text('\n'.join(lines));(run/'native-1.log').write_text('')
@@ -81,7 +103,7 @@ class VisualPhysicsFiles(unittest.TestCase):
                 source['tools/'+Path(m.__file__).name]=evidence.motion.sha(m.__file__)
             plan=dict(visual_correction=True,visual_input=True,visual_click_acquire=True,
                 files=dict(unityplayer=dict(path=str(player),sha256=evidence.intervention.UNITYPLAYER_SHA256)),source_sha256=source)
-            report=dict(passed=True,visual_input_witness_passed=True,visual_input=dict(worlds=[dict(records=[])for _ in bindings],
+            report=dict(passed=True,visual_input_witness_passed=True,visual_input=dict(worlds=[dict(records=[q for q in original_queries if q['world']==b['world']])for b in bindings],
                 input_sha256={str(run/name):evidence.motion.sha(run/name)for name in ('native-0.log','native-1.log')}),
                 visual_correction=dict(worlds=[dict(binding=b)for b in bindings]),visual_click_acquire=dict(worlds=[dict(records=[])for _ in bindings]))
             original=evidence.motion.sha

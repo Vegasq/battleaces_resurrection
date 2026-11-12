@@ -1,5 +1,49 @@
 N33 - LARGE COMMAND-RETIME CORRECTIONS - 2026-11-12
 
+Actual94 - batched synchronization and first selection PASS
+Helper121 synchronizes the original physics engine once after ALL changed
+visual Transform/shared-output writes,before exposing completed frontend poses.
+The exact engine binding is verified before any mutation. Final restoration to
+raw position is included;no helper writes means no resolution or Sync call.
+Existing original jobs,clock,From/To,native simulation and input owners remain.
+No global autoSync setting is changed. Setter/binding failure retains the prior
+fail-closed movement path;partial setter failure is not claimed to roll back.
+
+Both original first selections commit[]->74 during nonzero smoothing with all
+strict Stage1 ray/drag parents passing. Two natural rounds finish143.816s;
+1446 authority frames and2892 each native-state,bridge-wire and native65 receipts
+match. Movement/900ms visual limits,25 query/callback completed joins and four
+normal visual retirements pass. Both click sessions release15 roots to0;all
+children exit naturally0,Jobs empty,no force/errors,1080 source snapshots and
+runtime inputs unchanged. The one-shot diagnostic is OFF and absent in logs.
+
+Observed236/243 changed poses have exactly236/243 completed physics batches,
+including one zero-offset restoration per world. Every batch receipt precedes
+its pose receipt;all completed frontend joins follow Sync return at the exact
+frame/revision/thread. Maximum Sync calls take68/48us;maximum binding-through-
+Sync intervals268/53us,including one230us cold resolver. These are measured
+costs for this observed subject/window,not a general army-size performance claim.
+All45 authored C++ programs pass,including seven ordering/no-write/restoration/
+failure groups. Independent closed-file analysis confirms the runtime result.
+
+Run:local/prediction-runtime/movement94-batched-visual-sync/run/verification.json
+SHA25676b8a64bfb82cb90d56d8ac1d90ca896924639983d4afacf62f1dbc55bc5028e.
+Helper121 SHA2566bca3ce2e1c5a0c4278fbc42928af1d71017f6fb47281d9238c6fcc92d68e8cf.
+Source98396a3;normal human frontend3e7bea191f390bcaf13fa20d386acd74505260d77c7e00d2ba658434521eb2a5.
+Independent receipt:local/prediction-presentation-smoothing01/analysis94-sync-independent01/receipt.json
+SHA2563b2b8c3063538edff765b0883f30b027090d1f3cca2b21b841506ef809a28967.
+The first separate file-only batch analyzer invocation failed on a per-line
+PREDICTION VISUAL INPUT row that the whole-log visual parser correctly ignores.
+Its failure is retained;it did not change the original PASS report. Any repaired
+post-analysis must identify its newer checker separately from the prepared
+runtime source and preserve every runtime producer pin. Reanalysis94b nowPASSES
+with explicit prepared/current checker+test hashes and an exact two-file delta;
+the complete remaining source/runtime inventory is unchanged. Its revision
+receipt is local/prediction-presentation-smoothing01/physics-parser-fix01/revision.json
+SHA256e53b5a5eaaad1faed79b99578dc13100f60d9e91b7ca87d402c482218c7f571d.
+No unchanged game rerun is justified by that lexical analysis bug. Physical/Internet feel,combined Hold
+and broader combat/ability acceptance remain OPEN;earlier failures stay failed.
+
 Actual93 - same-point synchronization intervention OBSERVED; not acceptance
 The original world2/frame538 displayed-root ray misses/null. An immediate repeat
 at the exact Single point also misses/null. The recovered original engine

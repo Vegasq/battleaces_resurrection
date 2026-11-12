@@ -42,7 +42,7 @@ Try Deck is local;public2vAI is outside this prediction preview's scope.
     Actual88 passes both rounds,all2892 native-state rows and four balanced click
     episodes. Matched P/Q/R/M rays are phase-stable;all old gates remain intact.
     This does not establish every selection transition or physical input.
-[ ] Qualify a genuine empty-to-subject selection during nonzero smoothing.
+[x] Qualify a genuine empty-to-subject selection during nonzero smoothing.
     Use one first selection click while correction is nonzero,starting from the
     naturally empty selection. Require []->74 and all common parent gates;
     no direct selection writes,point search or invented zero-click episode.
@@ -50,23 +50,26 @@ Try Deck is local;public2vAI is outside this prediction preview's scope.
     click keeps74 selected;that unsuitable deselection setup is retired.
     Actual91 fails before Down with an offscreen projected point. Actual92 adds
     an observed neutral position;both first-click components pass with real
-    queues1/2/3/4 and natural cleanup. Full qualification remains blocked by the
-    separate Stage1 ray miss below;all original parent gates remain strict.
+    queues1/2/3/4 and natural cleanup. Actual94/helper121 now passes both first
+    selections with ALL original parent gates and natural cleanup. Earlier
+    failed reports remain unchanged;physical input remains a separate scope.
 [ ] Measure original Hold while a nonzero visual correction decays. Actual66's
     original Hold qualification predates smoothing. A stationary raw position
     can retain a decaying display offset;no actual Hold defect is established.
     Use a separate declared timeline and retain the existing pre-authority Hold
     acceptance as a distinct criterion. Do not append Hold to an unchanged
     three-Move claim. Details:prediction-original-hold.txt.
-[ ] Explain any concrete recurring displayed-root selection miss. Actual87's
+[x] Reproduce a displayed-root selection miss and qualify synchronization.
+    Actual87's
     world2 miss and92's world1/frame546 miss remainFAILED and unexplained;88 does
     not reproduce them. Actual93 recovers the exact original synchronization
     binding and observes miss/repeat-miss -> Sync39us -> exact subject hit at
     unchanged point/pose/input. Diagnostic overall staysFAILED;later world2
-    observations are intervention-scoped. Review one batch sync after changed
-    visual writes,then qualify with original strict gates and the diagnostic
-    OFF. No production fix is qualified yet;preserve all earlier failures.
-    This concrete issue takes priority over the planned Hold follow-up.
+    observations are intervention-scoped. Actual94/helper121 batches one Sync
+    after all changed visual writes,before completed frontend poses,including
+    raw restoration. All strict query/click/native/feel/lifetime gates pass with
+    diagnostic OFF.236/243 batches are independently joined to observed writes;
+    original failures remain preserved. Broader physical/combat coverage is open.
     Details:prediction-correction-motion.txt.
 [x] Complete the bounded forced-retirement config review. No justified grouped
     native candidate found;64 entities/34 abilities reviewed. No extra run.
