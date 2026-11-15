@@ -4,10 +4,13 @@ Updated:2026-11-15. Final release acceptance remains OPEN.
 Prior baseline queue preserved at history/2026-11-15/scheduling-ai-base-plan.txt.
 
 ACTIVE - N40 NORMAL CLIENT/SERVER0.5.0-rc1 DRAFT
-[ ] Package the verified scheduling runtime as normal client/server installers0.5.0-rc1.
-[ ] Verify normal desktop launch uses arrival scheduling and Nick's saved server AI.
-[ ] Upload verified installers/checksums to a new GitHub draft release;do not publish.
-[ ] Deploy the same server package to ba.sendsignal.cc(US) and be.sendsignal.cc(EU).
+[x] Package the verified scheduling runtime as normal client/server installers0.5.0-rc1.
+[x] Verify normal desktop launch uses arrival scheduling and Nick's saved server AI.
+[x] Upload verified installers/checksums to a new GitHub draft release;not published.
+[x] Deploy the same941b507 server package to ba.sendsignal.cc(US) and be.sendsignal.cc(EU).
+[ ] Existing global-history CI audit flags old prediction tools/README examples;
+    resolve separately before public release acceptance. Current source/package audits pass.
+Delivery details:release-050rc1.txt. N40 requested draft/build/deployment is complete.
 N39 playtest acceptance remains pending;this packaging request does not supply it.
 
 N39 COMMAND SCHEDULING FOR SERVER AI AND HUMANS

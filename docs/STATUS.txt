@@ -1,4 +1,9 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-15 N40 COMPLETE:normal0.5.0-rc1 installers uploaded to GitHub draft446343917,
+downloaded again and hash-verified. Local normal desktop shortcut uses arrival/
+server AI;both US ba.sendsignal.cc and Europe be.sendsignal.cc run the exact
+941b507 package with owner-only access. Existing global-history CI audit debt
+remains explicit;release-050rc1.txt. Draft is unpublished;N39 acceptance pending.
 2026-11-15 N39 PLAYTEST READY:arrival scheduling is the test-build default for server AI
 and humans in Custom1v1 and public1v1/2v2/2vAI,with30-second human search.
 Branch experiment/server-ai-command-scheduling starts at restored main0ad2afb.

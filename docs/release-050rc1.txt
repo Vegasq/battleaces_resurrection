@@ -14,7 +14,7 @@ and1620-test regression(82 explicit skips) in server-ai-command-scheduling.txt.
 This version changes package/update-message metadata and current quickstarts.
 Focused packaging/compatibility/launcher/installer/configuration tests pass.
 Artifact inventories,source/version binding,normal desktop launch,remote rollout
-and uploaded byte hashes require the final delivery receipt. A draft upload does
+and uploaded byte hashes pass in the final delivery receipts below. A draft upload does
 not supply Nick's pending N39 physical smoothness result or final release approval.
 
 Normal artifact names:
@@ -22,3 +22,36 @@ BattleAces-Client-Installer-0.5.0-rc1.exe
 BattleAces-Server-Installer-0.5.0-rc1.exe
 Release assets include SHA256SUMS.txt and release-manifest.json.
 Source branch:release/0.5.0-rc1. Tag:v0.5.0-rc1. Publication remains disabled.
+
+COMPLETED
+Clean artifact source:941b507f7de182bc814fcc12d1856518d0b509db.
+Client installer SHA256:8d77f638cf6abe74de9e916074eddc096cf18f46f8f5b6734bc252e1cee95ef0.
+Server installer SHA256:80ca32a403a3f4607857426012d54a34a0c9b306934c1393ae207842859886f3.
+Both embedded packages/bundled runtimes verify;82 client and120 server files.
+All74 focused tests pass. The three newly published commit trees audit clean:
+1344 distinct source paths/objects,no failures.
+Draft release446343917 contains both installers,SHA256SUMS.txt and release-manifest.json:
+https://github.com/Vegasq/battleaces_resurrection/releases/tag/untagged-c05afd8f9b02318d2fc3
+All four assets were downloaded through authenticated GitHub API and SHA256
+matched against local bytes. Draft/prerelease true,published_at null.
+
+Both cloud hosts now run the exact941b507 server ZIP
+f039213ace0ce5ea8ba8144bb25b4771f26248bd2b3836d5f4cbf0e1e5f66fef.
+Idle guards/backups,persistence,37 history entries per host,autostart and firewall
+preservation pass. Each hostname resolves to its correct existing IP and passes
+capability2 plus public1/2/5 offer/cancel probes;no game started by those probes.
+Normal installed client runtimeaa0a1ecd5e818c1e3606 verifies0.5.0-rc1/default
+arrival/server AI. Existing desktop link has no special arguments and still
+targets Start Battle Aces.cmd. Configuration,profiles,identities,original files,
+previous runtime and desktop-link bytes are preserved. No normal game was started.
+
+Known CI limitation:run43758135504 fails the repository-wide history audit before
+hosted tests. Five oversized verifier blobs belong only to the already-public
+withdrawn prediction branch;four old README blobs contain a generic drive/Games
+installation-path example falsely classified as developer-specific. These nine
+objects predate all three new release commits. The audit scans all fetched refs.
+No current release source/package leak was identified. No history rewrite,
+allowlist weakening or false CI-pass claim was used. This remains separate work.
+Private receipts:local/release050rc1/github/completion.json,
+local/release050rc1/verification01/verification.json,
+local/release050rc1-client-install/completion.json and local/release050rc1-rollout/.
