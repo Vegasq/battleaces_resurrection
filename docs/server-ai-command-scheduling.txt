@@ -1,0 +1,96 @@
+SERVER COMMAND SCHEDULING FOR AI AND HUMANS - N39 -2026-11-15
+Status:implementation/native qualification complete at the scope below;
+regression suite and paired packaging in progress. Cloud rollout awaits access.
+
+Nick requested the existing Custom1v1 command scheduling experiment for games
+against server AI,to compare movement smoothness. This branch starts from
+accepted main0ad2afb,the restored pre-prediction runtime plus documentation.
+No speculative simulation or movement-prediction code is included.
+
+Latest scope:Nick requested the new mode everywhere to test against AI and humans.
+The test build defaults to arrival scheduling for every server-hosted match:
+Custom1v1 and public1v1/2v2/2vAI. The normal30-second human search and AI fallback
+remain. Compatible arrival clients match together;legacy buffered clients form
+their own cohort. Mixed protocols never silently combine in one match.
+Both human testers need the new build. Per-launch --solo-ai-host server forces
+the desired server test without rewriting saved local-AI preference. An explicit
+buffered control remains available for measured comparisons. No prediction.
+
+Protocol:new clients negotiate public-capable capability2;old capability1 stays Custom-only.
+ACK echoes the negotiated capability. Match batch/heartbeat/READY payloads remain
+version1. Server native AI generation follows sealed human inputs and the normal
+bot simulation path. Genuine first-output readiness remains mandatory.
+
+Required evidence:strict routing/negotiation and AI lifecycle regression tests;
+native helper build;owned original client/server-AI run with latency and conserved
+commands;matching package and installer inventories;usable explicit test launcher.
+Actual human smoothness remains Nick's observation,never inferred from scripts.
+User actions/results are tracked only in canonical private DEV.txt N39.
+
+Initial qualification evidence:
+- Full native helper build succeeds. Helper f817332816e739eb389a2f48ae2a6b3c3edfff76134ab0247cc9742aecd5a0ca.
+- Server tests76 run:75 pass,1 explicit native opt-in skip;20 policy tests pass.
+  Client/packaging tests58 pass. Final package-marker tests19 pass.
+  Verifier corruption/control/owned-cleanup tests35 pass.
+- Actual solo-arrival01 completed original server-AI result/Continue and released
+  its owned client/worker. Its verifier FAILS because the first deadline observer
+  compared a post-save log timestamp against a pre-save deadline and expected an
+  unenabled UI-second trace. The corrected observer records the actual scheduler
+  deadline and independently checks native search-begin to offer;no timing gate
+  was relaxed. Initial evidence remains unchanged.
+- Independent raw-trace analysis also finds a real strict timing failure in01:
+  600 frames received/applied,zero displayed skips,19.889Hz,p95 gap60.461ms,
+  two gaps over100ms(max288.315ms). These occurred before the sample build order;
+  missing-input waits were zero and worker processing was short. Cause remains
+  unproven. A bounded trace review localizes one pause to synchronous audit output
+  or OS descheduling around that call;it does not prove the disk/OS cause.
+Private evidence:local/scheduling-native-checks/solo-arrival01/.
+
+Completed corrected checks,with the same runtime/helper:
+- solo-buffered01 PASS:475ms simulated RTT,600 consecutive received/applied frames,
+  20.001Hz,p95 gap52.29ms,max61.107ms,no gaps over100ms,no skips. One original
+  build sample takes610ms queue-to-apply and657ms queue-to-publication.
+- solo-arrival02 PASS:same475ms RTT and600 frames,19.992Hz,p95 gap65.398ms,
+  max79.991ms,no gaps over100ms,no skips. The sampled build takes516ms to apply
+  and publish. Both runs verify human/AI command conservation,authoritative
+  replay,real30-second human search,and original result/Continue. One scripted
+  command is not a physical-input latency distribution or Internet guarantee.
+- public-human01 PASS:two original clients in public1v1,1230 authoritative frames,
+  automatic original Play/build/result/Continue,arrival capability2 on both.
+- public-coop01 PASS:two original clients plus server bots in public2vAI,1250
+  frames,matching arrival assignment and original result/Continue.
+- public-team01 PASS:four original human clients in public2v2,1250 authoritative
+  frames,arrival assignment and original result/Continue on all clients.
+- solo-team01 remains FAILED at its strict view-timing gate:600 frames all
+  received/applied,zero skips,20.02Hz,p95 gap66.624ms,max81.246ms;one23.743ms
+  observed view gap is below25ms. The two native publications are34.689ms apart;
+  their subsequent view samples lag14.601ms and3.655ms,explaining the compressed
+  observed interval. Across589 native publication changes,gaps are25.769..80.656ms,
+  with no skips. This identifies observer sampling jitter for that failure,
+  without converting the original failed timing report to a pass.
+- solo-team02-state verifies60 exact native state samples and600 frame receipts,
+  all human/AI actions and the30-second deadline. Its overall report remains
+  FAILED because intentional team-prefix teardown cancelled an in-flight worker
+  request and the initial verifier incorrectly required exit0 for this case.
+  The cancelled worker exited1;the client was reaped. The corrected classifier
+  requires a healthy worker at successful prefix completion,ordered owned stop/
+  matching abort/release,completed cleanup and no living process/stderr thread.
+  Completed-game cancellation and unrelated failure still reject. The old report
+  remains failed;the final scoped team-state check uses the corrected observer.
+- solo-team03-state PASS:475ms RTT,600 exact native frame receipts,60 exact
+  native state samples,all human/AI actions and600-frame authoritative replay
+  agree. The live team prefix ends with explicitly identified owned cancellation;
+  the worker process,cleanup task and stderr thread are all reaped. This is a
+  state/route/teardown check,not a separate timing or completed-team-game claim.
+All owned clients/workers were reaped. Final menu teardown is forced owned
+cleanup,not natural Quit acceptance. Real player smoothness remains untested.
+
+Broad Python3.12 regression01 ran1620 tests with82 opt-in skips. It retained one
+obsolete default-off assertion and nine fixture errors:host lifecycle mocks
+omitted current policy fields,and the15-player roster test exhausted the shared
+loopback admission bucket. Reproduction records explicit rate_limit failures.
+Fixtures now use actual HostConfig defaults and a15-entry burst for that one
+roster case;production admission defaults are unchanged. All45 affected-module
+tests pass. A full corrected run is in progress before preview handoff.
+Source publication audit:1333 index objects pass;all changed staged paths also
+pass. No private DEV,original game assets,credentials or generated output enter Git.

@@ -25,6 +25,7 @@ class Entry:
     deck: tuple[int, ...]
     entered: float
     deadline: float
+    command_scheduling: bool = False
     cosmetics: object = None
     full_loadout: bool = False
     offer: str | None = None
@@ -112,7 +113,8 @@ class PublicMatchmaking:
                     'activity changed while saving public selection')
             remaining = command['wait_ms']/1000
             entry = Entry(session, command['ticket'], command['mode'], tuple(deck),
-                          now-(q.FALLBACK_SECONDS-remaining), now+remaining, cosmetics=cosmetics,
+                          now-(q.FALLBACK_SECONDS-remaining), now+remaining,
+                          command_scheduling=bool(getattr(session.peer, 'command_scheduling_public', False)), cosmetics=cosmetics,
                           full_loadout=kind == loadout.ENTER_LOADOUT)
             session.last_public_ticket, session.deck, session.cosmetics = entry.ticket, list(deck), cosmetics
             if entry.full_loadout: session.full_loadout = True
@@ -120,7 +122,8 @@ class PublicMatchmaking:
             self.community.cancel_invites(lambda invite: profile in (invite.sender, invite.target), c.BUSY)
             self.publish(entry, q.WAITING, now=now)
             self.community.publish_presence()
-            self.server.audit('public_queue_entered', profile=profile, ticket=entry.ticket, mode=entry.mode, wait_ms=command['wait_ms'])
+            self.server.audit('public_queue_entered', profile=profile, ticket=entry.ticket, mode=entry.mode,
+                              wait_ms=command['wait_ms'], command_scheduling=entry.command_scheduling)
             self.maintain(now)
             return
         entry = self.entries.get(profile)
@@ -175,7 +178,14 @@ class PublicMatchmaking:
             while True:
                 waiting = sorted((entry for entry in self.entries.values() if entry.mode == mode and entry.offer is None
                                   and not entry.session.peer.closed), key=lambda entry: (entry.entered, entry.profile))
-                if not waiting or (len(waiting) < len(human_slots) and now < waiting[0].deadline):
+                # Both protocols retain the human-search deadline. Only compatible
+                # peers can share one authoritative input stream; a buffered peer
+                # never silently changes an arrival client's selected match mode.
+                cohorts = [[entry for entry in waiting if entry.command_scheduling == selected]
+                           for selected in (False, True)]
+                ready = [group for group in cohorts if group and
+                         (len(group) >= len(human_slots) or now >= group[0].deadline)]
+                if not ready:
                     break
                 if self.server.room_count() >= self.server.max_rooms:
                     for entry in waiting:
@@ -183,7 +193,8 @@ class PublicMatchmaking:
                             self.retire(entry, 'server match capacity unavailable')
                     self.community.publish_presence()
                     break
-                members = tuple(waiting[:len(human_slots)])
+                selected = min(ready, key=lambda group: (group[0].entered, group[0].profile))
+                members = tuple(selected[:len(human_slots)])
                 offer = Offer(uuid.uuid4().hex, mode, members, now+self.offer_timeout)
                 self.offers[offer.id] = offer
                 reason = q.SOLO_AI_OFFER if len(members) == 1 else ''
@@ -193,7 +204,8 @@ class PublicMatchmaking:
                 self.community.publish_presence()
                 self.server.audit('public_match_offered', match=offer.id, mode=mode,
                                   humans=[entry.profile for entry in members],
-                                  tickets=[entry.ticket for entry in members], fallback=len(members) < len(human_slots))
+                                  tickets=[entry.ticket for entry in members], fallback=len(members) < len(human_slots),
+                                  command_scheduling=members[0].command_scheduling)
 
     async def launch(self, offer):
         from .dedicated_server import BotSeat, Room
@@ -205,6 +217,9 @@ class PublicMatchmaking:
                         and entry.session.peer.room is None for entry in offer.entries), 'public player left before setup')
             count, human_slots = q.MODES[offer.mode]
             humans = dict(zip(human_slots, offer.entries))
+            command_modes = {entry.command_scheduling for entry in offer.entries}
+            require(len(command_modes) == 1, 'mixed command scheduling peers cannot share a public match')
+            command_scheduling = command_modes == {True}
             names, bots = {entry.session.peer.name for entry in offer.entries}, []
             for slot in range(count):
                 if slot in humans:
@@ -216,7 +231,8 @@ class PublicMatchmaking:
             name = 'public_' + offer.id
             require(name not in self.server.rooms, 'public match already launched')
             room = Room(self.server, name, bots=bots, mode=offer.mode, public_match=offer.id,
-                        feedback_peers={slot: entry.session.peer for slot, entry in humans.items()})
+                        feedback_peers={slot: entry.session.peer for slot, entry in humans.items()},
+                        command_scheduling=command_scheduling)
             self.server.rooms[name], offer.room = room, room
             for slot, entry in humans.items():
                 peer = entry.session.peer

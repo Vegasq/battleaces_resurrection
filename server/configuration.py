@@ -35,7 +35,7 @@ class HostConfig:
     dashboard_port: int = 47624
     minimum_client_revision: int = CLIENT_REVISION
     client_update_message: str = DEFAULT_UPDATE_MESSAGE
-    experimental_command_scheduling: bool = False
+    experimental_command_scheduling: bool = True
 
 
 def load_config(path):
@@ -63,7 +63,7 @@ def load_config(path):
     value.setdefault('dashboard_port', 47624)
     value.setdefault('minimum_client_revision', CLIENT_REVISION)
     value.setdefault('client_update_message', DEFAULT_UPDATE_MESSAGE)
-    value.setdefault('experimental_command_scheduling', False)
+    value.setdefault('experimental_command_scheduling', True)
     try: validate_policy(value['minimum_client_revision'], value['client_update_message'])
     except ValueError as error: raise ConfigurationError(str(error)) from None
     try:

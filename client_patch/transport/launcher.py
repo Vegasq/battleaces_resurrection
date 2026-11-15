@@ -144,6 +144,8 @@ def verify_game(root, *, community=False, bridge_version=1, unified=False, playe
                         raise LaunchError('Install a helper supporting configurable local solo AI hosting')
                     if original_command_scheduling_experimental and b'BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1' not in helper:
                         raise LaunchError('Install the matching experimental client helper to use original command scheduling')
+                    if original_command_scheduling_experimental and b'BA_RESURRECTION_SERVER_AI_COMMAND_SCHEDULING_V1' not in helper:
+                        raise LaunchError('Install the matching server-AI command scheduling client helper')
                     if replay and b'BA_RESURRECTION_REPLAY_ENTRY_V1' not in helper:
                         raise LaunchError('Install the current client patch to watch replay files')
                     if player_features:
@@ -223,6 +225,9 @@ def game_arguments(config, player_id, handle, args):
     if not re.fullmatch('[A-Za-z0-9_-]{1,48}', run_name): raise LaunchError('Invalid run name')
     unified = getattr(args, 'unified_experimental', False)
     original_commands = getattr(args, 'original_command_scheduling_experimental', False)
+    buffered_inputs = getattr(args, 'buffered_input_experimental', False)
+    if original_commands and buffered_inputs:
+        raise LaunchError('Choose either command scheduling or buffered inputs for this launch')
     if original_commands and not unified:
         raise LaunchError('Original command scheduling requires the unified client')
     if unified:
@@ -246,6 +251,7 @@ def game_arguments(config, player_id, handle, args):
     result.append('-local-profile=' + profile)
     if unified: result.extend(('-unified-client', '-solo-ai-host=' + ai_host))
     if original_commands: result.append('-original-command-scheduling-experimental')
+    if buffered_inputs: result.append('-buffered-input-experimental')
     replay = getattr(args, 'replay', None)
     if replay is not None:
         if not unified or not isinstance(replay, str) or len(replay) > 32000 or any(ord(c) < 32 for c in replay):

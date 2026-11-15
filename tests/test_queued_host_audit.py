@@ -184,11 +184,15 @@ class Tests(unittest.IsolatedAsyncioTestCase):
 
     async def test_host_cancellation_holds_state_lock_until_audit_drains(self):
         from server import host
+        from server.configuration import HostConfig
         from server.state_lock import exclusive_state, StateBusyError
         from types import SimpleNamespace
         config = SimpleNamespace(data_directory=self.root/'drain', assets_directory=self.root/'assets',
             log_max_bytes=65536, log_backups=2, diagnostic_audit=True, dashboard_port=0,
-            max_rooms=4, input_window=64, access_mode='rc-open', listen_host='127.0.0.1', listen_port=0)
+            max_rooms=4, input_window=64, access_mode='rc-open', listen_host='127.0.0.1', listen_port=0,
+            minimum_client_revision=HostConfig.minimum_client_revision,
+            client_update_message=HostConfig.client_update_message,
+            experimental_command_scheduling=HostConfig.experimental_command_scheduling)
         ready, stopped = asyncio.Event(), asyncio.Event()
         audits, streams = [], []
         def factory(*args, **kwargs):
@@ -245,11 +249,15 @@ class Tests(unittest.IsolatedAsyncioTestCase):
 
     async def test_idle_write_failure_stops_host_and_preserves_cleanup_and_state_lock(self):
         from server import host
+        from server.configuration import HostConfig
         from server.state_lock import exclusive_state, StateBusyError
         from types import SimpleNamespace
         config = SimpleNamespace(data_directory=self.root/'host', assets_directory=self.root/'assets',
             log_max_bytes=65536, log_backups=2, diagnostic_audit=True, dashboard_port=0,
-            max_rooms=4, input_window=64, access_mode='rc-open', listen_host='127.0.0.1', listen_port=0)
+            max_rooms=4, input_window=64, access_mode='rc-open', listen_host='127.0.0.1', listen_port=0,
+            minimum_client_revision=HostConfig.minimum_client_revision,
+            client_update_message=HostConfig.client_update_message,
+            experimental_command_scheduling=HostConfig.experimental_command_scheduling)
         manifest = dict(game_build=37822, asset_format=1, files={})
         audits, held = [], []
         cleanup_entered, cleanup_release, ready = asyncio.Event(), asyncio.Event(), asyncio.Event()

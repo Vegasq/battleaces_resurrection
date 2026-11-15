@@ -62,10 +62,13 @@ static void finishMenu(Obj front,const char* reason,bool disconnect,bool error=f
     forget();
     if(error) {
         errorNotice=ba_match_loading::begin(ba_match_loading::Source::Dedicated,"public-error:"+std::to_string(ticket),ba_match_loading::Stage::Preparing);
-        ba_match_loading::error(errorNotice,"Match could not start. Please try again.");
+        ba_match_loading::error(errorNotice,ba_lan::originalCommandScheduling()?
+            "Server match test could not start. Check the connection and matching test build.":
+            "Match could not start. Please try again.");
     }
 }
 static void fallback(Obj front) {
+    require(ba_original_commands::allowsLocalFallback(ba_lan::originalCommandScheduling(),soloAiHost()==ba_solo_ai::Host::Server),"server command scheduling test cannot fall back to local AI");
     require(current && current->intent.mayFallback() && !current->joining,"ambiguous public fallback after READY");
     const auto ticket=current->intent.ticket;const int mode=static_cast<int>(current->intent.mode);
     Root controller(current->controller.get());
@@ -78,11 +81,12 @@ static void fallback(Obj front) {
 }
 static void start(Obj front,Obj controller,int mode) {
     require(ba::unified() && ba::flag(L"-public-queue-experimental"),"public queue adapter not enabled");
-    if(ba_lan::originalCommandScheduling()) {
-        ba_match_loading::dismissNotice(errorNotice,"Custom-only experiment notice replaced");
-        errorNotice=ba_match_loading::begin(ba_match_loading::Source::Dedicated,"original-command-custom-only",ba_match_loading::Stage::Preparing);
-        ba_match_loading::error(errorNotice,"This experiment supports Custom 1v1 only.");
-        ba::log("Original command public Play rejected: mode=%d customOnly=1 ticketCreated=0",mode);return;
+    const auto host=soloAiHost();
+    if(ba_lan::originalCommandScheduling() && !ba_original_commands::allowsPublic(mode)) {
+        ba_match_loading::dismissNotice(errorNotice,"command scheduling scope notice replaced");
+        errorNotice=ba_match_loading::begin(ba_match_loading::Source::Dedicated,"original-command-public-scope",ba_match_loading::Stage::Preparing);
+        ba_match_loading::error(errorNotice,"Command scheduling supports 1v1, 2v2 and 2vAI.");
+        ba::log("Original command public Play rejected: mode=%d supportedModes=1,2,5 ticketCreated=0",mode);return;
     }
     q::participants(mode);
     if(active() || ba_practice::active()){ba::log("Public Play duplicate ignored while an intent/world is active");return;}
@@ -92,7 +96,6 @@ static void start(Obj front,Obj controller,int mode) {
         ba_community_invites::operations.empty() && !ba::get<Obj>(front,"_party") && ba_lan::bootstrap.empty(),
         "public search requires an idle menu outside Custom");
     require(ba_dedicated_deck::canReady(front),"public selected deck invalid");
-    const auto host=soloAiHost();
     static bool policyLogged=false;
     if(!policyLogged){policyLogged=true;ba::log("Solo AI hosting policy: host=%s mode=%d BA_RESURRECTION_SOLO_AI_HOST_V1",ba_solo_ai::name(host),mode);}
     if(host==ba_solo_ai::Host::Server)ba::log("Solo AI route: mode=%d host=server publicQueue=1",mode);
@@ -130,6 +133,9 @@ static bool receive(unsigned char kind,const q::Bytes& bytes) {
         const auto value=q::state(bytes);
         if(!current){require(value.ticket<=lastTicket,"unsolicited public state");return false;}
         if(!current->intent.state(ba_community::generation,value))return false;
+        if(ba_lan::originalCommandScheduling()) {
+            require(ba_original_commands::allowsPublic(value.mode),"command scheduling public state has unsupported mode");
+        }
         ba::log("Public authoritative state: ticket=%llu phase=%u mode=%u match=%s elapsedMs=%u",
             static_cast<unsigned long long>(value.ticket),value.phase,value.mode,value.match.c_str(),value.elapsedMs);
         return true;
@@ -140,6 +146,11 @@ static bool receive(unsigned char kind,const q::Bytes& bytes) {
     if(!current->intent.assignment(ba_community::generation,value))return false;
     require(!ba_lan::welcomed && ba_lan::bootstrap.empty() && ba_lan::dedicatedMatchId.empty(),"public assignment overlaps existing match");
     ba_lan::dedicatedMatchId=value.match;ba_lan::inputWindow=value.inputWindow;ba::dedicatedAssignedSlot=value.slot;
+    if(ba_lan::originalCommandScheduling()) {
+        const bool arrival=ba_lan::originalCommands.assignPublic(value.match,GetTickCount64(),value.mode,value.count,value.slot,value.humanMask);
+        ba::log("Public command scheduling selected: match=%s arrival=%d humans=%u mode=%u",
+            value.match.c_str(),arrival?1:0,value.humanMask,value.mode);
+    }
     ba_lan::dedicatedDeck.clear();for(auto unit:value.deck)ba_lan::append32(ba_lan::dedicatedDeck,unit);
     ba_lan::welcomed=true;ba_lan::publicMatch=true;
     ba::log("Public match assignment: ticket=%llu match=%s mode=%u count=%u seat=%u humans=%u inputWindow=%u",
@@ -271,7 +282,7 @@ static void update(Obj front) {
                 if(!ba_client::nativeIdle(front) || !ba_dedicated_session::inMenu() || ba_client::remoteWorld())return;
                 s.joining=false;finishMenu(front,"connection lost after match acceptance",true,true);return;
             }
-            if(intent.mayFallback()){fallback(front);return;}
+            if(intent.mayFallback() && ba_original_commands::allowsLocalFallback(ba_lan::originalCommandScheduling(),soloAiHost()==ba_solo_ai::Host::Server)){fallback(front);return;}
             finishMenu(front,"connection lost after READY",true,!intent.cancelled);return;
         }
         if(s.returnRequest) {
@@ -309,7 +320,7 @@ static void update(Obj front) {
         if(solo==ba_solo_ai::Action::RetireOnly) {
             finishMenu(front,"solo AI proposal changed during cancellation",false,true);return;
         }
-        if(intent.retired) {if(intent.mayFallback()){fallback(front);return;}finishMenu(front,"server retired public ticket",false,true);return;}
+        if(intent.retired) {if(intent.mayFallback() && ba_original_commands::allowsLocalFallback(ba_lan::originalCommandScheduling(),soloAiHost()==ba_solo_ai::Host::Server)){fallback(front);return;}finishMenu(front,"server retired public ticket",false,true);return;}
         if(s.aborting || (intent.phase==q::Results && !ba_lan::matchEnded)) {
             s.aborting=true;ba_lan::running=false;ba_lan::frames.clear();ba_local::ready.store(false);
             if(intent.phase!=q::Results)return; // Wait for authoritative abort identity/state.
@@ -345,7 +356,11 @@ static void update(Obj front) {
             ba::log("Public READY sent: ticket=%llu proposal=%s automaticFallbackLocked=1",static_cast<unsigned long long>(intent.ticket),intent.match.c_str());
             smokeCancel(front);
         }
-        if(now-intent.started>=35000 && intent.mayFallback()) {s.failure="server queue deadline response unavailable";fallback(front);}
+        if(now-intent.started>=35000 && intent.mayFallback()) {
+            s.failure="server queue deadline response unavailable";
+            if(ba_original_commands::allowsLocalFallback(ba_lan::originalCommandScheduling(),soloAiHost()==ba_solo_ai::Host::Server))fallback(front);
+            else finishMenu(front,s.failure.c_str(),true,true);
+        }
     } catch(const std::exception& error) {
         ba::log("Public client failure: %s",error.what());
         if(current && current->joining){ba_lan::fail("public match",error);return;}

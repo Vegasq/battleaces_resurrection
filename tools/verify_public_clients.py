@@ -32,6 +32,7 @@ from server.credentials import AuthenticationError
 from server.cosmetics import CosmeticCatalog
 from server.dedicated_server import Audit, DedicatedServer
 from server.game_data import GameTemplate, decode_frame, decode_player_input
+from server.protobuf_wire import get_repeated_bytes, get_uint, parse_fields
 from server.profiles import ProfileStore
 from server.worker_ai import AISetup
 from server.worker_client import SimulationWorker, _WindowsJob
@@ -49,7 +50,7 @@ def source_hashes():
     return core_hashes() | {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
-def journal_builds(path, clients, frames):
+def journal_builds(path, clients, frames, *, scheduling='buffered'):
     """Check native build actions reached the authoritative input journal."""
     found = {}
     with path.open('rb') as stream:
@@ -63,11 +64,26 @@ def journal_builds(path, clients, frames):
             frame = decode_frame(raw)
             require(frame['frame'] == number, 'input journal frame sequence differs')
             for row in clients:
-                if number != row['build_frame']:
+                if scheduling == 'buffered' and number != row['build_frame']:
                     continue
                 inputs = [decode_player_input(value) for value in frame['players']]
                 own = [value for value in inputs if value['identity']['player_id'] == row['seat']+1]
-                require(len(own) == 1 and own[0]['actions'], 'native human build absent from authoritative input journal')
+                if scheduling == 'arrival' and not own:
+                    continue  # Canonical encoding omits empty human inputs.
+                require(len(own) == 1, 'human identity absent from authoritative input journal')
+                if scheduling == 'arrival':
+                    ability = re.search(r'\bability(\d+)\b', row['native_build'])
+                    require(ability is not None, 'native queued build ability missing')
+                    matching = []
+                    for action in own[0]['actions']:
+                        fields = parse_fields(action)
+                        if len(fields) == 1 and fields[0].number == 1 and any(
+                            get_uint(group, 2) == int(ability[1]) for group in get_repeated_bytes(fields[0].value, 1)):
+                            matching.append(action)
+                    if not matching: continue
+                    require(len(matching) == 1 and row['seat'] not in found, 'native build duplicated in canonical arrival frames')
+                else:
+                    require(own[0]['actions'], 'native human build absent from authoritative input journal')
                 require(own[0]['identity']['name'] == row['name'] and not own[0]['identity']['ai_profile_id'],
                         'native human input identity changed')
                 found[row['seat']] = dict(frame=number, actions=len(own[0]['actions']))
@@ -78,6 +94,17 @@ def journal_builds(path, clients, frames):
 
 async def run(args):
     game, assets, output = args.game.resolve(), args.assets.resolve(), args.output.resolve()
+    scheduling = getattr(args, 'scheduling', 'buffered')
+    require(scheduling in ('buffered', 'arrival'), 'supported public scheduling control required')
+    helper = (game/'BattleAcesOffline.dll').read_bytes()
+    expected_helper = getattr(args, 'expected_helper_sha256', None)
+    if expected_helper is not None:
+        require(re.fullmatch('[a-f0-9]{64}', expected_helper) and hashlib.sha256(helper).hexdigest() == expected_helper,
+                'public scheduling helper differs from requested binary')
+    if scheduling == 'arrival':
+        require(game.is_relative_to(ROOT/'local') and expected_helper is not None and
+                b'BA_RESURRECTION_SERVER_AI_COMMAND_SCHEDULING_V1' in helper,
+                'arrival public qualification requires exact owned scheduling helper')
     require(not args.ordinary_player or (game.is_relative_to(ROOT/'local') and
             args.cosmetics_selection and args.shared_settings),
             'ordinary team qualification requires an owned game, complete native cosmetic seed and shared-settings baseline')
@@ -157,10 +184,11 @@ async def run(args):
     catalog = BotCatalog(assets, template=templates[1], rules=RuleBook(assets))
     server = DedicatedServer(templates[1], ProfileStore(output/'profiles', templates[1], catalog=cosmetic_book), templates=templates,
         bot_catalog=catalog, sim_factory=factory, ai_factory=factory, audit=observe, data_dir=output,
-        audit_state=False, input_timeout=30, tls_context=tls.load_server_context(pki['cert'], pki['key']),
+        audit_state=False, input_timeout=30, experimental_command_scheduling=scheduling == 'arrival',
+        tls_context=tls.load_server_context(pki['cert'], pki['key']),
         admission=admission.AdmissionController(Store()))
     started, gate_created, retry_gate_created, practice_gate_created, fault = time.monotonic(), False, False, False, None
-    report = dict(passed=False, scope=__doc__, mode=args.mode, humans=args.humans, visible=args.visible,
+    report = dict(passed=False, scope=__doc__, mode=args.mode, humans=args.humans, visible=args.visible, scheduling=scheduling,
         helper_sha256=hashlib.sha256((game/'BattleAcesOffline.dll').read_bytes()).hexdigest(),
         source_sha256_at_start=source_hashes(), disconnect=args.disconnect, retry=args.retry, practice_between=args.practice_between,
         game_pids=[], client_arguments=[], launch_ticks=[], ordinary_player=args.ordinary_player,
@@ -215,9 +243,13 @@ async def run(args):
             record = dict(name=config['display_name'], writer=writer, log='',
                           task=asyncio.create_task(bridge.Bridge(reader, writer, resolve, version=2).run()))
             clients.append(record)
-            options = client.player_options() if args.ordinary_player else argparse.Namespace(
-                run_name=f'public-clients-{index}', unified_experimental=True)
+            options = client.player_options(original_command_scheduling_experimental=scheduling == 'arrival') if args.ordinary_player else argparse.Namespace(
+                run_name=f'public-clients-{index}', unified_experimental=True,
+                original_command_scheduling_experimental=scheduling == 'arrival', buffered_input_experimental=scheduling == 'buffered')
             command = launcher.game_arguments(config, None, child.fileno(), options)
+            require(('-original-command-scheduling-experimental' in command) == (scheduling == 'arrival') and
+                    ('-buffered-input-experimental' in command) == (scheduling == 'buffered'),
+                    'native launch differs from explicit scheduling control')
             if args.ordinary_player:
                 require('-public-queue-experimental' in command and '-local-cosmetics-experimental' in command and
                         not any('smoke' in value or 'audit' in value or 'auto-' in value for value in command),
@@ -250,11 +282,15 @@ async def run(args):
             child.set_inheritable(True)
             try:
                 record['process'] = subprocess.Popen(command, cwd=game, startupinfo=startup, close_fds=True,
-                    creationflags=0 if args.visible else subprocess.CREATE_NO_WINDOW)
+                    creationflags=4 | (0 if args.visible else subprocess.CREATE_NO_WINDOW))
             finally:
                 child.set_inheritable(False)
                 child.close()
             record['job'] = _WindowsJob(record['process'].pid)
+            resume = ctypes.WinDLL('ntdll').NtResumeProcess
+            resume.argtypes = [ctypes.c_void_p]; resume.restype = ctypes.c_long
+            require(resume(record['process']._handle) == 0, 'owned public client resume failed')
+            record['job_assigned_before_resume'] = True
             report['game_pids'].append(record['process'].pid)
             report['client_arguments'].append(command)
             report['launch_ticks'].append(record['tick'])
@@ -339,6 +375,11 @@ async def run(args):
             require(key == match and int(mode) == args.mode and int(count) == total and seat in expected_seats and
                     int(mask) == sum(1 << value for value in expected_seats), 'native assigned topology differs')
             require(manifest['profiles'][str(seat)] == identities[index][0], 'human seat/profile binding differs')
+            require(bool(manifest.get('command_scheduling')) == (scheduling == 'arrival'),
+                    'actual public match did not use requested scheduling mode')
+            if scheduling == 'arrival':
+                require(re.search(r'Original command scheduling negotiated: [^\r\n]*capability=2\b', log) and
+                        'LAN submitted frame ' not in log, 'public human client did not use negotiated arrival input')
             require(log.count('Public native match joined:') == 1 and
                     log.count('PUBLIC QUEUE completed return:') == (0 if args.disconnect and index == 0 else 1) and
                     log.count('Client world acquired:') == log.count('owner=remote nativeIdle=1') == 1 and
@@ -406,7 +447,7 @@ async def run(args):
             full_human_group=full, real_queue_seconds=waits, result=completed[0]['result'] if completed else None,
             bots=manifest['bots'], remote_attempts=attempts, authentications=len(authenticated))
         if not args.disconnect:
-            report['journal_human_builds'] = journal_builds(output/'matches'/match/'frames.bin', evidence, len(authoritative))
+            report['journal_human_builds'] = journal_builds(output/'matches'/match/'frames.bin', evidence, len(authoritative), scheduling=scheduling)
         else:
             report['aborted_match_retired'] = True
             report['surviving_connections_preserved'] = args.humans-1
@@ -559,7 +600,7 @@ async def run(args):
             report['replacement'] = dict(match=fresh_match, result=completed[-1]['result'], clients=fresh_evidence,
                 received_frames=len(authoritative), survivor_sessions_retained=0 if args.practice_between else len(survivors),
                 after_offline_practice=args.practice_between,
-                journal_human_builds=journal_builds(output/'matches'/fresh_match/'frames.bin', fresh_evidence, len(authoritative)))
+                journal_human_builds=journal_builds(output/'matches'/fresh_match/'frames.bin', fresh_evidence, len(authoritative), scheduling=scheduling))
             report.update(remote_attempts=attempts, authentications=len(authenticated))
         if cosmetic_book:
             expected_matches = 2 if args.retry else 1
@@ -678,6 +719,8 @@ def main():
         parser.add_argument('--'+name, type=Path, required=True)
     parser.add_argument('--mode', type=int, choices=(1, 2, 5), default=5)
     parser.add_argument('--humans', type=int, choices=(2, 3, 4), default=2)
+    parser.add_argument('--scheduling', choices=('buffered','arrival'), default='buffered')
+    parser.add_argument('--expected-helper-sha256', help='required exact helper identity for arrival qualification')
     parser.add_argument('--timeout', type=int, default=600)
     parser.add_argument('--visible', action='store_true')
     parser.add_argument('--ordinary-player', action='store_true', help='use ordinary Start Client options before owned automation')

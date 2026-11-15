@@ -37,6 +37,11 @@ def main(argv=None):
     sub.add_argument('--config', type=Path, default=PACKAGE / 'config/client.json')
     sub.add_argument('--game', type=Path, help='working game folder for first launch')
     sub.add_argument('--replay', nargs='?', const='', help='watch a replay file; omit FILE to choose one')
+    scheduling = sub.add_mutually_exclusive_group()
+    scheduling.add_argument('--original-command-scheduling-experimental', action='store_true',
+                            help='use command scheduling for server matches (default in this test build)')
+    scheduling.add_argument('--buffered-input-experimental', action='store_true', help='use previous buffered inputs for this launch')
+    sub.add_argument('--solo-ai-host', choices=('local','server'), help='override AI hosting for this launch only')
     for action in ('install', 'restore'):
         sub = commands.add_parser(action)
         sub.add_argument('--game', type=Path, required=True)
@@ -78,6 +83,10 @@ def main(argv=None):
             arguments = ['--config', str(args.config.resolve())]
             if getattr(args, 'game', None) is not None: arguments.extend(['--game', str(args.game.resolve())])
             if getattr(args, 'replay', None) is not None: arguments.extend(['--replay', args.replay])
+            if getattr(args, 'original_command_scheduling_experimental', False):
+                arguments.append('--original-command-scheduling-experimental')
+            if getattr(args, 'buffered_input_experimental', False): arguments.append('--buffered-input-experimental')
+            if getattr(args, 'solo_ai_host', None) is not None: arguments.extend(['--solo-ai-host',args.solo_ai_host])
             return start(arguments, default_game=PACKAGE.parent)
         if args.command in ('rc-data', 'rc-save', 'rc-check'):
             from client_patch.transport import rc_setup

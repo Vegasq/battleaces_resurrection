@@ -1,7 +1,7 @@
 """Client release policy, separate from the deterministic game protocol."""
 CLIENT_REVISION = 1
-DEFAULT_UPDATE_MESSAGE = ('Client update required (0.4.0).\n'
-                          'Download the latest installer from GitHub Releases.')
+DEFAULT_UPDATE_MESSAGE = ('Client update required (0.4.1-scheduling-preview.1).\n'
+                          'Install the matching scheduling preview client.')
 UPDATE_PREFIX = 'BA_UPDATE_REQUIRED/'
 
 

@@ -196,7 +196,8 @@ async def run(args):
                 config = dict(game_directory=game, server_host='127.0.0.1', server_port=delayed_port,
                     display_name=f'High latency probe {index+1}', room='community', fullscreen=False,
                     local_profile='latency_'+secrets.token_hex(8), solo_ai_host='server')
-                options = argparse.Namespace(run_name=f'high-latency-{index}', unified_experimental=True, player_features=True)
+                options = argparse.Namespace(run_name=f'high-latency-{index}', unified_experimental=True, player_features=True,
+                                             original_command_scheduling_experimental=False, buffered_input_experimental=True)
                 command = launcher.game_arguments(config, None, child.fileno(), options)
                 command[command.index('-logFile')+1] = str(output/f'game-{index}.log')
                 command += ['-public-queue-smoke', '-public-queue-smoke-mode=1',

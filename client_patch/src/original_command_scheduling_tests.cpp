@@ -18,7 +18,40 @@ int main() {
     rejects([]{q::validateContext(true,false,true,true);});
     rejects([]{q::validateContext(true,true,false,true);});
     rejects([]{q::validateContext(true,true,true,false);});
-    assert(q::negotiation()==q::Bytes{1});
+    assert(q::version==1 && q::capability==2 && q::negotiation()==q::Bytes{2});
+    for(unsigned mode:{0u,3u,4u,255u})assert(!q::allowsPublic(mode));
+    assert(q::allowsLocalFallback(false,false) && q::allowsLocalFallback(false,true));
+    assert(q::allowsLocalFallback(true,false) && !q::allowsLocalFallback(true,true));
+    for(unsigned mode:{1u,2u,5u}) {
+        assert(q::allowsPublic(mode));
+        const unsigned count=mode==1?2:4,allowed=mode==5?5:(1u<<count)-1;
+        for(unsigned slot=0;slot<count;++slot)for(unsigned mask=0;mask<16;++mask) {
+            if((mask&(1u<<slot)) && !(mask&~allowed))assert(q::publicArrivalMode(mode,count,slot,mask));
+            else rejects([&]{q::publicArrivalMode(mode,count,slot,mask);});
+        }
+    }
+    rejects([]{q::publicArrivalMode(1,2,2,4);});
+    rejects([]{q::publicArrivalMode(1,4,0,1);});
+    rejects([]{q::publicArrivalMode(2,2,0,1);});
+    rejects([]{q::publicArrivalMode(0,2,0,1);});
+    q::State publicState;
+    rejects([&]{publicState.assignPublic(first,0,1,2,0,1);});
+    publicState.request();publicState.acknowledge({2});
+    assert(publicState.ready() && !publicState.assigned() && !publicState.heartbeat(0));
+    rejects([&]{publicState.start(0);}); // Capability alone cannot activate command batches or READY.
+    assert(publicState.assignPublic(first,0,1,2,0,3));
+    assert(publicState.assigned());publicState.start(0);publicState.applied(0);
+    assert(publicState.firstOutputReady(0)); // Public humans use the same scheduling contract.
+    publicState.clearMatch();
+    assert(publicState.assignPublic(second,100,1,2,0,1));
+    assert(publicState.assigned() && publicState.heartbeat(100));
+    publicState.start(100);publicState.applied(0);
+    assert(publicState.firstOutputReady(0));
+    publicState.clearMatch();
+    assert(publicState.assignPublic(first,200,5,4,2,5));
+    assert(publicState.assigned() && publicState.heartbeat(200)); // AI-to-coop keeps arrival mode with fresh state.
+    publicState.start(200);assert(publicState.sequence()==1 && publicState.lastApplied()==-1);
+    publicState.applied(0);assert(publicState.firstOutputReady(0));
     q::State state;
     rejects([&]{state.acknowledge({1});});
     rejects([&]{state.assign(first,0);});
@@ -26,8 +59,8 @@ int main() {
     rejects([&]{state.request();});
     rejects([&]{state.acknowledge({});});
     rejects([&]{state.acknowledge({1,1});});
-    rejects([&]{state.acknowledge({2});});
-    state.acknowledge({1});assert(state.ready() && !state.pending());
+    rejects([&]{state.acknowledge({1});}); // Old Custom-only hosts cannot silently accept the new scope.
+    state.acknowledge({2});assert(state.ready() && !state.pending());
     rejects([&]{state.acknowledge({1});});
     state.assign(first,100);
     rejects([&]{state.batch({0x0a},1);});
@@ -80,7 +113,7 @@ int main() {
     state.disconnect();assert(!state.ready() && !state.pending() && state.match().empty());
     rejects([&]{state.firstOutputReady(0);});
     rejects([&]{state.acknowledge({1});}); // Stale ACK after stream closure.
-    state.request();state.acknowledge({1});state.assign(first,0);state.start(0);
+    state.request();state.acknowledge({2});state.assign(first,0);state.start(0);
     assert(state.batch({1},1)->sequence==1);
     for(const std::string& invalid:{std::string(),std::string(31,'a'),std::string(33,'a'),std::string(32,'G')})
         rejects([&]{q::encodeBatch(invalid,1,{1});});

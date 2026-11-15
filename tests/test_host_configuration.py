@@ -34,7 +34,7 @@ class HostConfigurationTests(unittest.TestCase):
         self.settings['certificate_file'] = None
         with self.assertRaises(ConfigurationError): self.load()
 
-    def test_experimental_command_scheduling_is_optional_and_defaults_off_in_both_schemas(self):
+    def test_experimental_command_scheduling_defaults_on_and_honors_explicit_disable_in_both_schemas(self):
         for schema in (1, 2):
             self.settings['schema'] = schema
             if schema == 2: self.settings['access_mode'] = 'invite'
@@ -42,7 +42,7 @@ class HostConfigurationTests(unittest.TestCase):
                 self.settings.pop('experimental_command_scheduling', None)
                 if selected is not None: self.settings['experimental_command_scheduling'] = selected
                 with self.subTest(schema=schema, selected=selected):
-                    self.assertIs(self.load().experimental_command_scheduling, selected is True)
+                    self.assertIs(self.load().experimental_command_scheduling, selected is not False)
 
     def test_experimental_command_scheduling_rejects_nonboolean_json_values(self):
         for selected in (None, 0, 1, 2, '', 'false', 'true', [], {}):
@@ -133,7 +133,7 @@ class HostConfigurationTests(unittest.TestCase):
 
 
 class HostWorkerTests(unittest.IsolatedAsyncioTestCase):
-    async def test_actual_host_run_passes_only_explicit_experiment_opt_in_to_real_coordinator(self):
+    async def test_actual_host_run_passes_default_and_explicit_scheduling_policy_to_real_coordinator(self):
         root = private_test_folder('host-experiment-wiring-')
         try:
             config_path = root / 'config/host.json'; config_path.parent.mkdir()
@@ -142,6 +142,7 @@ class HostWorkerTests(unittest.IsolatedAsyncioTestCase):
             original_server = host.DedicatedServer
             for selected in (None, False, True):
                 settings = dict(base)
+                settings.pop('experimental_command_scheduling', None)
                 if selected is not None: settings['experimental_command_scheduling'] = selected
                 config_path.write_text(json.dumps(settings))
                 config = load_config(config_path)
@@ -164,8 +165,8 @@ class HostWorkerTests(unittest.IsolatedAsyncioTestCase):
                      mock.patch('builtins.print'):
                     await host.run(config)
                 self.assertEqual(len(servers), 1)
-                self.assertIs(factory.call_args.kwargs['experimental_command_scheduling'], selected is True)
-                self.assertIs(servers[0].experimental_command_scheduling, selected is True)
+                self.assertIs(factory.call_args.kwargs['experimental_command_scheduling'], selected is not False)
+                self.assertIs(servers[0].experimental_command_scheduling, selected is not False)
                 server = servers[0]
                 self.assertTrue(server.closing)
                 server.start.assert_awaited_once()

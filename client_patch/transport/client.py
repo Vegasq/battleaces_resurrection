@@ -115,10 +115,11 @@ def prepare_settings(path, game=None, *, default_game=None):
     return config
 
 
-def player_options(replay=None, *, original_command_scheduling_experimental=False):
+def player_options(replay=None, *, original_command_scheduling_experimental=True):
     """The single ordinary entry point enables the complete player capability set."""
     options = argparse.Namespace(run_name='client', unified_experimental=True, player_features=True,
-                                 original_command_scheduling_experimental=original_command_scheduling_experimental)
+                                 original_command_scheduling_experimental=original_command_scheduling_experimental,
+                                 buffered_input_experimental=not original_command_scheduling_experimental)
     if replay is not None:
         options.replay = str(Path(replay).resolve()) if replay else ''
     return options
@@ -129,11 +130,16 @@ def main(argv=None, *, default_game=None):
     parser.add_argument('--config', type=Path, default=Path.cwd() / 'client.json')
     parser.add_argument('--game', type=Path, help='working game directory for first launch without a configuration')
     parser.add_argument('--replay', nargs='?', const='', help='watch a replay file; omit FILE to choose one')
-    parser.add_argument('--original-command-scheduling-experimental', action='store_true',
-                        help='use negotiated experimental Custom1v1 command scheduling for this launch; requires a matching helper')
+    scheduling = parser.add_mutually_exclusive_group()
+    scheduling.add_argument('--original-command-scheduling-experimental', action='store_true', default=True,
+                            help='use command scheduling for all server matches (the default in this test build)')
+    scheduling.add_argument('--buffered-input-experimental', action='store_false', dest='original_command_scheduling_experimental',
+                            help='use the previous buffered input mode for this launch')
+    parser.add_argument('--solo-ai-host', choices=('local','server'), help='override AI hosting for this launch without changing saved settings')
     args = parser.parse_args(argv)
     try:
         config = prepare_settings(args.config, args.game, default_game=default_game)
+        if args.solo_ai_host is not None: config = dict(config,solo_ai_host=args.solo_ai_host)
         from .rc_setup import Resolver
         remote = Resolver(args.config, config['game_directory'])
         return asyncio.run(launcher.launch(config, remote, player_options(args.replay,

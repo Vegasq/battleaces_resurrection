@@ -251,13 +251,16 @@ class Community:
             session = self.sessions[peer.profile_id]
             self.require_session(session)
             p.require(self.server.experimental_command_scheduling, 'experimental command scheduling disabled')
-            p.require(payload == bytes([command_wire.VERSION]) and getattr(peer, 'authenticated_tls', False) and
+            p.require(payload in (bytes([command_wire.VERSION]), bytes([command_wire.PUBLIC_NEGOTIATION_VERSION])) and
+                      getattr(peer, 'authenticated_tls', False) and
                       not getattr(peer, 'command_scheduling', False) and session.lobby is None and peer.room is None and
                       not session.practicing and not session.saving and not self.public.busy(peer.profile_id),
                       'command experiment requires an authenticated TLS idle community peer')
-            peer.send(command_wire.ACK, bytes([command_wire.VERSION]))
+            peer.send(command_wire.ACK, payload)
             peer.command_scheduling = True
-            self.server.audit('command_scheduling_negotiated', connection=peer.connection, version=command_wire.VERSION)
+            peer.command_scheduling_public = payload == bytes([command_wire.PUBLIC_NEGOTIATION_VERSION])
+            self.server.audit('command_scheduling_negotiated', connection=peer.connection, version=payload[0],
+                              public_matches=peer.command_scheduling_public)
             return
         if kind in (command_wire.BATCH, command_wire.HEARTBEAT, command_wire.READY):
             p.require(peer.room is not None, 'command experiment message without an assigned match')
@@ -292,9 +295,9 @@ class Community:
         require(not session.saving or kind == c.REFRESH, 'profile selection is still saving')
         from . import public_protocol as public
         if kind in public.COMMANDS:
-            require(kind not in (public.ENTER, loadout.ENTER_LOADOUT) or
-                    not getattr(session.peer, 'command_scheduling', False),
-                    'arrival command experiment supports Custom 1v1 only')
+            if kind in (public.ENTER, loadout.ENTER_LOADOUT) and getattr(session.peer, 'command_scheduling', False):
+                require(getattr(session.peer, 'command_scheduling_public', False),
+                        'arrival command experiment v1 supports Custom 1v1 only')
             return await self.public.apply(session, kind, command, now)
         require(not self.public.busy(profile) or kind == c.REFRESH, 'finish or cancel public matchmaking first')
         if kind == c.PRACTICE:

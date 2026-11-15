@@ -262,7 +262,7 @@ class ArrivalNetworkTests(DedicatedFixture):
     async def test_bad_version_renegotiation_and_negotiation_after_lobby_fail_closed(self):
         await self.start_experiment()
         bad_version = await self.online()
-        await bad_version.send(70, b'\x02'); await bad_version.receive(p.ERROR)
+        await bad_version.send(70, b'\x03'); await bad_version.receive(p.ERROR)
         repeated = await self.online(negotiate=True)
         await repeated.send(70, b'\x01'); await repeated.receive(p.ERROR)
         in_lobby = await self.online()

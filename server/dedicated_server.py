@@ -80,6 +80,7 @@ class Peer:
         self.feedback_ms = None  # AUTH_OK -> validated HELLO, only with real TLS admission.
         self.authenticated_tls = False
         self.command_scheduling = False
+        self.command_scheduling_public = False
         self.command_activity, self.command_last_applied = 0.0, -1
 
     def send(self, kind, payload=b""):
@@ -174,11 +175,15 @@ class Room:
                    {slot: configured_window for slot in sorted(human_slots)})
         self.input_windows = MappingProxyType(windows)
         self.input_window = max(windows.values())  # Aggregate cap; each human negotiates its own lead.
+        arrival_custom = community_lobby is not None and public_match is None and mode == 1 and not bots
+        arrival_public = (public_match is not None and community_lobby is None and mode in public_wire.MODES and
+                          feedback_peers is not None and
+                          all(getattr(peer, 'command_scheduling_public', False) for peer in feedback_peers.values()))
         p.require(type(command_scheduling) is bool and (not command_scheduling or
-                  (server.experimental_command_scheduling and community_lobby is not None and mode == 1 and not bots and
+                  (server.experimental_command_scheduling and (arrival_custom or arrival_public) and
                    feedback_peers is not None and all(getattr(peer, 'authenticated_tls', False) and
                    getattr(peer, 'command_scheduling', False) for peer in feedback_peers.values()))),
-                  'arrival command experiment requires negotiated TLS Custom peers')
+                  'arrival command experiment requires negotiated TLS Custom or public peers')
         self.command_scheduling = command_scheduling
         self.command_scheduler, self.command_join_deadline = None, None
         self.command_ready = set()

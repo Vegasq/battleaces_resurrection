@@ -1,7 +1,7 @@
 """Local startup and optional remote configuration have independent failure paths."""
 import argparse
 import asyncio
-from contextlib import redirect_stdout
+from contextlib import redirect_stdout,redirect_stderr
 import io
 import json
 from pathlib import Path
@@ -181,6 +181,8 @@ class UnifiedLauncherTests(unittest.TestCase):
             self.assertIn('-secure-transport-version=2', argv)
             self.assertIn('-local-profile=default', argv)
             self.assertIn('-public-queue-experimental', argv)
+            self.assertIn('-original-command-scheduling-experimental', argv)
+            self.assertNotIn('-buffered-input-experimental', argv)
             self.assertIn('-local-cosmetics-experimental', argv)
             self.assertFalse(any('smoke' in value or 'audit' in value or 'auto-' in value for value in argv))
             with self.assertRaises(bridge.RemoteUnavailable): await remote()
@@ -201,16 +203,16 @@ class UnifiedLauncherTests(unittest.TestCase):
         with self.assertRaisesRegex(launcher.LaunchError, 'fullscreen must be true or false'):
             client.prepare_settings(self.path)
 
-    def test_original_command_scheduling_is_per_launch_without_config_or_automation(self):
+    def test_scheduling_defaults_on_with_explicit_buffered_control_and_no_config_change(self):
         self.save(client.defaults(self.game))
         saved = self.path.read_bytes()
-        for requested in (True,False):
+        for extra,requested in (([],True),(['--original-command-scheduling-experimental'],True),(['--buffered-input-experimental'],False)):
             async def launch(config, remote, options):
                 arguments = launcher.game_arguments(config,None,1234,options)
                 self.assertEqual('-original-command-scheduling-experimental' in arguments,requested)
+                self.assertEqual('-buffered-input-experimental' in arguments,not requested)
                 self.assertFalse(any('smoke' in value or 'audit' in value or 'auto-' in value for value in arguments))
                 return 0
-            extra = ['--original-command-scheduling-experimental'] if requested else []
             with mock.patch.object(launcher,'launch',side_effect=launch):
                 self.assertEqual(client.main(['--config',str(self.path),*extra]),0)
             self.assertEqual(self.path.read_bytes(),saved)
@@ -232,6 +234,46 @@ class UnifiedLauncherTests(unittest.TestCase):
                 self.assertEqual(client.main(['--config',str(self.path),'--original-command-scheduling-experimental']),1)
         self.assertTrue(verify.call_args.kwargs['original_command_scheduling_experimental'])
         self.assertIn('matching experimental client helper required',output.getvalue())
+
+    def test_server_ai_scheduling_keeps_explicit_host_policy_and_saved_settings(self):
+        self.save(dict(client.defaults(self.game),solo_ai_host='server'))
+        saved = self.path.read_bytes()
+        for extra,requested in (([],True),(['--original-command-scheduling-experimental'],True),(['--buffered-input-experimental'],False)):
+            async def launch(config, remote, options):
+                arguments = launcher.game_arguments(config,None,1234,options)
+                self.assertEqual(arguments.count('-solo-ai-host=server'),1)
+                self.assertEqual('-original-command-scheduling-experimental' in arguments,requested)
+                self.assertFalse(any('prediction' in value or 'smoke' in value for value in arguments))
+                return 0
+            with mock.patch.object(launcher,'launch',side_effect=launch):
+                self.assertEqual(client.main(['--config',str(self.path),*extra]),0)
+            self.assertEqual(self.path.read_bytes(),saved)
+
+    def test_solo_ai_host_override_is_launch_only_and_preserves_identity(self):
+        self.save(dict(client.defaults(self.game),solo_ai_host='local',local_profile='friends_02',display_name='Test Player'))
+        saved = self.path.read_bytes()
+        for override in ('server','local',None):
+            async def launch(config, remote, options):
+                arguments = launcher.game_arguments(config,None,1234,options)
+                self.assertEqual(config['local_profile'],'friends_02')
+                self.assertEqual(config['display_name'],'Test Player')
+                self.assertEqual(config['solo_ai_host'],override or 'local')
+                self.assertIn('-solo-ai-host='+(override or 'local'),arguments)
+                self.assertIn('-original-command-scheduling-experimental',arguments)
+                return 0
+            extra = ['--solo-ai-host',override] if override else []
+            with mock.patch.object(launcher,'launch',side_effect=launch):
+                self.assertEqual(client.main(['--config',str(self.path),*extra]),0)
+            self.assertEqual(self.path.read_bytes(),saved)
+
+    def test_conflicting_input_modes_and_invalid_host_override_fail_before_settings_or_spawn(self):
+        for extra in (['--original-command-scheduling-experimental','--buffered-input-experimental'],
+                      ['--solo-ai-host','server -lan-smoke']):
+            with (mock.patch.object(client,'prepare_settings') as settings,
+                  mock.patch.object(launcher,'launch') as launch,redirect_stderr(io.StringIO())):
+                with self.assertRaises(SystemExit) as error: client.main(extra)
+                self.assertEqual(error.exception.code,2)
+                settings.assert_not_called();launch.assert_not_called()
 
     def test_replay_file_and_picker_reach_native_without_diagnostic_actions(self):
         selected = self.folder / 'replay with spaces & percent %.rep'

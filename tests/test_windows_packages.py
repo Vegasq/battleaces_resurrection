@@ -128,9 +128,11 @@ class WindowsPackageTests(unittest.TestCase):
         with self.assertRaises(PackageError): self.build()
         self.assertFalse((self.root/'out').exists())
 
-    def test_online_presentation_export_and_marker_required_before_output(self):
+    def test_presentation_and_default_scheduling_capabilities_required_before_output(self):
         complete = self.helper.read_bytes()
-        for marker in (b'BA_RESURRECTION_ONLINE_PRESENTATION_V1', b'OfflinePresentAvailableSimFrame\0'):
+        for marker in (b'BA_RESURRECTION_ONLINE_PRESENTATION_V1', b'OfflinePresentAvailableSimFrame\0',
+                       b'BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1',
+                       b'BA_RESURRECTION_SERVER_AI_COMMAND_SCHEDULING_V1'):
             with self.subTest(missing=marker):
                 helper = complete.replace(marker, b'')
                 self.helper.write_bytes(helper)
@@ -261,6 +263,17 @@ class PackageDispatchTests(unittest.TestCase):
             self.assertEqual(start.call_args.args[0], ['--config', str(Path('local.json').resolve()),
                                                      '--game', str(Path('working copy').resolve())])
             self.assertEqual(start.call_args.kwargs['default_game'], package_client.PACKAGE.parent)
+
+    def test_packaged_start_forwards_input_controls_and_ai_host_override(self):
+        for extra in ([],['--original-command-scheduling-experimental'],['--buffered-input-experimental'],
+                      ['--solo-ai-host','server'],['--buffered-input-experimental','--solo-ai-host','server']):
+            with (mock.patch.object(package_client, 'verify') as verify,
+                  mock.patch('client_patch.transport.client.main', return_value=17) as start):
+                self.assertEqual(package_client.main(['start','--game','working copy','--config','local.json',*extra]),17)
+                verify.assert_called_once_with(package_client.PACKAGE,'client')
+                self.assertEqual(start.call_args.args[0],['--config',str(Path('local.json').resolve()),
+                    '--game',str(Path('working copy').resolve()),*extra])
+                self.assertEqual(start.call_args.kwargs['default_game'],package_client.PACKAGE.parent)
 
     def test_server_check_and_credentials_keep_private_defaults(self):
         with mock.patch.object(package_server, 'verify'), mock.patch('server.host.main', return_value=0) as host:

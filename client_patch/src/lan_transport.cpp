@@ -44,6 +44,7 @@ static size_t originalDeferredBytes=0;
 static bool originalCommandScheduling() {
     static const bool enabled=ba::flag(L"-original-command-scheduling-experimental");return enabled;
 }
+static bool originalCommandMatch(){return originalCommandScheduling() && originalCommands.assigned();}
 static void resetOriginalCommandMatch(){originalCommands.clearMatch();}
 static void originalOutputReady(Obj server);
 // Native simulation output is a replaceable single slot. Admit only one
@@ -225,7 +226,7 @@ static void flushOutgoing() {
     if(txPosition==tx.size()){tx.clear();txPosition=0;}
 }
 static void originalHeartbeat() {
-    if(!originalCommandScheduling() || stopped || matchEnded || (ba::community() && ba_community::abortPending))return;
+    if(!originalCommandMatch() || stopped || matchEnded || (ba::community() && ba_community::abortPending))return;
     const auto now=GetTickCount64();
     if(auto payload=originalCommands.heartbeat(now)) {
         send(ba_original_commands::heartbeat,*payload);
@@ -237,8 +238,8 @@ static void communityMessage(unsigned char type,const Bytes& payload) {
     if(type==41 && originalCommandScheduling()) {
         originalCommands.request();originalWelcome=payload;
         send(ba_original_commands::negotiate,ba_original_commands::negotiation());
-        ba::log("Original command scheduling requested: version=1 customOnly=1 BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1");
-        return; // Native Custom callbacks cannot run until the host ACKs.
+        ba::log("Original command scheduling requested: version=1 capability=2 custom1v1=1 publicModes=1,2,5 BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1 BA_RESURRECTION_SERVER_AI_COMMAND_SCHEDULING_V1");
+        return; // Native matchmaking callbacks cannot run until the host ACKs.
     }
     if(originalCommands.pending()) {
         if(originalDeferred.size()>=64 || originalDeferredBytes+payload.size()>1024*1024)
@@ -287,10 +288,10 @@ static void poll() {
                 ba_community::receive(message.type,message.payload);
             }
             originalDeferredBytes=0;
-            ba::log("Original command scheduling negotiated: version=1 customOnly=1 BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1");
+            ba::log("Original command scheduling negotiated: version=1 capability=2 custom1v1=1 publicModes=1,2,5 BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1 BA_RESURRECTION_SERVER_AI_COMMAND_SCHEDULING_V1");
         }
         else if(ba::community() && (type==62 || type==63 || type==67)) {
-            if(originalCommandScheduling())throw std::runtime_error("original command experiment supports Custom1v1 only");
+            if(originalCommandScheduling() && !originalCommands.ready())throw std::runtime_error("public scheduling event before capability negotiation");
             ba_public::receive(type,payload);
         }
         else if(ba::community() && ba_public::ignoreMatchData() && (type==12 || type==13 || type==14 || type==36 || type==64))continue;
@@ -309,7 +310,7 @@ static void poll() {
         else if(type==37){std::string notice(payload.begin(),payload.end());ba::log("Dedicated server notice: %s",notice.c_str());}
         else if(type==36){std::string result(payload.begin(),payload.end());ba::log("Dedicated match ended: %s",result.c_str());ba_dedicated_results::receive(result);matchEnded=true;}
         else if(type==12){if(!bootstrap.empty() || payload.empty())throw std::runtime_error("duplicate or empty bootstrap");bootstrap=std::move(payload);if(ba::dedicated())saveReceivedBootstrap(bootstrap);auto h=sha(bootstrap);memcpy(&bootstrapHash,h.data(),8);ba::log("LAN canonical GameData received: %llu bytes hash-prefix=%016llx",static_cast<unsigned long long>(bootstrap.size()),bootstrapHash);}
-        else if(type==13){if(!worldReady || !payload.empty() || running)throw std::runtime_error("unexpected LAN start");if(originalCommandScheduling())originalCommands.start(GetTickCount64());running=true;nextFrame=0;presentationClock.reset();ba::log("LAN both players ready; synchronized start");}
+        else if(type==13){if(!worldReady || !payload.empty() || running)throw std::runtime_error("unexpected LAN start");if(originalCommandMatch())originalCommands.start(GetTickCount64());running=true;nextFrame=0;presentationClock.reset();ba::log("LAN both players ready; synchronized start");}
         else if(type==14){if(!running || frames.size()>=(paceNativeFrames()?64u:ba::dedicated()?inputWindow+4:8))throw std::runtime_error("unexpected LAN frame");const int frame=static_cast<int>(u32(payload,0));frames.push_back(std::move(payload));ba_frame_timing::arrival(frame,frames.size());}
         else if(type==64){if(!publicMatch || !running || frames.size()>=(paceNativeFrames()?64u:inputWindow+4))throw std::runtime_error("unexpected public frame");ba_public_wire::frame(payload,static_cast<unsigned>(publicIdentities.size()));const int frame=static_cast<int>(u32(payload,0));frames.push_back(std::move(payload));ba_frame_timing::arrival(frame,frames.size());}
         else if(type==255){std::string message(payload.begin(),payload.end());
@@ -385,7 +386,7 @@ static void originalInput(Obj server) {
     }
 }
 static void originalOutputReady(Obj server) {
-    if(!originalCommandScheduling() || !running || !worldReady || stopped || matchEnded ||
+    if(!originalCommandMatch() || !running || !worldReady || stopped || matchEnded ||
        ba_community::abortPending || !ba_local::isTarget(server))return;
     Obj simulation=ba::read<Obj>(server,0x140);if(!simulation)return;
     // This is the ORIGINAL presented-output counter, not the applied input
@@ -405,7 +406,7 @@ static void tick(Obj server) {
     // each accepted frame; native simulation still advances exactly50ms per tick.
     const int window=ba::dedicated()?static_cast<int>(inputWindow):3;
     if(window<2 || window>12)throw std::runtime_error("input window was not negotiated");
-    const bool original=originalCommandScheduling();
+    const bool original=originalCommandMatch();
     if(original)originalInput(server);
     else if(!submittedFirst){for(int f=0;f<window;++f)submit(server,f);submittedFirst=true;}
     Obj sim=ba::read<Obj>(server,0x140);

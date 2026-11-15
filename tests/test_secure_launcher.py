@@ -131,6 +131,12 @@ class SecureLauncherTests(unittest.TestCase):
         helper.write_bytes(helper.read_bytes()+b' BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1')
         manifest['helper_sha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
         path.write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(launch.LaunchError,'matching server-AI command scheduling client helper'):
+            launch.verify_game(root,**flags,original_command_scheduling_experimental=True)
+        launch.verify_game(root,**flags)  # Ordinary clients do not need either experiment marker.
+        helper.write_bytes(helper.read_bytes()+b' BA_RESURRECTION_SERVER_AI_COMMAND_SCHEDULING_V1')
+        manifest['helper_sha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
+        path.write_text(json.dumps(manifest))
         launch.verify_game(root,**flags,original_command_scheduling_experimental=True)
         with self.assertRaises(launch.LaunchError):
             launch.verify_game(root,original_command_scheduling_experimental=True)
@@ -139,6 +145,9 @@ class SecureLauncherTests(unittest.TestCase):
         config = self.load()
         with self.assertRaisesRegex(launch.LaunchError,'unified client'):
             launch.game_arguments(config,None,1234,argparse.Namespace(run_name='test',original_command_scheduling_experimental=True))
+        with self.assertRaisesRegex(launch.LaunchError,'either command scheduling or buffered'):
+            launch.game_arguments(config,None,1234,argparse.Namespace(run_name='test',unified_experimental=True,
+                original_command_scheduling_experimental=True,buffered_input_experimental=True))
 
     def test_dynamic_arguments_have_no_startup_identity_or_private_settings(self):
         config = self.load()

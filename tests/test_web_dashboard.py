@@ -161,11 +161,15 @@ class DashboardLifecycleTests(DedicatedFixture):
 class HostDashboardTests(unittest.IsolatedAsyncioTestCase):
     async def test_host_lifetime_disabled_check_and_web_failure(self):
         from server import host
+        from server.configuration import HostConfig
         config = NS(data_directory=Path('unused-data'), assets_directory=Path('unused-assets'),
                     log_max_bytes=65536, log_backups=2, diagnostic_audit=False,
                     max_rooms=4, input_window=64, access_mode='rc-open',
                     listen_host='127.0.0.1', listen_port=47623,
-                    dashboard_host='127.0.0.1', dashboard_port=47624)
+                    dashboard_host='127.0.0.1', dashboard_port=47624,
+                    minimum_client_revision=HostConfig.minimum_client_revision,
+                    client_update_message=HostConfig.client_update_message,
+                    experimental_command_scheduling=HostConfig.experimental_command_scheduling)
         manifest = dict(game_build=37822, asset_format=1, files={})
         for label in ('normal', 'port_conflict', 'corrupt_history', 'disabled', 'check_only'):
             with self.subTest(label=label):

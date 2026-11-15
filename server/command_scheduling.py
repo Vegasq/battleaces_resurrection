@@ -1,4 +1,4 @@
-"""Disabled-by-default arrival-command experiment; normal frame input is unchanged."""
+"""Negotiated arrival-command scheduling; buffered peers remain supported."""
 from __future__ import annotations
 
 from collections import deque
@@ -13,6 +13,9 @@ from .game_data import MAX_ACTIONS, MAX_INPUT_BYTES, encode_player_input
 from .protobuf_wire import get_repeated_bytes, parse_fields
 
 NEGOTIATE, ACK, BATCH, HEARTBEAT, READY, VERSION = 70, 71, 72, 73, 74, 1
+# Negotiation v2 adds public match capability. Per-match messages keep
+# their original v1 encoding; old v1 clients remain restricted to Custom 1v1.
+PUBLIC_NEGOTIATION_VERSION = 2
 MATCH = re.compile(r'[0-9a-f]{32}\Z')
 
 

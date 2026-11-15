@@ -12,6 +12,8 @@
 namespace ba_original_commands {
 using Bytes=std::vector<unsigned char>;
 constexpr unsigned char negotiate=70,ack=71,batch=72,heartbeat=73,firstOutputReady=74,version=1;
+// Capability2 adds public matchmaking, including AI. Per-match packet codecs remain v1.
+constexpr unsigned char capability=2;
 constexpr uint64_t heartbeatInterval=1000;
 inline void require(bool value,const char* message){if(!value)throw std::runtime_error(message);}
 inline bool validateContext(bool requested,bool unified,bool tlsV2,bool community) {
@@ -20,6 +22,16 @@ inline bool validateContext(bool requested,bool unified,bool tlsV2,bool communit
     return true;
 }
 inline bool canStart(bool experimental,size_t queued){return queued>=(experimental?1u:2u);}
+inline bool allowsPublic(unsigned mode){return mode==1 || mode==2 || mode==5;}
+inline bool allowsLocalFallback(bool experimental,bool serverHosted){return !experimental || !serverHosted;}
+inline bool publicArrivalMode(unsigned mode,unsigned count,unsigned slot,unsigned humanMask) {
+    require(allowsPublic(mode) && count==(mode==1?2u:4u) && slot<count,
+            "command scheduling public assignment has an unsupported topology");
+    const unsigned allowed=mode==5?5u:(1u<<count)-1;
+    require((humanMask&(1u<<slot))!=0 && (humanMask&~allowed)==0,
+            "command scheduling public assignment has an unsupported roster");
+    return true;
+}
 inline void matchKey(const std::string& match) {
     require(match.size()==32,"original command match key length");
     for(unsigned char c:match)require((c>='0'&&c<='9') || (c>='a'&&c<='f'),"original command match key invalid");
@@ -27,7 +39,7 @@ inline void matchKey(const std::string& match) {
 inline void append(Bytes& out,uint64_t value,unsigned count) {
     for(unsigned i=0;i<count;++i)out.push_back(static_cast<unsigned char>(value>>(8*i)));
 }
-inline Bytes negotiation(){return Bytes{version};}
+inline Bytes negotiation(){return Bytes{capability};}
 inline Bytes encodeBatch(const std::string& match,uint64_t sequence,const Bytes& body) {
     matchKey(match);require(sequence>0,"original command sequence must start at1");
     require(!body.empty() && body.size()<=65536,"original command body size limit");
@@ -50,12 +62,13 @@ class State {
 public:
     bool pending() const{return pending_;}
     bool ready() const{return ready_;}
+    bool assigned() const{return !match_.empty();}
     const std::string& match() const{return match_;}
     uint64_t sequence() const{return sequence_;}
     int32_t lastApplied() const{return applied_;}
     void request(){require(!pending_ && !ready_,"duplicate original command negotiation");pending_=true;}
     void acknowledge(const Bytes& payload) {
-        require(pending_ && !ready_ && payload==Bytes{version},"unexpected original command negotiation ACK");
+        require(pending_ && !ready_ && payload==Bytes{capability},"server does not support requested command scheduling capability");
         pending_=false;ready_=true;
     }
     void clearMatch(){match_.clear();running_=false;firstOutputSent_=false;sequence_=1;nextHeartbeat_=0;applied_=-1;smokeFrame_=-1;}
@@ -63,6 +76,12 @@ public:
     void assign(const std::string& match,uint64_t now) {
         require(ready_ && match_.empty(),"original command assignment before negotiation or duplicate match");
         matchKey(match);match_=match;nextHeartbeat_=now;
+    }
+    bool assignPublic(const std::string& match,uint64_t now,unsigned mode,unsigned count,unsigned slot,unsigned humanMask) {
+        require(ready_ && match_.empty(),"public command assignment before negotiation or duplicate match");
+        matchKey(match);
+        publicArrivalMode(mode,count,slot,humanMask);
+        assign(match,now);return true;
     }
     void start(uint64_t now) {
         require(ready_ && !match_.empty() && !running_,"original command START before assignment or repeated");

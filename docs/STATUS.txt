@@ -1,4 +1,11 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-15 N39 active:arrival scheduling is the test-build default for server AI
+and humans in Custom1v1 and public1v1/2v2/2vAI,with30-second human search.
+Branch experiment/server-ai-command-scheduling starts at restored main0ad2afb.
+Native solo AI and public human1v1/2vAI checks pass at the documented scope;
+strict timing failures remain recorded. No prediction code is included.
+See server-ai-command-scheduling.txt. Prior entries
+below describe their original historical scope;prediction work was withdrawn.
 Reviewed:2026-11-08. Final release is not accepted.
 Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.

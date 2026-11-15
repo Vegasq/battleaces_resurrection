@@ -371,14 +371,17 @@ async def run(args):
                 config = dict(game_directory=game, server_host='127.0.0.1', server_port=delayed_port,
                     display_name='Original scheduling '+role, room='community', fullscreen=False,
                     local_profile='original_sched_'+secrets.token_hex(8), solo_ai_host='server')
-                options = argparse.Namespace(run_name='original-scheduling-'+role, unified_experimental=True, player_features=True)
+                options = argparse.Namespace(run_name='original-scheduling-'+role, unified_experimental=True, player_features=True,
+                    original_command_scheduling_experimental=args.scheduling == 'arrival',
+                    buffered_input_experimental=args.scheduling == 'buffered')
                 command = launcher.game_arguments(config, None, child.fileno(), options)
                 command[command.index('-logFile')+1] = str(output/f'game-{index}.log')
                 command += [f'-community-match-{role}-smoke', '-lan-smoke', '-dedicated-surrender-smoke',
                             f'-dedicated-surrender-frame={args.frames+70}', '-dedicated-rematch-smoke',
                             '-frame-timing', f'-frame-timing-frames={args.frames}']
-                if args.scheduling == 'arrival':
-                    command += ['-original-command-scheduling-experimental']
+                require(('-original-command-scheduling-experimental' in command) == (args.scheduling == 'arrival') and
+                        ('-buffered-input-experimental' in command) == (args.scheduling == 'buffered'),
+                        'Custom native launch differs from explicit scheduling control')
                 if args.state_audit:
                     command += ['-lan-audit']
                 startup = subprocess.STARTUPINFO()
