@@ -1,9 +1,8 @@
-BATTLE ACES RESURRECTION 0.4.0 - NATIVE WINDOWS CLIENT INSTALLER
+BATTLE ACES RESURRECTION 0.5.0-rc1 - NATIVE WINDOWS CLIENT INSTALLER
 
-Release and both Windows installers:
-https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.4.0
-Client download: BattleAces-Client-Installer-0.4.0.exe
-https://github.com/Vegasq/battleaces_resurrection/releases/download/v0.4.0/BattleAces-Client-Installer-0.4.0.exe
+Release and both Windows installers (draft until explicitly published):
+https://github.com/Vegasq/battleaces_resurrection/releases
+Client download: BattleAces-Client-Installer-0.5.0-rc1.exe
 
 Use the client and server installers from the same release. Update the host
 before updating clients. The pair supports selected portraits in Invite Friend.
@@ -21,8 +20,9 @@ Install Battle Aces.exe. Setup Client.cmd opens that same native window.
 
 1. Close Battle Aces,then browse to the working folder containing Battle Aces.exe
    (supported build37822). Keep a separate untouched copy for recovery.
-2. The server IP starts at 134.209.176.39 for a new install. Replace it for
-   another host,or keep it for the public community server. Solo AI runs locally
+2. The server address accepts an IP or hostname. Choose ba.sendsignal.cc for
+   US/New York or be.sendsignal.cc for Europe/London. The existing default
+   134.209.176.39 is the European host. Solo AI runs locally
    without clearing the IP;blank also supports offline play. Saved server IPs load
    when their game folder is selected. Choose your Player name;
    a fresh install suggests your cleaned Windows account name. Existing saved
@@ -45,13 +45,16 @@ server's match history.
 To opt into server-hosted solo AI,close the game and set "solo_ai_host": "server"
 in .battleaces-resurrection/client-config.json. Use "local" to restore the
 default. Missing settings also default to local;updates preserve your choice.
-Use the matching 0.4.0 host for the public queue handoff. Older hosts retain
-their original queue behavior. No IP/identity reset is needed.
+The normal desktop shortcut enables the new command-arrival scheduling for
+every server-hosted match:Custom1v1,public1v1,2v2 and2vAI. For server AI testing,
+set solo_ai_host to server as above,then use that same normal shortcut. No special
+test launcher is required. Explicitly local AI remains local. Both human players
+need compatible scheduling clients and the same selected server. No prediction
+is enabled. Use the matching0.5.0-rc1 host;no IP/identity reset is needed.
 
-The public game port on 134.209.176.39:47623 is open again for 0.4.0 players.
-The dashboard remains restricted to the project owner's IP. Online frame pacing
-and empty-selection disconnect handling have improved;movement and latency in
-games with other humans remain under evaluation. This release does not close
+The two project hosts use TCP47623 and remain owner-IP-only during this draft's
+controlled testing. Their dashboards also remain owner-only. Online movement
+and latency remain under evaluation. This release does not close
 the remaining acceptance gates in docs/REMAINING_DELIVERY_PLAN.txt.
 
 WATCH A SAVED REPLAY (included since rc1.7)

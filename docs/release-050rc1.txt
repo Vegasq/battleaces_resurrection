@@ -1,0 +1,24 @@
+NORMAL CLIENT/SERVER0.5.0-rc1 DRAFT -2026-11-15
+Requested:normal standalone installers,GitHub draft upload,and the same server
+build on US/NYC ba.sendsignal.cc and Europe/London be.sendsignal.cc.
+
+This candidate retains the verified N39 command-arrival scheduling runtime.
+The ordinary desktop shortcut uses it by default in server-hosted Custom1v1,
+public1v1,2v2 and2vAI. Human search remains30seconds with AI fallback. Saved
+solo_ai_host choices are honored;server AI testing uses the server setting.
+No movement prediction is included. Owner-only access stays in place per Nick.
+
+Native helper source/binary is unchanged:f817332816e739eb389a2f48ae2a6b3c3edfff76134ab0247cc9742aecd5a0ca.
+Reuse the completed native AI/human/team/state/command-conservation qualification
+and1620-test regression(82 explicit skips) in server-ai-command-scheduling.txt.
+This version changes package/update-message metadata and current quickstarts.
+Focused packaging/compatibility/launcher/installer/configuration tests pass.
+Artifact inventories,source/version binding,normal desktop launch,remote rollout
+and uploaded byte hashes require the final delivery receipt. A draft upload does
+not supply Nick's pending N39 physical smoothness result or final release approval.
+
+Normal artifact names:
+BattleAces-Client-Installer-0.5.0-rc1.exe
+BattleAces-Server-Installer-0.5.0-rc1.exe
+Release assets include SHA256SUMS.txt and release-manifest.json.
+Source branch:release/0.5.0-rc1. Tag:v0.5.0-rc1. Publication remains disabled.

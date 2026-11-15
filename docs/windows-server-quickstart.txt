@@ -1,32 +1,36 @@
-BATTLE ACES RESURRECTION 0.4.0 - WINDOWS HOST
+BATTLE ACES RESURRECTION 0.5.0-rc1 - WINDOWS HOST
 
-Release and both Windows installers:
-https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.4.0
-Server download: BattleAces-Server-Installer-0.4.0.exe
-https://github.com/Vegasq/battleaces_resurrection/releases/download/v0.4.0/BattleAces-Server-Installer-0.4.0.exe
+Release and both Windows installers (draft until explicitly published):
+https://github.com/Vegasq/battleaces_resurrection/releases
+Server download: BattleAces-Server-Installer-0.5.0-rc1.exe
 
 Use the client and server installers from this same release. Update the host
 before updating clients. Keep existing host data/backups private;the installer
 requires a new,empty destination and does not overwrite an installed host.
 
-The community game server at 134.209.176.39:47623 is open again for 0.4.0 players.
-Its dashboard remains restricted to the project owner's IP. Online movement and
-latency remain under evaluation;remaining release acceptance gates stay open.
+The project hosts are ba.sendsignal.cc(US/New York) and be.sendsignal.cc(Europe/
+London),both using TCP47623. Both game and dashboard access remain owner-IP-only
+during this draft's controlled testing. Online movement and latency remain under
+evaluation;remaining release acceptance gates stay open.
 
 PUBLIC MATCHMAKING AND SOLO AI
 Public 1v1/2v2/2vAI search for humans for up to 30 seconds before filling open
-seats with AI. In 2vAI,a second human can join as a co-op teammate. The 0.4.0
+seats with AI. In 2vAI,a second human can join as a co-op teammate. The0.5.0-rc1
 client runs a game locally if it is the only human,unless its saved
 solo_ai_host setting is "server". Matches containing other humans remain
 server-hosted. Try Deck stays immediate/local. Local games do not create a
 server match-history entry. Keep the matching host/client pair for this handoff.
+Command-arrival scheduling defaults on for new hosts and normal clients in all
+server-hosted modes,including AI rosters. Older buffered clients retain their
+own compatible queue. Explicit experimental_command_scheduling:false in an
+existing host config is preserved and rejects new scheduling negotiation.
 
 SERVER DASHBOARD
 While hosting,open http://127.0.0.1:47624 on the server PC for online players,
 active games and saved match history. Local access is the default. Public/LAN
 access,port settings and history retention:DASHBOARD.txt
 (source:docs/server-dashboard175.txt).
-The 0.4.0 server installer includes this feature. Gameplay uses the separate
+The server installer includes this feature. Gameplay uses the separate
 TCP 47623 port;opening gameplay does not require public dashboard access.
 
 MOVING AN INSTALLED HOST TO LINUX

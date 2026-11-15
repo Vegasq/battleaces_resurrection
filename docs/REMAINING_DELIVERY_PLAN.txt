@@ -3,7 +3,14 @@ Updated:2026-11-15. Final release acceptance remains OPEN.
 [x] means complete at the stated scope;[ ] means remaining work/evidence.
 Prior baseline queue preserved at history/2026-11-15/scheduling-ai-base-plan.txt.
 
-ACTIVE - N39 COMMAND SCHEDULING FOR SERVER AI AND HUMANS
+ACTIVE - N40 NORMAL CLIENT/SERVER0.5.0-rc1 DRAFT
+[ ] Package the verified scheduling runtime as normal client/server installers0.5.0-rc1.
+[ ] Verify normal desktop launch uses arrival scheduling and Nick's saved server AI.
+[ ] Upload verified installers/checksums to a new GitHub draft release;do not publish.
+[ ] Deploy the same server package to ba.sendsignal.cc(US) and be.sendsignal.cc(EU).
+N39 playtest acceptance remains pending;this packaging request does not supply it.
+
+N39 COMMAND SCHEDULING FOR SERVER AI AND HUMANS
 [x] Start from accepted main0ad2afb/restored pre-prediction runtime.
 [x] Make new scheduling default in the test build for all server-hosted AI/human
     matches,retaining30-second human search and compatible protocol cohorts.

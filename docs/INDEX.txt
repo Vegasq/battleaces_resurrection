@@ -484,3 +484,4 @@ SUPERSEDED PLANS
   PLAN_CLOSEOUT.txt
   SERVER_REPLACEMENT_PLAN.txt
 privacy-four-human-native394.txt - four-human native bridge socket attribution
+Current0.5.0-rc1 normal installer/draft delivery:release-050rc1.txt.
