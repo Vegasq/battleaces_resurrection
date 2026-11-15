@@ -10,8 +10,10 @@ ACTIVE - N39 COMMAND SCHEDULING FOR SERVER AI AND HUMANS
 [x] Verify negotiation,queue isolation,AI inputs and startup readiness at the
     recorded regression/native scope. Physical Internet play remains below.
 [x] Build helper and run the actual owned client/native server-AI lifecycle.
-[ ] Prepare verified matching installers and a separate explicit test launcher.
-[ ] Make the tested pair available for Nick's AI/human smoothness playtest.
+[x] Prepare verified matching preview installers and explicit test/comparison
+    launchers. Clean runtime source:d5c773b;version0.4.1-scheduling-preview.1.
+[x] Install the client in Nick's normal game and deploy/verify London+NYC3.
+    Settings,identities,37 history entries per host and owner-only access retained.
 [ ] Record Nick's actual result under canonical DEV.txt N39.
 Details:server-ai-command-scheduling.txt. No movement prediction is included.
 

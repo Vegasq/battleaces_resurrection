@@ -1,6 +1,6 @@
 SERVER COMMAND SCHEDULING FOR AI AND HUMANS - N39 -2026-11-15
-Status:implementation/native qualification complete at the scope below;
-regression suite and paired packaging in progress. Cloud rollout awaits access.
+Status:preview installed locally and deployed to both existing cloud hosts;
+ready for Nick's playtest. Human smoothness acceptance remains pending.
 
 Nick requested the existing Custom1v1 command scheduling experiment for games
 against server AI,to compare movement smoothness. This branch starts from
@@ -91,6 +91,54 @@ omitted current policy fields,and the15-player roster test exhausted the shared
 loopback admission bucket. Reproduction records explicit rate_limit failures.
 Fixtures now use actual HostConfig defaults and a15-entry burst for that one
 roster case;production admission defaults are unchanged. All45 affected-module
-tests pass. A full corrected run is in progress before preview handoff.
+tests pass. Full corrected regression02 PASS:1620 tests,82 explicit skips,
+1538 executed passes,243.157seconds. Production runtime/helper unchanged.
 Source publication audit:1333 index objects pass;all changed staged paths also
 pass. No private DEV,original game assets,credentials or generated output enter Git.
+
+Paired preview0.4.1-scheduling-preview.1 uses clean source
+d5c773bfbbe184b97c5847ec00fc93fd2585c4c3. Artifacts in ignored
+dist/scheduling-preview-20261115/:
+- BattleAces-Client-Scheduling-Preview.exe
+  SHA2568dcc981dcc39b1c8064f4aec93764ae5958f5fdcda048ef69cb06baf5cd045c3
+- BattleAces-Server-Scheduling-Preview.exe
+  SHA2562ae8f611331a075dd8c5bbc3a05090aff5b7bc9a9b02d40f1929035305b08812
+Embedded ZIP bytes/inventories,clean source bindings,helper provenance and both
+bundled Python runtimes verify. Client82/server120 package files. A report-only
+installer-name shadowing error in verification01 is corrected in verification02;
+the original report is retained and installer bytes did not change.
+Actual install-game succeeds on the owned game. Installed runtimee6d048446416c4553c69,
+helperf8173328,GameAssembly529add6c and31 packaged source files verify;5 original
+files and59 profile files remain unchanged. Five launcher inspections confirm
+default arrival,explicit buffered and per-launch local/server AI choices.
+The first inspection guard blocked asyncio's internal loopback socketpair;
+owned-install01 retains that harness failure. Corrected inspection02 passes
+without repeating installation or starting a game/network connection.
+No public GitHub release is published by this preview task.
+
+Deployment/handoff completed2026-11-15:
+- London andNYC3 each verify all120 clean d5c773b package files under Linux and
+  bundled Wine Python. Idle gates pass immediately before each stop;separate
+  old-package/config/data backups retained. Both services restart healthy with
+  autostart unchanged,37 history entries each,and unchanged config/assets/firewalls.
+  The old supervisor reports exit-code during systemd stop;this is not natural
+  application Quit evidence. New services report active/running/success.
+- External capability2 negotiation and public mode1/2/5 AI offer/cancel checks
+  pass on both hosts,without READY or a game. London's first diagnostic used an
+  overlong35-character display name and was correctly rejected;the retained
+  failed report precedes the corrected24-character probe. No runtime fix/restart
+  was needed for that diagnostic error.
+- Nick's normal game now uses installed runtimee6d048446416c4553c69/helperf8173328.
+  Existing London target,fullscreen,server AI choice,profiles,identities and
+  original backups are preserved. The game was not launched by installation.
+- Start Scheduling Test.cmd forces server AI for this launch and uses arrival
+  scheduling. Start Buffered Comparison.cmd explicitly selects prior buffered
+  inputs with server AI. Normal Start Battle Aces.cmd also defaults to arrival.
+- Nick explicitly chose to keep owner-only access. No firewall opening occurs;
+  outside friend IPs remain blocked. Both human players need this preview and
+  access through the existing allowlist. Local AI preference is still honored
+  when selected;the test launcher deliberately chooses server AI.
+Private reports:local/scheduling-rollout-20261115/,local/scheduling-client-install/,
+local/scheduling-preview-verification02/,local/scheduling-owned-install02/.
+Playtest:normal30-second human search,then server AI if the roster is incomplete;
+Custom1v1/public1v1/2v2/2vAI use the new mode. Record Nick's result in DEV.txt N39.
