@@ -9,9 +9,10 @@ int main(int argc,char** argv) {
         char* end=nullptr;const unsigned long long handle=_strtoui64(argv[1],&end,10);
         if(!end || *end || !handle)return 3;
         const bool dynamic=argc==5;
-        const bool recover=dynamic && !strcmp(argv[2],"2-recover");
-        if(dynamic && !recover && strcmp(argv[2],"2"))return 2;
-        ba_secure::Channel channel;channel.attach(static_cast<uintptr_t>(handle),dynamic?2:1);
+        const bool status=dynamic && (!strcmp(argv[2],"2-status") || !strcmp(argv[2],"2-status-recover"));
+        const bool recover=dynamic && (!strcmp(argv[2],"2-recover") || !strcmp(argv[2],"2-status-recover"));
+        if(dynamic && !recover && !status && strcmp(argv[2],"2"))return 2;
+        ba_secure::Channel channel;channel.attach(static_cast<uintptr_t>(handle),dynamic?2:1,status);
         auto noIdentity=[&]() {
             bool rejected=false;try{channel.profile();}catch(const std::runtime_error&){rejected=true;}
             if(!rejected)throw std::runtime_error("probe retained an unauthenticated identity");
@@ -25,15 +26,22 @@ int main(int argc,char** argv) {
                 }
             } catch(const ba_secure::RemoteFailure& error) {if(error.code()!=8)throw;unavailable=true;}
             if(!unavailable)throw std::runtime_error("probe missing availability failure");
+            if(status && (!channel.targetKnown() || !channel.target().host.empty() || channel.liveForStatus()))
+                throw std::runtime_error("probe retained unavailable endpoint or connectivity");
             noIdentity();channel.end();
         }
         unsigned index=0;
         for(const char* expected:{"test","more"}) {
             channel.begin();
+            if(status && (channel.targetKnown() || channel.authenticatedForStatus()))
+                throw std::runtime_error("probe retained old session status");
             if(dynamic) {
                 noIdentity();const ULONGLONG deadline=GetTickCount64()+5000;
                 while(!channel.ready() && GetTickCount64()<deadline)Sleep(1);
                 if(channel.profile()!=argv[3+index])throw std::runtime_error("probe authenticated identity mismatch");
+                if(status && (!channel.authenticatedForStatus() || !channel.targetKnown() ||
+                   channel.target().host!="127.0.0.1" || channel.target().peer!="127.0.0.1" || !channel.target().port))
+                    throw std::runtime_error("probe authenticated endpoint mismatch");
             }
             if(channel.send(expected,4)!=4)throw std::runtime_error("probe send backpressure");
             char received[4]={};size_t count=0;const ULONGLONG deadline=GetTickCount64()+5000;
@@ -43,7 +51,10 @@ int main(int argc,char** argv) {
                 if(n>0)count+=n;else Sleep(1);
             }
             if(count!=4 || memcmp(received,expected,4))throw std::runtime_error("probe reply mismatch");
-            channel.end();if(dynamic)noIdentity();++index;
+            channel.end();if(dynamic)noIdentity();
+            if(status && (channel.liveForStatus() || channel.authenticatedForStatus() || !channel.target().peer.empty()))
+                throw std::runtime_error("probe retained closed connectivity");
+            ++index;
         }
         puts("Native private bridge completed two authenticated sessions");
         return 0;

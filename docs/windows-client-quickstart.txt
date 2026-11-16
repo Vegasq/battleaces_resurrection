@@ -1,7 +1,7 @@
 BATTLE ACES RESURRECTION 0.5.0-rc1 - NATIVE WINDOWS CLIENT INSTALLER
 
-Release and both Windows installers (draft until explicitly published):
-https://github.com/Vegasq/battleaces_resurrection/releases
+Published prerelease and both Windows installers:
+https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.5.0-rc1
 Client download: BattleAces-Client-Installer-0.5.0-rc1.exe
 
 Use the client and server installers from the same release. Update the host
@@ -34,6 +34,15 @@ The client starts fullscreen by default. To start it in a 960x540 window,
 close the game and set "fullscreen": false in
 .battleaces-resurrection/client-config.json. Set it back to true for fullscreen.
 
+BUILD AND CONNECTION DETAILS
+Open Settings from the main menu or an active match. The footer shows the
+Resurrection version and build ID,Online/Connecting/Offline,and the server
+hostname or IP with its port. An authenticated hostname connection also shows
+the actual server IP. Local AI marks a game running on your PC. The original
+game version remains a separate General setting. A saved address by itself
+does not mean the client is connected. Reinstall the refreshed0.5.0-rc1 client
+to add this display;it works with the already-deployed0.5.0-rc1 servers.
+
 SOLO AI HOSTING AND PUBLIC MATCHMAKING
 Solo AI games run on your PC by default,even with a server IP saved. Public
 1v1/2v2/2vAI search for human players for up to 30 seconds,then fill open seats
@@ -52,7 +61,7 @@ test launcher is required. Explicitly local AI remains local. Both human players
 need compatible scheduling clients and the same selected server. No prediction
 is enabled. Use the matching0.5.0-rc1 host;no IP/identity reset is needed.
 
-The two project hosts use TCP47623 and remain owner-IP-only during this draft's
+The two project hosts use TCP47623 and remain owner-IP-only during
 controlled testing. Their dashboards also remain owner-only. Online movement
 and latency remain under evaluation. This release does not close
 the remaining acceptance gates in docs/REMAINING_DELIVERY_PLAN.txt.

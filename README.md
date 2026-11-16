@@ -45,6 +45,8 @@ To choose server-hosted solo AI, close the game and set `"solo_ai_host": "server
 
 If an update warning appears in the game, close it and run the latest client installer's **Install / Update** on the same game folder. The update keeps your saved choices and identity.
 
+In the refreshed **0.5.0-rc1** client, open **Settings** from the menu or during a match to see the Resurrection version and build ID, connection status, and server address. A connected hostname also shows its server IP. **Local AI** identifies a match running on your PC.
+
 ## Host a server
 
 1. Download **BattleAces-Server-Installer-0.4.0.exe** from the **same release**. Close the game and any server you are replacing.

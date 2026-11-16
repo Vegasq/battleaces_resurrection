@@ -1,4 +1,13 @@
-NORMAL CLIENT/SERVER0.5.0-rc1 DRAFT -2026-11-15
+0.5.0-rc1 SETTINGS INSTALLER REFRESH -2026-11-16
+Nick requested replacement of both existing installers with the Settings build/
+connection display. The existing release446343917 is now a published prerelease
+(published2026-11-16T23:12:05Z). Preserve that state and its941b507 Git tag.
+New artifacts identify their refreshed source separately in the manifest/notes.
+Native menu/in-match qualification passes;settings-build-connection.txt.
+No live server deployment,firewall change or user-game install is requested by
+this refresh. Previous delivery records below describe their original scope.
+
+ORIGINAL NORMAL CLIENT/SERVER0.5.0-rc1 DRAFT DELIVERY -2026-11-15
 Requested:normal standalone installers,GitHub draft upload,and the same server
 build on US/NYC ba.sendsignal.cc and Europe/London be.sendsignal.cc.
 

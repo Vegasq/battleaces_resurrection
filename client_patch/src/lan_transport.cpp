@@ -4,6 +4,7 @@
 #include "public_wire.hpp"
 #include "online_frame_clock.hpp"
 #include "original_command_scheduling.hpp"
+#include "settings_connection.hpp"
 // Experimental loopback transport. All IL2CPP work stays on Unity's main thread.
 namespace ba_lan {
 using ba::Obj; using ba_local::Root;
@@ -178,7 +179,9 @@ static void connect() {
                 throw std::runtime_error("Invalid secure transport handle argument");
             char* end=nullptr;const unsigned long long handle=_strtoui64(value.c_str(),&end,10);
             if(!end || *end)throw std::runtime_error("Invalid secure transport handle argument");
-            channel.attach(static_cast<uintptr_t>(handle),secureVersion());
+            const bool status=ba::flag(L"-client-status");
+            channel.attach(static_cast<uintptr_t>(handle),secureVersion(),status);
+            if(status)ba::log("Public client connection details enabled BA_RESURRECTION_CLIENT_STATUS_V1");
         }
         channel.begin();connecting=false;
         ba::log("Secure transport ABI %s; invite remains in parent process",secureVersion()==2?
@@ -448,5 +451,33 @@ static void tick(Obj server) {
         }
     }
     if(matchEnded && frames.empty())running=false;
+}
+}
+
+// Settings reads snapshots only; it must never pump sockets or change a match.
+namespace ba_settings_connection {
+static std::string buildLabel() {
+    static const auto text=ba_client_status::safeBuild(ba::argument(L"-client-build="));return text;
+}
+static std::string statusLine() {
+    if(ba_lan::stopped || ba_lan::peerClosed)return "Offline";
+    if(ba_lan::secureMode()) {
+        const auto& channel=ba_lan::secureChannel();
+        // end() clears active immediately, including optionalFailure before the
+        // next menu reset clears the old community welcome.
+        if(!channel.liveForStatus())return "Offline";
+        const bool welcomed=ba::community()?ba_community::online:ba_lan::welcomed;
+        return welcomed && channel.authenticatedForStatus()?"Online":"Connecting";
+    }
+    if(ba_lan::socketValue==INVALID_SOCKET)return "Offline";
+    return (ba::community()?ba_community::online:ba_lan::welcomed)?"Online":"Connecting";
+}
+static std::string serverLabel() {
+    if(ba_lan::secureMode()) {
+        const auto& channel=ba_lan::secureChannel();
+        if(channel.targetKnown())return channel.target().label();
+        return ba_client_status::safeConfigured(ba::argument(L"-client-server="));
+    }
+    return ba_client_status::safeConfigured(ba::argument(L"-dedicated-server="));
 }
 }

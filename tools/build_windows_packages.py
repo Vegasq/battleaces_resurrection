@@ -50,6 +50,7 @@ CLIENT = COMMON + (
     'client_patch/patcher/bundle_loading.py', 'client_patch/patcher/build37822_bundles.py',
     'client_patch/patcher/telemetry.py', 'client_patch/transport/__init__.py',
     'client_patch/transport/bridge.py', 'client_patch/transport/launcher.py',
+    'client_patch/transport/client_info.py',
     'client_patch/transport/enrollment.py', 'client_patch/transport/client.py',
     'client_patch/transport/rc_setup.py', 'client_patch/launcher/Configure-RCClient.ps1',
     'client_patch/transport/player_name.py',
@@ -61,6 +62,7 @@ CLIENT = COMMON + (
 # validation/export orchestration sources, not original client files or assets.
 SERVER = tuple(dict.fromkeys(SERVER + CLIENT + ('tools/server_installer.py',)))
 MARKERS = (
+    b'BA_RESURRECTION_CLIENT_STATUS_V1',
     b'BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1',
     b'BA_RESURRECTION_SERVER_AI_COMMAND_SCHEDULING_V1',
     b'BA_RESURRECTION_SOLO_AI_HOST_V1',

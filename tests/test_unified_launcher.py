@@ -190,6 +190,23 @@ class UnifiedLauncherTests(unittest.TestCase):
         with mock.patch.object(launcher, 'launch', side_effect=launch):
             self.assertEqual(client.main(['--config', str(self.path), '--game', str(self.game)]), 17)
 
+    def test_installed_build_and_actual_configured_endpoint_are_display_only(self):
+        config = client.defaults(self.game)
+        config.update(server_host='ba.sendsignal.cc',server_port=47624,solo_ai_host='server')
+        self.save(config); before=self.path.read_bytes()
+        metadata=dict(versions=dict(package='0.5.0-rc1'),source=dict(revision='abcdef0'+'0'*33,dirty=False))
+        async def launch(selected,remote,options):
+            argv=launcher.game_arguments(selected,None,1234,options)
+            self.assertIn('-client-build=0.5.0-rc1 (build abcdef0)',argv)
+            self.assertIn('-client-server=ba.sendsignal.cc:47624',argv)
+            self.assertIn('-client-status',argv)
+            self.assertIn('-dedicated-server=127.0.0.1:47623',argv)
+            self.assertEqual(options.client_server_label,'ba.sendsignal.cc:47624')
+            return 0
+        with mock.patch.object(launcher,'launch',side_effect=launch):
+            self.assertEqual(client.main(['--config',str(self.path)],package_metadata=metadata),0)
+        self.assertEqual(self.path.read_bytes(),before)
+
     def test_windowed_setting_changes_startup_mode(self):
         value = client.defaults(self.game)
         value['fullscreen'] = False

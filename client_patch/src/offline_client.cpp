@@ -84,6 +84,8 @@ static void reconcileParty(void*);static void anchorClock(void*);static void smo
 }
 namespace ba_community_popup {static void reset();static void update();}
 namespace ba_settings_notice {static void update(void*);}
+namespace ba_settings_status_ui {static void update(void*);}
+namespace ba_settings_status_smoke {static void update(void*);}
 namespace ba_community_match {
 static void normalizeJoin(void*);
 static void reset();static void enqueue(void*,void*,void*);
@@ -305,7 +307,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         // flag check and performs no FSM, UnityPlayer or native-object reads.
         ba_telemetry_audit::update();
         ba_replay_binding::observe();
-        if(ba_native_replay_playback::enabled()){ba_native_replay_playback::observe();return;}
+        if(ba_native_replay_playback::enabled()){ba_native_replay_playback::observe();ba_settings_status_ui::update(front);return;}
         ba_catalog::exportOnce();
         ba_cosmetics::observe();
         if(unified())ba_client::update(front);
@@ -316,6 +318,8 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         ba_match_search::update(front);
         ba_match_loading::persistent(ba_client_compat::state.message);
         ba_match_loading::update(front);
+        ba_settings_status_ui::update(front);
+        ba_settings_status_smoke::update(front);
         ba_match_loading_smoke::update(front);
         ba_webview_probe::update(front);
         ba_frame_timing::observe(front);
@@ -378,6 +382,8 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "custom_transition_smoke.cpp"
 #include "public_results.cpp"
 #include "match_loading.cpp"
+#include "settings_status_ui.cpp"
+#include "settings_status_smoke.cpp"
 #include "match_loading_smoke.cpp"
 #include "server_assets_export.cpp"
 #include "lan_audit.cpp"

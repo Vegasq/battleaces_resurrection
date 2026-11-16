@@ -104,7 +104,7 @@ class RemoteConfigResolver:
 
 
 def verify_game(root, *, community=False, bridge_version=1, unified=False, player_features=False, replay=False,
-                original_command_scheduling_experimental=False):
+                original_command_scheduling_experimental=False, client_status=False):
     from client_patch.patcher.patch_client import contained_path
     if type(bridge_version) is not int or bridge_version not in (1, 2):
         raise LaunchError('Unsupported private transport version')
@@ -112,6 +112,8 @@ def verify_game(root, *, community=False, bridge_version=1, unified=False, playe
         raise LaunchError('Unified client requires community integration and private transport ABI2')
     if player_features and not unified:
         raise LaunchError('Player features require the unified client')
+    if client_status and (not unified or bridge_version != 2):
+        raise LaunchError('Client connection details require the unified client')
     if original_command_scheduling_experimental and (not unified or not community or bridge_version != 2):
         raise LaunchError('Original command scheduling requires the unified client with community transport ABI2')
     root = Path(root).resolve()
@@ -138,6 +140,8 @@ def verify_game(root, *, community=False, bridge_version=1, unified=False, playe
                         raise LaunchError('Install a helper supporting secure transport ABI1')
                     if bridge_version == 2 and b'BA_RESURRECTION_TLS_BRIDGE_V2' not in helper:
                         raise LaunchError('Install a helper supporting secure transport ABI2')
+                    if client_status and b'BA_RESURRECTION_CLIENT_STATUS_V1' not in helper:
+                        raise LaunchError('Install the current client helper to display build and connection details')
                     if unified and b'BA_RESURRECTION_UNIFIED_CLIENT_V1' not in helper:
                         raise LaunchError('Install a helper supporting the unified client lifecycle')
                     if unified and b'BA_RESURRECTION_SOLO_AI_HOST_V1' not in helper:
@@ -252,6 +256,14 @@ def game_arguments(config, player_id, handle, args):
     if unified: result.extend(('-unified-client', '-solo-ai-host=' + ai_host))
     if original_commands: result.append('-original-command-scheduling-experimental')
     if buffered_inputs: result.append('-buffered-input-experimental')
+    if getattr(args, 'client_status', False):
+        if not unified: raise LaunchError('Client connection details require the unified client')
+        build = getattr(args, 'client_build_label', 'Development (build unknown)')
+        endpoint = getattr(args, 'client_server_label', '')
+        if (not isinstance(build, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.+(), -]{0,95}', build)
+                or not isinstance(endpoint, str) or not re.fullmatch(r'[A-Za-z0-9.:[\]-]{0,263}', endpoint)):
+            raise LaunchError('Invalid client display metadata')
+        result.extend(('-client-status', '-client-build=' + build, '-client-server=' + endpoint))
     replay = getattr(args, 'replay', None)
     if replay is not None:
         if not unified or not isinstance(replay, str) or len(replay) > 32000 or any(ord(c) < 32 for c in replay):
@@ -305,7 +317,8 @@ async def launch(config, remote, args):
     verify_game(config['game_directory'], community=unified or getattr(args, 'community_experimental', False),
                 bridge_version=version, unified=unified, player_features=getattr(args, 'player_features', False),
                 replay=getattr(args, 'replay', None) is not None,
-                original_command_scheduling_experimental=getattr(args, 'original_command_scheduling_experimental', False))
+                original_command_scheduling_experimental=getattr(args, 'original_command_scheduling_experimental', False),
+                client_status=getattr(args, 'client_status', False))
     parent, child = socket.socketpair(socket.AF_INET)
     parent.setblocking(False)
     writer = task = None
@@ -315,7 +328,8 @@ async def launch(config, remote, args):
         child.close()
         print(f'Client started (PID {game.pid}).' if unified else
               f'Secure client started (PID {game.pid}); transport owns the private invite', flush=True)
-        task = asyncio.create_task(Bridge(reader, writer, remote, version=version).run())
+        task = asyncio.create_task(Bridge(reader, writer, remote, version=version,
+                                         status_messages=getattr(args, 'client_status', False)).run())
         reported = False
         # Poll without occupying a shared executor thread that could block
         # interpreter shutdown after an interrupted launcher.

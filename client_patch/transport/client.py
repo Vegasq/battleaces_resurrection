@@ -115,17 +115,19 @@ def prepare_settings(path, game=None, *, default_game=None):
     return config
 
 
-def player_options(replay=None, *, original_command_scheduling_experimental=True):
+def player_options(replay=None, *, original_command_scheduling_experimental=True,
+                   build_label='Development (build unknown)', server_label=''):
     """The single ordinary entry point enables the complete player capability set."""
     options = argparse.Namespace(run_name='client', unified_experimental=True, player_features=True,
                                  original_command_scheduling_experimental=original_command_scheduling_experimental,
-                                 buffered_input_experimental=not original_command_scheduling_experimental)
+                                 buffered_input_experimental=not original_command_scheduling_experimental,
+                                 client_status=True, client_build_label=build_label, client_server_label=server_label)
     if replay is not None:
         options.replay = str(Path(replay).resolve()) if replay else ''
     return options
 
 
-def main(argv=None, *, default_game=None):
+def main(argv=None, *, default_game=None, package_metadata=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', type=Path, default=Path.cwd() / 'client.json')
     parser.add_argument('--game', type=Path, help='working game directory for first launch without a configuration')
@@ -141,9 +143,13 @@ def main(argv=None, *, default_game=None):
         config = prepare_settings(args.config, args.game, default_game=default_game)
         if args.solo_ai_host is not None: config = dict(config,solo_ai_host=args.solo_ai_host)
         from .rc_setup import Resolver
+        from . import client_info
         remote = Resolver(args.config, config['game_directory'])
+        try: server_label = client_info.configured_label(launcher.read_json(args.config, 32768))
+        except (OSError, ValueError): server_label = ''
         return asyncio.run(launcher.launch(config, remote, player_options(args.replay,
-            original_command_scheduling_experimental=args.original_command_scheduling_experimental)))
+            original_command_scheduling_experimental=args.original_command_scheduling_experimental,
+            build_label=client_info.build_label(package_metadata), server_label=server_label)))
     except launcher.LaunchError as error:
         print('Client could not start: ' + str(error))
         return 1

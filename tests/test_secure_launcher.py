@@ -89,6 +89,20 @@ class SecureLauncherTests(unittest.TestCase):
         root, _, _ = self.install(secure=False)
         with self.assertRaises(launch.LaunchError): launch.verify_game(root)
 
+    def test_connection_metadata_requires_matching_helper_without_changing_legacy_launch(self):
+        root,path,manifest=self.install()
+        helper=root/'BattleAcesOffline.dll'
+        helper.write_bytes(helper.read_bytes()+b' BA_RESURRECTION_TLS_BRIDGE_V2 BA_RESURRECTION_UNIFIED_CLIENT_V1 BA_RESURRECTION_SOLO_AI_HOST_V1 BA_RESURRECTION_COMMUNITY_MATCH_V1')
+        manifest['community']=dict(native_scope='custom-match-prototype')
+        manifest['helper_sha256']=hashlib.sha256(helper.read_bytes()).hexdigest();path.write_text(json.dumps(manifest))
+        options=dict(community=True,bridge_version=2,unified=True)
+        launch.verify_game(root,**options)
+        with self.assertRaisesRegex(launch.LaunchError,'display build and connection details'):
+            launch.verify_game(root,client_status=True,**options)
+        helper.write_bytes(helper.read_bytes()+b' BA_RESURRECTION_CLIENT_STATUS_V1')
+        manifest['helper_sha256']=hashlib.sha256(helper.read_bytes()).hexdigest();path.write_text(json.dumps(manifest))
+        launch.verify_game(root,client_status=True,**options)
+
     def test_replay_requires_current_helper_without_breaking_ordinary_launch(self):
         root, path, manifest = self.install()
         launch.verify_game(root)

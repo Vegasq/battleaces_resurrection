@@ -52,7 +52,7 @@ def main(argv=None):
         sub.add_argument('--config', type=Path, default=PACKAGE / 'config' / ('client.json' if action == 'launch' else 'practice.json'))
     args = parser.parse_args(argv)
     try:
-        verify(PACKAGE, 'client')
+        inventory = verify(PACKAGE, 'client')
         if args.command == 'verify':
             print('Client package files verified. This does not verify the game or network.')
             return 0
@@ -87,7 +87,7 @@ def main(argv=None):
                 arguments.append('--original-command-scheduling-experimental')
             if getattr(args, 'buffered_input_experimental', False): arguments.append('--buffered-input-experimental')
             if getattr(args, 'solo_ai_host', None) is not None: arguments.extend(['--solo-ai-host',args.solo_ai_host])
-            return start(arguments, default_game=PACKAGE.parent)
+            return start(arguments, default_game=PACKAGE.parent, package_metadata=inventory)
         if args.command in ('rc-data', 'rc-save', 'rc-check'):
             from client_patch.transport import rc_setup
             from client_patch.transport.launcher import read_json

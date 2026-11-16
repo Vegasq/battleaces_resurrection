@@ -94,7 +94,7 @@ class ClientBridgeTests(unittest.IsolatedAsyncioTestCase):
         return b.Remote('127.0.0.1', self.port, tls.load_client_context(self.pki['ca'], expected),
                         player or self.store.player, token or self.store.token)
 
-    async def start_bridge(self, *, expected='localhost', player=None, token=None, version=1, resolver=None):
+    async def start_bridge(self, *, expected='localhost', player=None, token=None, version=1, resolver=None, status=False):
         parent, child = socket.socketpair()
         parent.setblocking(False); child.setblocking(False)
         server_reader, server_writer = await asyncio.open_connection(sock=parent)
@@ -102,7 +102,8 @@ class ClientBridgeTests(unittest.IsolatedAsyncioTestCase):
         remote = self.remote(expected=expected, player=player, token=token)
         self.assertNotIn(self.store.token, repr(remote))
         self.version = version
-        self.bridge = b.Bridge(server_reader, server_writer, remote if resolver is None else resolver, version=version)
+        self.bridge = b.Bridge(server_reader, server_writer, remote if resolver is None else resolver, version=version,
+                               status_messages=status)
         self.bridge_task = asyncio.create_task(self.bridge.run())
         return self.bridge
 
@@ -135,6 +136,34 @@ class ClientBridgeTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn(self.store.token.encode(), data)
         self.assertEqual(next(iter(self.server.peers)).profile_id, self.store.player)
         self.assertEqual(self.store.calls, 1)
+
+    async def test_opted_in_status_tracks_each_resolved_target_and_authenticated_peer(self):
+        async def resolve():
+            if getattr(self,'unconfigured',False): raise b.RemoteUnavailable()
+            return self.remote()
+        await self.start_bridge(version=2,resolver=resolve,status=True)
+        await self.send(b.OPEN,1)
+        kind,session,attempt=await self.frame()
+        self.assertEqual((kind,session),(b.STATUS,1))
+        self.assertEqual(b.client_info.read_target(attempt),('127.0.0.1',self.port,''))
+        kind,session,connected=await self.frame()
+        self.assertEqual((kind,session),(b.STATUS,1))
+        self.assertEqual(b.client_info.read_target(connected),('127.0.0.1',self.port,'127.0.0.1'))
+        self.assertNotIn(self.store.token.encode(),attempt+connected)
+        self.assertEqual(await self.frame(),(b.READY,1,self.store.player.encode()))
+        await self.send(b.CLOSE,1)
+        while (await self.frame())[:2]!=(b.CLOSE,1): pass
+        self.unconfigured=True
+        await self.send(b.OPEN,2)
+        self.assertEqual(await self.frame(),(b.STATUS,2,b.client_info.target_bytes()))
+        self.assertEqual(await self.frame(),(b.FAILURE,2,bytes([b.UNCONFIGURED_FAILURE])))
+
+    async def test_status_does_not_claim_peer_or_identity_after_certificate_failure(self):
+        await self.start_bridge(version=2,status=True,expected='wrong.invalid')
+        await self.send(b.OPEN,1)
+        self.assertEqual(await self.frame(),(b.STATUS,1,b.client_info.target_bytes('127.0.0.1',self.port)))
+        self.assertEqual(await self.frame(),(b.FAILURE,1,bytes([b.TLS_FAILURE])))
+        self.assertEqual(self.store.calls,0)
 
     async def test_same_private_connection_reauthenticates_and_discards_old_session_data(self):
         await self.start_bridge()
@@ -407,7 +436,7 @@ class NativeClientBridgeTests(unittest.IsolatedAsyncioTestCase):
     def tearDownClass(cls):
         remove_test_pki(cls.folder)
 
-    async def exercise(self, expected, returncode, *, version=1, recover=False):
+    async def exercise(self, expected, returncode, *, version=1, recover=False, status=False):
         store = Store()
         identities = [store.player, 'p_' + uuid.uuid4().hex]
         gate = a.AdmissionController(store)
@@ -445,16 +474,19 @@ class NativeClientBridgeTests(unittest.IsolatedAsyncioTestCase):
                     # A valid retired identity/data packet must not affect session2.
                     await super().send(b.READY, 1, identities[0].encode())
                     await super().send(b.DATA, 1, b'discard retired bytes')
+                    if status:
+                        await super().send(b.STATUS,1,b.client_info.target_bytes('retired.example',1234,'127.0.0.2'))
                 await super().send(kind, identity, data)
         bridge_task = asyncio.create_task(StaleIdentityBridge(reader, writer,
-            resolve if version == 2 else remote(), version=version).run())
+            resolve if version == 2 else remote(), version=version,status_messages=status).run())
         process = None
         try:
             child.set_inheritable(True)
             startup = subprocess.STARTUPINFO()
             startup.lpAttributeList = {'handle_list': [child.fileno()]}
             command = [str(self.probe), str(child.fileno())]
-            if version == 2: command += ['2-recover' if recover else '2', *identities]
+            if version == 2:
+                command += [('2-status' if status else '2')+('-recover' if recover else ''), *identities]
             process = subprocess.Popen(command, close_fds=True,
                 startupinfo=startup, creationflags=subprocess.CREATE_NO_WINDOW,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -507,6 +539,21 @@ class NativeClientBridgeTests(unittest.IsolatedAsyncioTestCase):
         received, calls, output, errors = await self.exercise('wrong.invalid', 1, version=2)
         self.assertEqual((received, calls), ([], 0))
         self.assertIn(b'Server certificate verification failed', errors)
+
+    async def test_native_status_two_sessions_retire_old_endpoint_and_clear_on_end(self):
+        received,calls,output,errors=await self.exercise('localhost',0,version=2,status=True)
+        self.assertEqual((received,calls),([b'test',b'more'],2))
+        self.assertEqual(errors,b'')
+
+    async def test_native_status_unconfigured_clears_target_then_recovers(self):
+        received,calls,output,errors=await self.exercise('localhost',0,version=2,status=True,recover=True)
+        self.assertEqual((received,calls),([b'test',b'more'],2))
+        self.assertEqual(errors,b'')
+
+    async def test_native_status_certificate_failure_never_becomes_authenticated(self):
+        received,calls,output,errors=await self.exercise('wrong.invalid',1,version=2,status=True)
+        self.assertEqual((received,calls),([],0))
+        self.assertIn(b'Server certificate verification failed',errors)
 
     async def test_native_v2_rejects_malformed_identity_duplicate_ready_and_pre_auth_data(self):
         profile = ('p_' + 'a' * 32).encode()

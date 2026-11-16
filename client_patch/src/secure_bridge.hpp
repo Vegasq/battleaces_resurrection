@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include "client_status.hpp"
 
 // Private inherited socket IPC only. TLS and invite credentials live in the
 // parent transport process, never in this channel or the game command line.
@@ -35,6 +36,9 @@ class Channel {
     bool winsock_=false,active_=false,closed_=false,eof_=false,ready_=false;
     unsigned char version_=1;
     std::string profile_;
+    bool statusEnabled_=false,targetKnown_=false;
+    unsigned statusCount_=0;
+    ba_client_status::Target target_;
     uint32_t session_=0;
     unsigned failure_=0;
     Bytes wireIn_,wireOut_,plain_;
@@ -76,21 +80,27 @@ class Channel {
             const unsigned kind=body[1];const uint32_t identity=word(body+2);
             const size_t size=length-6;
             if(body[0]!=version_ || !identity || identity>session_ ||
-                (kind!=2 && kind!=3 && kind!=4 && !(version_==2 && kind==5)) || (kind==2 && !size) ||
+                (kind!=2 && kind!=3 && kind!=4 && !(version_==2 && kind==5) && !(statusEnabled_ && kind==6)) || (kind==2 && !size) ||
                 (kind==3 && size) || (kind==4 && (size!=1 || body[6]<1 || body[6]>(version_==2?9:7))) ||
                 (kind==5 && !validProfile(body+6,size)))
                 throw std::runtime_error("Invalid secure transport message");
+            const auto target=kind==6?ba_client_status::decode(body+6,size):ba_client_status::Target{};
             if(identity==session_ && active_) {
                 if(kind==2) {
                     if(closed_ || failure_ || !ready_ || plain_.size()-read_+size>limit)throw std::runtime_error("Secure transport receive queue invalid");
                     if(read_){plain_.erase(plain_.begin(),plain_.begin()+read_);read_=0;}
                     plain_.insert(plain_.end(),body+6,body+6+size);
                 } else if(kind==5) {
-                    if(closed_ || failure_ || ready_)throw std::runtime_error("Unexpected secure transport identity");
+                    if(closed_ || failure_ || ready_ || (statusEnabled_ && !statusCount_))throw std::runtime_error("Unexpected secure transport identity");
                     profile_.assign(reinterpret_cast<const char*>(body+6),size);ready_=true;
+                } else if(kind==6) {
+                    if(closed_ || failure_ || ready_ || statusCount_>=2 ||
+                       (statusCount_ && (target.host!=target_.host || target.port!=target_.port)))
+                        throw std::runtime_error("Unexpected secure endpoint metadata");
+                    target_=target;targetKnown_=true;++statusCount_;
                 } else {
                     if(kind==3)closed_=true;else failure_=body[6];
-                    ready_=false;profile_.clear();
+                    ready_=false;profile_.clear();target_.peer.clear();
                 }
             }
             at+=length+4;
@@ -123,9 +133,15 @@ public:
     ~Channel(){discard();if(winsock_)WSACleanup();}
     bool attached() const {return socket_!=INVALID_SOCKET;}
     bool active() const {return active_;}
-    void attach(uintptr_t inherited,unsigned version=1) {
+    bool liveForStatus() const {return active_ && !closed_ && !failure_ && !eof_;}
+    bool authenticatedForStatus() const {return liveForStatus() && ready_;}
+    bool targetKnown() const {return targetKnown_;}
+    const ba_client_status::Target& target() const {return target_;}
+    void attach(uintptr_t inherited,unsigned version=1,bool status=false) {
         if(attached() || winsock_ || !inherited || inherited==static_cast<uintptr_t>(INVALID_SOCKET) || (version!=1 && version!=2))
             throw std::runtime_error("Invalid inherited secure transport handle");
+        if(status && version!=2)throw std::runtime_error("Client status requires secure transport version2");
+        statusEnabled_=status;
         version_=static_cast<unsigned char>(version);
         WSADATA data{};
         if(WSAStartup(MAKEWORD(2,2),&data))throw std::runtime_error("Secure transport Winsock startup failed");
@@ -148,12 +164,15 @@ public:
         if(active_)end();
         if(eof_)throw std::runtime_error("Secure transport process unavailable");
         ++session_;active_=true;closed_=false;failure_=0;plain_.clear();read_=0;
+        // Show the selected launch endpoint until this OPEN resolves. A failed
+        // resolver sends an explicit empty STATUS to clear that fallback.
+        statusCount_=0;targetKnown_=false;target_={};
         ready_=version_==1;profile_.clear();
         queue(1);
     }
     void end() noexcept {
         if(!active_)return;
-        active_=false;ready_=false;profile_.clear();
+        active_=false;ready_=false;profile_.clear();target_.peer.clear();
         try {if(!eof_){queue(3);flush();}}catch(...){discard();}
     }
     // Version 2 supplies only the authenticated public identity, never an invite.

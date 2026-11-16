@@ -13,11 +13,13 @@ import struct
 from server.admission import authenticate_client, AdmissionError
 from server.credentials import PLAYER_ID, TOKEN
 from server import tls_transport as tls
+from . import client_info
 
 VERSION = 1
 DYNAMIC_VERSION = 2
 OPEN, DATA, CLOSE, FAILURE = 1, 2, 3, 4
 READY = 5
+STATUS = 6  # Optional parent-to-native public endpoint metadata; READY is unchanged.
 TLS_FAILURE, CONNECT_FAILURE, AUTH_FAILURE, IDENTITY_FAILURE = 1, 2, 3, 4
 QUEUE_FAILURE, INTERNAL_FAILURE, TIMEOUT_FAILURE = 5, 6, 7
 UNCONFIGURED_FAILURE, CONFIG_FAILURE = 8, 9
@@ -54,9 +56,12 @@ def valid_ready(payload):
 
 
 def encode(kind, session, payload=b'', *, version=VERSION):
+    if kind == STATUS:
+        try: client_info.read_target(payload)
+        except (ValueError, TypeError): raise BridgeProtocolError() from None
     if (type(version) is not int or version not in (VERSION, DYNAMIC_VERSION)
             or type(session) is not int or not 1 <= session <= 0xffffffff
-            or kind not in ((OPEN, DATA, CLOSE, FAILURE, READY) if version == DYNAMIC_VERSION else (OPEN, DATA, CLOSE, FAILURE))
+            or kind not in ((OPEN, DATA, CLOSE, FAILURE, READY, STATUS) if version == DYNAMIC_VERSION else (OPEN, DATA, CLOSE, FAILURE))
             or not isinstance(payload, bytes)
             or len(payload) > CHUNK or (kind in (OPEN, CLOSE) and payload)
             or (kind == DATA and not payload)
@@ -134,14 +139,21 @@ class Session:
     async def run(self):
         children = []
         failure = None
+        remote = None
         try:
             remote = await self.owner.resolve_remote()
+            if self.owner.status_messages:
+                await self.owner.send(STATUS, self.identity, client_info.target_bytes(remote.host, remote.port))
             reader, self.remote_writer = await tls.open_verified_connection(remote.host, remote.port, remote.tls)
             identity = await authenticate_client(reader, self.remote_writer, remote.token,
                                                  rc_open=not remote.tls.verify_certificate)
             if identity != remote.player_id:
                 raise IdentityError()
             self.authenticated = True
+            if self.owner.status_messages:
+                peer = self.remote_writer.get_extra_info('peername')
+                await self.owner.send(STATUS, self.identity,
+                    client_info.target_bytes(remote.host, remote.port, peer[0] if peer else ''))
             if self.owner.version == DYNAMIC_VERSION:
                 # Only authenticated public identity crosses this boundary.
                 # The game builds its HELLO after receiving this session's READY.
@@ -178,6 +190,8 @@ class Session:
             while not self.queue.empty(): self.queue.get_nowait()
             self.queued_bytes = 0
         if failure is not None:
+            if self.owner.status_messages and remote is None:
+                await self.owner.send(STATUS, self.identity, client_info.target_bytes())
             await self.owner.send(FAILURE, self.identity, bytes([failure]))
         else:
             await self.owner.send(CLOSE, self.identity)
@@ -189,13 +203,16 @@ class Session:
 
 class Bridge:
     """Own one inherited socket stream, one remote session and bounded queues."""
-    def __init__(self, reader, writer, remote, *, version=VERSION):
+    def __init__(self, reader, writer, remote, *, version=VERSION, status_messages=False):
         if (version not in (VERSION, DYNAMIC_VERSION) or type(version) is not int
                 or (version == VERSION and not isinstance(remote, Remote))
                 or (remote is not None and not isinstance(remote, Remote) and not callable(remote))):
             raise ValueError('invalid private bridge configuration')
+        if type(status_messages) is not bool or (status_messages and version != DYNAMIC_VERSION):
+            raise ValueError('client status requires private bridge version2')
         self.reader, self.writer, self.remote = reader, writer, remote
         self.version = version
+        self.status_messages = status_messages
         self.session, self.last_session = None, 0
         self.send_lock = asyncio.Lock()
 
@@ -241,7 +258,7 @@ class Bridge:
                     await self.close_session()
                     self.last_session = identity
                     self.session = Session(self, identity)
-                elif identity > self.last_session or kind in (FAILURE, READY):
+                elif identity > self.last_session or kind in (FAILURE, READY, STATUS):
                     raise BridgeProtocolError()
                 elif identity < self.last_session or self.session is None:
                     continue  # Discard bounded late data from a retired session.

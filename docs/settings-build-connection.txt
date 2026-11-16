@@ -1,0 +1,78 @@
+SETTINGS BUILD AND CONNECTION DISPLAY - N41 -2026-11-16
+
+Requested:show the installed build and connection/server details in the original
+Settings screen,and replace the existing0.5.0-rc1 paired installers.
+
+The Settings footer shows Resurrection's package version and short source commit,
+Online/Connecting/Offline,and the selected/attempted server hostname or IP:port.
+After authentication,a hostname also shows the actual peer IP. The original game
+version row in General is preserved. Local AI and replay contexts are identified
+separately from online presence. The selected server address alone does not prove
+an active connection.
+
+The normal packaged launcher obtains version/source from its verified installed
+package-manifest.json. Protocol revision1 and original game build37822 are not
+used as Resurrection's build ID. Development launches without package metadata
+say the build is unknown. Display metadata contains no credentials or local paths.
+
+The private inherited Python/native bridge optionally supplies bounded endpoint
+metadata for each connection attempt. READY keeps its existing34-byte identity;
+the remote server protocol is unchanged. Acceptance of the community welcome and
+a live authenticated channel are required for Online. Close,failure,EOF and
+local retirement invalidate it even before the old welcome state is reset.
+Settings reads snapshots;it does not pump sockets or perform network/file I/O.
+
+Native placement/lifetime
+The existing validated UIOptionsMenu/prefab4 settings owner supplies lifecycle
+and Unity-thread checks. A private non-interactive TMP child lives inside its
+centered1020x830 panel. Footer y6..38 is below the original button row y40..80;
+the original version is a separate General-tab row. Original controls and
+localization bindings are untouched. Release/pool reuse destroys only our child.
+Display failures disable only this optional view. Normal launchers contain no
+Settings navigation or screenshots;those require the owned diagnostic flag.
+
+Verification
+The full Python suite passes1635 tests with85 explicit skips,zero failures/errors
+(local/settings-status-regression01.txt and .json). Focused status/bridge tests
+pass95 cases including all nine authored native bridge probes;the separate
+metadata guards and C++ endpoint/build-label checks pass. The helper's complete
+native component build/run passes at SHA256
+4560505e6e2fb6006ec007e4ce08385793c7a12ae490935ec8c0b10d05444b66.
+Evidence:local/settings-connection-native01/ and local/settings-status-helper01/.
+The first owned menu run passes live text/status/reopen/release checks,but its
+hidden-window screenshots are black and FAIL visual review. The original report
+and separate visual-review.json remain in local/settings-status-checks/menu01.
+The diagnostic harness now shows its owned window without taking focus and
+rejects flat/black images. menu02 proves placement but its two-line footer was
+too small at960x540;the final helper uses a larger single line. Its complete
+native component build/run passes at SHA256
+3482ec798b88019c5e74e9713f530ef1a06cdc33e354193a03a6ce20fcd55fa2.
+menu03 passes actual Online -> Offline,host/peer display,close/reopen and owned
+child release checks. Its fully rendered General screenshot is reviewed PASS:
+ade120a65de536ce75566a6b8b3b727d503956d4f955c2fbab1e781d69721bff.
+The original game-version row and controls remain visible;footer does not overlap.
+Other transition captures have partial original rendering;they are not claimed
+as full original-control visual proof. match01 retains a diagnostic navigation
+failure:generic UIButton.Click did not invoke the separate in-match input event.
+Its actual server-AI match/result/Continue and owned cleanup passed. The corrected
+diagnostic invokes only the verified original serialized ClickEvent chain and
+does not claim physical input. Four verifier controls pass. Product renderer,
+transport and gameplay source are unchanged by this correction;menu03 evidence
+is reused at that source scope. Final helper03 component build/run passes:
+d1cfd9acff426863c20140530e112ff27e9ef20fda1692c1bda4d53796295a60.
+match02 passes the actual public1v1 ->30-second human search ->server-AI path,
+in-match Settings acquisition/readback/close/release,and original result/Continue.
+The native worker exits0 and retained owned resources are reaped;78.656seconds,
+unchanged source. Its fully rendered General screenshot over the live map is
+reviewed PASS,including readable footer and untouched original controls:
+2e4c10aba761e66d24860fdfa5f2b51fb9cd80928956c4fee391bd7a0ae4f9f8.
+Evidence:local/settings-status-checks/match02/verification.json and visual review.
+These are original callbacks,not physical mouse input. The owned client is
+forcibly cleaned up after success;native Quit is not qualified. Native screenshot
+build text is explicit diagnostic argv;packaged manifest forwarding is checked
+separately. Refreshed artifact identities remain pending below.
+The prior941b507 artifacts/receipts remain retained. GitHub release446343917 is
+now a published prerelease;the refresh preserves that state and the original tag.
+The new artifact source is recorded in its manifest/notes. This request does not
+deploy or stop the live servers,change firewall access,or supply N39 playtest
+acceptance.

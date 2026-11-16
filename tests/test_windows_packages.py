@@ -274,6 +274,7 @@ class PackageDispatchTests(unittest.TestCase):
                 self.assertEqual(start.call_args.args[0],['--config',str(Path('local.json').resolve()),
                     '--game',str(Path('working copy').resolve()),*extra])
                 self.assertEqual(start.call_args.kwargs['default_game'],package_client.PACKAGE.parent)
+                self.assertIs(start.call_args.kwargs['package_metadata'],verify.return_value)
 
     def test_server_check_and_credentials_keep_private_defaults(self):
         with mock.patch.object(package_server, 'verify'), mock.patch('server.host.main', return_value=0) as host:

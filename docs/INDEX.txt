@@ -20,6 +20,7 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
+  settings-build-connection.txt - N41 Settings version/build,live connection and RC1 installer refresh
   release-050rc1.txt - N40 normal draft installers and matching US/European deployments
   repository-history-audit.txt - exact historical source review and strict current-index audit
   server-ai-command-scheduling.txt - N39 default scheduling for server AI and human modes
