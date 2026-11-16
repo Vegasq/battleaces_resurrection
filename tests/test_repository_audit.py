@@ -1,5 +1,12 @@
+import hashlib
+import io
+import subprocess
+import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
+from tools import audit_repository
 from tools.audit_repository import inspect_content
 
 
@@ -61,3 +68,104 @@ class PublicationAuditTests(unittest.TestCase):
         for data in (b"-----BEGIN " + b"PRIVATE KEY-----", b"ghp_" + b"a" * 30,
                      b"C:" + b"/Users/private/work"):
             self.assertTrue(inspect_content("docs/example.txt", data))
+
+
+class HistoricalReviewTests(unittest.TestCase):
+    size_reason = 'source file over 256 KiB; review for embedded payload'
+    path_reason = 'developer-specific absolute path'
+    large_source = b'# authored diagnostic source\n' * 10000
+    example = b'Hash-check example: C:' + b'/Games/Example/library.dll\n'
+
+    def reviews(self, name, data, reason):
+        return {(name, len(data), hashlib.sha256(data).hexdigest()): reason}
+
+    def test_exact_history_review_leaves_current_content_strict(self):
+        for name, data, reason in [('tools/check.py', self.large_source, self.size_reason),
+                                   ('README.md', self.example, self.path_reason)]:
+            with self.subTest(name=name), patch.object(audit_repository, 'HISTORICAL_REVIEWS',
+                                                      self.reviews(name, data, reason)):
+                self.assertEqual(audit_repository.inspect_historical_content(name, data), ([], [reason]))
+                self.assertEqual(inspect_content(name, data), [reason])
+
+    def test_changed_path_size_or_digest_does_not_inherit_review(self):
+        name, data = 'tools/check.py', self.large_source
+        reviews = self.reviews(name, data, self.size_reason)
+        for path, changed in [(name, data + b'# more\n'), (name, data[:-1] + b' '),
+                              ('tools/other.py', data)]:
+            with self.subTest(path=path, size=len(changed)), patch.object(audit_repository, 'HISTORICAL_REVIEWS', reviews):
+                self.assertEqual(audit_repository.inspect_historical_content(path, changed), ([self.size_reason], []))
+        bad_size = {(name, len(data) + 1, hashlib.sha256(data).hexdigest()): self.size_reason}
+        with patch.object(audit_repository, 'HISTORICAL_REVIEWS', bad_size):
+            self.assertEqual(audit_repository.inspect_historical_content(name, data), ([self.size_reason], []))
+
+    def test_review_removes_only_its_named_finding(self):
+        for payload, reason in [(b'ghp_' + b'a' * 30, 'GitHub credential'),
+                                (b'ba1_' + b'a' * 43, 'player invite credential'),
+                                (b'-----BEGIN ' + b'PRIVATE KEY-----', 'private key'),
+                                (b'A' * 1024, 'long encoded payload'),
+                                (b'0xff, ' * 128, 'large byte array'),
+                                (b'\0', 'binary or archive content'),
+                                (self.example, self.path_reason)]:
+            data = self.large_source + payload
+            with self.subTest(reason=reason), patch.object(audit_repository, 'HISTORICAL_REVIEWS',
+                    self.reviews('tools/check.py', data, self.size_reason)):
+                self.assertEqual(audit_repository.inspect_historical_content('tools/check.py', data),
+                                 ([reason], [self.size_reason]))
+
+    def test_cli_reports_reviews_separately_from_failures(self):
+        def audit(history, *, reviewed):
+            self.assertTrue(history)
+            reviewed.append(dict(path='README.md', object='a' * 40, reasons=[self.path_reason]))
+            return 2, []
+        output = io.StringIO()
+        with patch.object(audit_repository, 'audit', audit), patch('sys.argv', ['audit', '--history']), redirect_stdout(output):
+            self.assertFalse(audit_repository.main())
+        self.assertIn('Reviewed history README.md (' + 'a' * 40 + ')', output.getvalue())
+        self.assertIn('1 reviewed historical findings; 0 failures', output.getvalue())
+
+    def test_real_git_all_refs_and_index_remain_audited(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            def git(*args):
+                return subprocess.check_output(['git', '-C', str(root), *args], stderr=subprocess.PIPE)
+            git('init', '--quiet')
+            git('config', 'user.name', 'Audit fixture')
+            git('config', 'user.email', 'audit@example.invalid')
+            (root / 'empty-hooks').mkdir()
+            git('config', 'core.hooksPath', str(root / 'empty-hooks'))
+            git('config', 'core.autocrlf', 'false')
+            readme = root / 'README.md'
+            readme.write_bytes(b'Current clean documentation\n')
+            git('add', 'README.md')
+            git('-c', 'commit.gpgsign=false', 'commit', '--quiet', '-m', 'Clean current source')
+            base = git('rev-parse', 'HEAD').decode().strip()
+            git('checkout', '--quiet', '-b', 'historical-side-branch')
+            readme.write_bytes(self.example)
+            git('add', 'README.md')
+            git('-c', 'commit.gpgsign=false', 'commit', '--quiet', '-m', 'Historical example')
+            historical = git('rev-parse', 'HEAD:README.md').decode().strip()
+            git('checkout', '--quiet', '-b', 'current', base)
+            with patch.object(audit_repository, 'git', git), patch.object(audit_repository,
+                    'HISTORICAL_REVIEWS', self.reviews('README.md', self.example, self.path_reason)):
+                reviewed = []
+                self.assertEqual(audit_repository.audit(history=True, reviewed=reviewed), (2, []))
+                self.assertEqual(reviewed, [dict(path='README.md', object=historical, reasons=[self.path_reason])])
+                with patch.object(audit_repository, 'HISTORICAL_REVIEWS', {}):
+                    self.assertEqual(audit_repository.audit(history=True)[1], reviewed)
+                # Reintroducing the very same reviewed object into today's index fails.
+                readme.write_bytes(self.example)
+                git('add', 'README.md')
+                self.assertEqual(audit_repository.audit()[1], reviewed)
+                self.assertEqual(audit_repository.audit(history=True)[1], reviewed)
+                # A changed historical mode must not be hidden by blob deduplication.
+                git('update-index', '--cacheinfo', '120000,' + historical + ',README.md')
+                git('-c', 'commit.gpgsign=false', 'commit', '--quiet', '-m', 'Unsupported historical mode')
+                git('checkout', '--quiet', '-b', 'clean-again', base)
+                failures = audit_repository.audit(history=True)[1]
+                self.assertEqual(len(failures), 1)
+                self.assertEqual(failures[0]['reasons'], ['symlink or unsupported file mode'])
+                readme.write_bytes(self.example)
+                git('add', 'README.md')
+                failures = audit_repository.audit(history=True)[1]
+                self.assertEqual([item['reasons'] for item in failures],
+                                 [[self.path_reason], ['symlink or unsupported file mode']])

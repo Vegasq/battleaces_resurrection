@@ -1,0 +1,67 @@
+REPOSITORY HISTORY AUDIT REVIEW - 2026-11-16
+
+Problem
+GitHub Source validation fetches every branch and audits git rev-list --all.
+Runs43758135504 and43759015847 failed before tests on nine preexisting objects:
+five oversized Python verifier versions on the withdrawn prediction branch,
+and four historical README versions with a generic installation-path example.
+Neither current release source nor the deployed941b507 packages contain those
+flagged file versions. Existing branches and failed CI evidence are preserved.
+
+Review and scope
+All nine raw Git blobs were read, hashed and run through every existing content
+check. Each has exactly the size or path finding listed below, with no other
+finding. All five Python sources parse; each has120 functions, largest string
+literal550 characters (a docstring), largest bytes literal46 bytes (a feature
+marker), and largest literal container27 elements. Literal, endpoint and
+dynamic-execution/decoder inventories plus source and inter-version diff review
+found authored diagnostic logic, generated ephemeral test credentials and
+loopback networking. No embedded binary/data payload or private credential was
+identified. This does not qualify the withdrawn prediction runtime for use.
+
+All four README examples use the same generic drive/Games installation folder
+for a GameAssembly.dll Get-FileHash command and explicitly tell readers to use
+their own folder. No developer username or private filesystem location appears
+in that example. The source path heuristic was broader than this finding.
+
+Enforcement
+tools/audit_repository.py records exact path, byte length and SHA256 triples
+and the single reviewed reason for each. Only historical-tree scans can apply
+these reviews. Today's index stays strict, including reintroduced identical
+bytes. Changed bytes, another path, another size or another finding do not
+inherit an exception. Binary/payload/credential/path checks still execute, and
+unsupported file modes are checked separately even when blob bytes repeat.
+The CLI prints each reviewed historical finding with its Git object ID.
+No branch exclusion, history rewrite, global threshold change or game/runtime
+change is involved. Content review is bounded evidence, not proof against
+every possible covert encoding.
+
+Reviewed objects (Git object ID; bytes; SHA256)
+Path:tools/verify_prediction_multiplayer.py
+Reason:source file over 256 KiB; review for embedded payload
+5d02812701ac31e1e5bb6907bb49495c6c275e4b;270502;c434521815a5d99c5b99f281680aab23a19859446e70fb4a34327fb1ec9562fc
+7b5a9b5ca56305edd20f40e7e57d2db349750df1;271482;23b9c6b9fc08671e6568de7d876df5e7341bd3c708cba4d6479fbd09c77b6002
+291c4355f3709572916ec3e1b9df53f89e396d7b;272006;872bd37fea2eeac4210dd3044fa22fc04b981b3514dea6c8bec5a62f1d193c29
+0c3cae5303dd1227745dea273b4b04e8d583577f;272778;91d3ca5ab198ec6f823a980e6c706903d25b76637d260a0ee1d9a9449b8ec804
+c911fa04d41a80e7c71f7f4966bb59b5373cc5f7;272773;395d7474baca90af4dee30f3c55a93bd7feb23fe8e6a3247db360652d501bf32
+These five objects are reachable only from origin/experiment/movement-prediction
+among the public branch tips examined. They are absent from release/main ancestry.
+
+Path:README.md
+Reason:developer-specific absolute path
+644f4674b623340b42f462d3ebd748c1424ee535;6727;68982d429db09847befa466c0d239da504c8924f4dab759bc4cc136039281f8e
+bfe647a77ed0aeeb31a8ec6e5dcb4096d8aa9e09;7246;09ba338cddc466db9ab85ee04e3b21da62570aa49976fb108aaad3e6360cd14b
+8ddd6224e9697674a0a17d0c4e03ac2e0fe80766;7820;b842ac0e5848e11980051dd2b7f9dd1fd81f03958e3b072c2440df182993295f
+24dd3a953f12707bbaf86df8e02efecbbf4905bf;8173;7ded7f6a265b84f99120eb57a640fdf4809f5ecd3bf9d998727950309740f5bc
+These objects already occur in main ancestry before the new release commits.
+
+Validation
+Focused tests cover exact historical acceptance, strict current-index rejection,
+changed path/size/bytes, independent credential/payload findings, visible review
+reporting and a real temporary Git repository with a separate historical branch.
+That integration check also rejects an unsupported historical file mode sharing
+the same blob as a current regular file. All15 focused audit/instruction tests
+pass. The full local all-ref scan passes4418 distinct source entries with nine
+explicit reviewed findings and zero failures. Hosted CI results are recorded
+after the source branch is pushed; the installed artifacts stay941b507.
+Detailed private review:local/history-audit-review20261116/report.json.

@@ -34,6 +34,30 @@ SOURCE_FIXTURES = {
     "tests/fixtures/ads_watch471/host.cpp",
 }
 
+# Only exact, reviewed historical bytes may waive the named heuristic. The
+# current index always uses inspect_content without exceptions. Review evidence
+# and provenance are recorded in docs/repository-history-audit.txt.
+HISTORICAL_REVIEWS: dict[tuple[str, int, str], str] = {
+    ("tools/verify_prediction_multiplayer.py", 270502, "c434521815a5d99c5b99f281680aab23a19859446e70fb4a34327fb1ec9562fc"):
+        "source file over 256 KiB; review for embedded payload",
+    ("tools/verify_prediction_multiplayer.py", 271482, "23b9c6b9fc08671e6568de7d876df5e7341bd3c708cba4d6479fbd09c77b6002"):
+        "source file over 256 KiB; review for embedded payload",
+    ("tools/verify_prediction_multiplayer.py", 272006, "872bd37fea2eeac4210dd3044fa22fc04b981b3514dea6c8bec5a62f1d193c29"):
+        "source file over 256 KiB; review for embedded payload",
+    ("tools/verify_prediction_multiplayer.py", 272778, "91d3ca5ab198ec6f823a980e6c706903d25b76637d260a0ee1d9a9449b8ec804"):
+        "source file over 256 KiB; review for embedded payload",
+    ("tools/verify_prediction_multiplayer.py", 272773, "395d7474baca90af4dee30f3c55a93bd7feb23fe8e6a3247db360652d501bf32"):
+        "source file over 256 KiB; review for embedded payload",
+    ("README.md", 6727, "68982d429db09847befa466c0d239da504c8924f4dab759bc4cc136039281f8e"):
+        "developer-specific absolute path",
+    ("README.md", 7246, "09ba338cddc466db9ab85ee04e3b21da62570aa49976fb108aaad3e6360cd14b"):
+        "developer-specific absolute path",
+    ("README.md", 7820, "b842ac0e5848e11980051dd2b7f9dd1fd81f03958e3b072c2440df182993295f"):
+        "developer-specific absolute path",
+    ("README.md", 8173, "7ded7f6a265b84f99120eb57a640fdf4809f5ecd3bf9d998727950309740f5bc"):
+        "developer-specific absolute path",
+}
+
 
 def inspect_content(name: str, data: bytes) -> list[str]:
     if name in DOC_MEDIA:
@@ -75,6 +99,13 @@ def inspect_content(name: str, data: bytes) -> list[str]:
     return reasons
 
 
+def inspect_historical_content(name: str, data: bytes) -> tuple[list[str], list[str]]:
+    reasons = inspect_content(name, data)
+    finding = HISTORICAL_REVIEWS.get((name, len(data), hashlib.sha256(data).hexdigest()))
+    reviewed = [finding] if finding in reasons else []
+    return [reason for reason in reasons if reason not in reviewed], reviewed
+
+
 def git(*args):
     return subprocess.check_output(["git", *args])
 
@@ -99,17 +130,23 @@ def entries(tree=None):
                 yield mode, oid.decode(), name.decode("utf-8")
 
 
-def audit(history=False):
+def audit(history=False, *, reviewed=None):
     failures, seen = [], set()
     trees = [None]
     if history:
         trees.extend(git("rev-list", "--all").decode().splitlines())
     for tree in trees:
         for mode, oid, name in entries(tree):
-            if (oid, name) in seen:
+            if (mode, oid, name) in seen:
                 continue
-            seen.add((oid, name))
-            reasons = inspect_content(name, git("cat-file", "blob", oid))
+            seen.add((mode, oid, name))
+            data = git("cat-file", "blob", oid)
+            if tree is None:
+                reasons = inspect_content(name, data)
+            else:
+                reasons, accepted = inspect_historical_content(name, data)
+                if accepted and reviewed is not None:
+                    reviewed.append({"path": name, "object": oid, "reasons": accepted})
             if mode not in (b"100644", b"100755"):
                 reasons.append("symlink or unsupported file mode")
             if reasons:
@@ -121,10 +158,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--history", action="store_true")
     args = parser.parse_args()
-    count, failures = audit(args.history)
+    reviewed = []
+    count, failures = audit(args.history, reviewed=reviewed)
+    for item in reviewed:
+        print("Reviewed history " + item["path"] + " (" + item["object"] + "): " + "; ".join(item["reasons"]))
     for item in failures:
         print(item["path"] + ": " + "; ".join(item["reasons"]))
-    print(f"Audited {count} distinct source paths/objects; {len(failures)} failures.")
+    print(f"Audited {count} distinct source entries; {len(reviewed)} reviewed historical findings; {len(failures)} failures.")
     return bool(failures)
 
 
