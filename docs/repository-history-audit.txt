@@ -80,3 +80,15 @@ own module path,and construct the historical symlink object without checking
 out a filesystem symlink. Production launcher/relocation code is unchanged.
 The historical-mode test passes with core.symlinks both true and false.
 Retained failure log:local/history-audit-review20261116/ci43970625334-failed.log.
+
+Hosted completion
+Run43972281521 at079cec4fc3e51d8fa3b101c7cee24a7232385121 passes both Python
+versions3.12 and3.14.8. Each audits4424 entries with nine explicit historical
+reviews and zero failures;each reports1626 tests,82 explicit skips,1544 executed
+successfully. The3.14.8 native launcher build also passes.
+https://github.com/Vegasq/battleaces_resurrection/actions/runs/43972281521
+The draft's CI/balance notes were updated after verifying that exact run and
+source. All four original uploaded asset IDs,sizes and SHA256 digests remain
+unchanged;draft/prerelease remain true,published_at null,and target941b507.
+No new game/installer/deployment was needed for these audit/test changes.
+Private receipt:local/history-audit-review20261116/ci-completion.json.

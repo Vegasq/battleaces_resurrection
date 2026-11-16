@@ -45,7 +45,7 @@ Both embedded packages/bundled runtimes verify;82 client and120 server files.
 All74 focused tests pass. The three newly published commit trees audit clean:
 1344 distinct source paths/objects,no failures.
 Draft release446343917 contains both installers,SHA256SUMS.txt and release-manifest.json:
-https://github.com/Vegasq/battleaces_resurrection/releases/tag/untagged-c05afd8f9b02318d2fc3
+https://github.com/Vegasq/battleaces_resurrection/releases/tag/untagged-769e5b03406677cbef4d
 All four assets were downloaded through authenticated GitHub API and SHA256
 matched against local bytes. Draft/prerelease true,published_at null.
 
@@ -59,13 +59,16 @@ arrival/server AI. Existing desktop link has no special arguments and still
 targets Start Battle Aces.cmd. Configuration,profiles,identities,original files,
 previous runtime and desktop-link bytes are preserved. No normal game was started.
 
-Known CI limitation:run43758135504 fails the repository-wide history audit before
-hosted tests. Five oversized verifier blobs belong only to the already-public
-withdrawn prediction branch;four old README blobs contain a generic drive/Games
-installation-path example falsely classified as developer-specific. These nine
-objects predate all three new release commits. The audit scans all fetched refs.
-No current release source/package leak was identified. No history rewrite,
-allowlist weakening or false CI-pass claim was used. This remains separate work.
+CI follow-up2026-11-16:the delivery-time history-audit failure is resolved by
+exact,reason-specific reviews of nine historical blobs. Current-index checks
+stay strict;no history rewrite or broad source/path exemption was used.
+Windows CI fixture failures were reproduced and fixed without runtime changes.
+Run43972281521 at079cec4 passes Python3.12 and3.14.8:4424 source entries,nine
+reported historical reviews,zero audit failures;1626 tests each with82 skips.
+The3.14.8 native launcher build passes. Earlier failures remain recorded in
+repository-history-audit.txt. Draft notes now reflect this verified result;
+all four uploaded asset IDs/sizes/digests and artifact target941b507 are unchanged.
+https://github.com/Vegasq/battleaces_resurrection/actions/runs/43972281521
 Private receipts:local/release050rc1/github/completion.json,
 local/release050rc1/verification01/verification.json,
 local/release050rc1-client-install/completion.json and local/release050rc1-rollout/.

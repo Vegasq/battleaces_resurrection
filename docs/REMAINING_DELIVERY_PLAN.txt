@@ -1,5 +1,5 @@
 BATTLE ACES - CURRENT DELIVERY ROADMAP
-Updated:2026-11-15. Final release acceptance remains OPEN.
+Updated:2026-11-16. Final release acceptance remains OPEN.
 [x] means complete at the stated scope;[ ] means remaining work/evidence.
 Prior baseline queue preserved at history/2026-11-15/scheduling-ai-base-plan.txt.
 
@@ -8,8 +8,9 @@ ACTIVE - N40 NORMAL CLIENT/SERVER0.5.0-rc1 DRAFT
 [x] Verify normal desktop launch uses arrival scheduling and Nick's saved server AI.
 [x] Upload verified installers/checksums to a new GitHub draft release;not published.
 [x] Deploy the same941b507 server package to ba.sendsignal.cc(US) and be.sendsignal.cc(EU).
-[ ] Existing global-history CI audit flags old prediction tools/README examples;
-    resolve separately before public release acceptance. Current source/package audits pass.
+[x] Resolve historical source-audit findings with exact reviewed historical exceptions;
+    keep current source strict. Full CI passes Python3.12/3.14.8 at079cec4,
+    run43972281521. Details:repository-history-audit.txt.
 Delivery details:release-050rc1.txt. N40 requested draft/build/deployment is complete.
 N39 playtest acceptance remains pending;this packaging request does not supply it.
 
