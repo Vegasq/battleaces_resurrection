@@ -3,13 +3,14 @@ Updated:2026-11-16. Final release acceptance remains OPEN.
 [x] means complete at the stated scope;[ ] means remaining work/evidence.
 Prior baseline queue preserved at history/2026-11-15/scheduling-ai-base-plan.txt.
 
-ACTIVE - N41 SETTINGS BUILD AND CONNECTION DISPLAY
+COMPLETE - N41 SETTINGS BUILD AND CONNECTION DISPLAY
 [x] Show installed package version/build and live connection/server address in Settings.
 [x] Qualify owned menu/in-match Settings rendering and connection transitions.
-[ ] Replace paired0.5.0-rc1 installers plus manifest/checksums on the existing
+[x] Replace paired0.5.0-rc1 installers plus manifest/checksums on the existing
     published prerelease,preserving its tag and publication state.
 No live server deployment or firewall change is part of this refresh.
-Qualification:settings-build-connection.txt. Package replacement remains next.
+Qualification:settings-build-connection.txt. Refreshed artifacts use e0520c9;
+download hashes verify and CI43982095964 passes. N39 playtest result remains open.
 
 N40 NORMAL CLIENT/SERVER0.5.0-rc1 DELIVERY
 [x] Package the verified scheduling runtime as normal client/server installers0.5.0-rc1.

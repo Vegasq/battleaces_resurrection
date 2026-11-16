@@ -3,7 +3,10 @@ Nick requested replacement of both existing installers with the Settings build/
 connection display. The existing release446343917 is now a published prerelease
 (published2026-11-16T23:12:05Z). Preserve that state and its941b507 Git tag.
 New artifacts identify their refreshed source separately in the manifest/notes.
-Native menu/in-match qualification passes;settings-build-connection.txt.
+COMPLETE:paired refreshed installers from clean e0520c9 are uploaded and
+downloaded/hash-verified with matching checksums/manifest. Exact artifact hashes,
+native menu/in-match qualification and CI43982095964:settings-build-connection.txt.
+https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.5.0-rc1
 No live server deployment,firewall change or user-game install is requested by
 this refresh. Previous delivery records below describe their original scope.
 

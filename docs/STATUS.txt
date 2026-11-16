@@ -1,11 +1,18 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-16 N41 COMPLETE:both0.5.0-rc1 installers,checksums and release manifest
+replaced on the existing published prerelease and downloaded/hash-verified.
+Artifacts use clean e0520c9;normal packaged launch forwards that build and the
+actual selected server. CI43982095964 passes Python3.12/3.14.8:1639tests each,
+85skips;4458 audited entries,nine reviewed findings,zero failures;launcher PASS.
+Release tag941b507,live servers,owner-only access and user's installation remain
+unchanged. Details/artifact hashes:settings-build-connection.txt and release-050rc1.txt.
 2026-11-16 N41 SETTINGS QUALIFIED:installed package build/version and live
 connection/server endpoint now appear in the native Settings footer. Owned menu
 online/offline/reopen and actual server-AI in-match Settings/result/Continue pass;
 readable General captures reviewed. Full Python regression1635 tests/85skips,
 focused native bridge probes and helper component build pass. Final helper03
 d1cfd9acff426863c20140530e112ff27e9ef20fda1692c1bda4d53796295a60.
-Refresh the existing published0.5.0-rc1 installers next;no live host changes.
+The installer refresh is complete as recorded above;no live host changes.
 Failed diagnostic/capture attempts and scope limits:settings-build-connection.txt.
 Earlier delivery statements below retain their original dates and artifact scope.
 2026-11-16 CI COMPLETE:run43972281521 passes source validation on Python3.12

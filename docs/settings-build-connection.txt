@@ -70,7 +70,37 @@ Evidence:local/settings-status-checks/match02/verification.json and visual revie
 These are original callbacks,not physical mouse input. The owned client is
 forcibly cleaned up after success;native Quit is not qualified. Native screenshot
 build text is explicit diagnostic argv;packaged manifest forwarding is checked
-separately. Refreshed artifact identities remain pending below.
+separately.
+
+DELIVERY COMPLETE -2026-11-16
+Clean artifact source:e0520c90db96583c4cd7c6fe8c23b3cb48c26df5.
+CI43982095964 passes Python3.12 and3.14.8:1639tests per matrix,85explicit skips,
+zero failures/errors. Both history audits pass4458entries with nine exact
+reviewed historical findings;the3.14.8 server launcher build passes.
+https://github.com/Vegasq/battleaces_resurrection/actions/runs/43982095964
+Private logs/summary:local/settings-status-ci-e0520c90/.
+
+Both embedded installer payloads,83client/121server file inventories,bundled
+Python runtimes,helper identity and source bindings verify. The actual extracted
+client's bundled Python runs normal package_client startup through verified
+manifest forwarding;only native-launch/async execution is intercepted. It emits
+0.5.0-rc1(build e0520c9),ba.sendsignal.cc:47623 and client-status/ABI2 flags while
+keeping its internal127.0.0.1 bridge placeholder separate. No diagnostic flags,
+game/network launch or user-state change. Report:local/settings-packaged-client01/.
+
+Both canonical installers,SHA256SUMS.txt and release-manifest.json are replaced
+on release446343917 and downloaded/hash-verified before/after promotion.
+Client SHA256:70e14d022eace253d81ad96705b4542c2409bd7340624539161e51eec7566aee.
+Server SHA256:efd7ab53c4f5cb322b865af2f8a9d7cdcc9a10eab943399bf8cc7efd4a7bb7bc.
+Checksums SHA256:30679b369e16cfa66e032b95edb12f1ecbfbc4b1278dc2327a3565194a4c5241.
+Manifest SHA256:5d83119dfa428fe4b64747d2be056cbfe7c77f4c51a07b9317d08fcd19334612.
+https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.5.0-rc1
+Local installers:dist/0.5.0-rc1-settings-20261116/.
+Receipts:local/settings-release050rc1-20261116/verification01/ and
+local/settings-release050rc1-20261116/github/transaction/completion.json.
+Final inventory has exactly four assets. Published/prerelease flags and original
+941b507 tag remain unchanged;notes identify the refreshed artifact commit.
+Original downloads are backed up locally. No live server or user-install update.
 The prior941b507 artifacts/receipts remain retained. GitHub release446343917 is
 now a published prerelease;the refresh preserves that state and the original tag.
 The new artifact source is recorded in its manifest/notes. This request does not
