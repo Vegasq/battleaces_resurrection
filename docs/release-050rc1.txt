@@ -8,6 +8,20 @@ public1v1,2v2 and2vAI. Human search remains30seconds with AI fallback. Saved
 solo_ai_host choices are honored;server AI testing uses the server setting.
 No movement prediction is included. Owner-only access stays in place per Nick.
 
+Balance provenance (checked2026-11-16)
+The server uses build37822's locally shipped configuration, exported through
+the original CreateDebugGame builders into GameData/GameConfig. The importer
+validates and copies those exports;it does not download or recover an original
+remote balance patch. Server-hosted clients receive the server's match bootstrap.
+Both live hosts have identical verified map-1v1/map-2v2/map-2vai and unit-catalog
+bytes,matching asset-manifest SHA256
+07b00eebc56492eb498e576ec65708e4d6db4720c6beb9926e249ae8cee25a71.
+This proves shared configuration inputs,not parity with the last official online
+balance. Game build/API version fields are not evidence of a balance-patch version.
+Source:client_patch/src/local_bootstrap.cpp,client_patch/src/server_assets_export.cpp,
+tools/import_assets.py,server/game_data.py and server/dedicated_server.py.
+Private read-only receipts:local/history-audit-review20261116/balance-provenance.json.
+
 Native helper source/binary is unchanged:f817332816e739eb389a2f48ae2a6b3c3edfff76134ab0247cc9742aecd5a0ca.
 Reuse the completed native AI/human/team/state/command-conservation qualification
 and1620-test regression(82 explicit skips) in server-ai-command-scheduling.txt.

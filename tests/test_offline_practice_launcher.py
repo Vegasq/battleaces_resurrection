@@ -6,10 +6,12 @@ from pathlib import Path
 import shutil
 import subprocess
 import unittest
+from unittest import mock
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
-POWERSHELL = shutil.which('powershell') or shutil.which('pwsh')
+PWSH = shutil.which('pwsh')
+POWERSHELL = shutil.which('powershell') or PWSH
 
 
 @unittest.skipUnless(os.name == 'nt' and POWERSHELL, 'Windows PowerShell required')
@@ -50,9 +52,30 @@ ConvertTo-Json -InputObject @($global:practiceLaunches) -Depth 4 -Compress
         shutil.rmtree(target)
 
     def launch(self):
+        # CI starts Python from PowerShell 7, but this fixture prefers Windows
+        # PowerShell 5.1. Inherited Core modules can hide 5.1's Get-FileHash.
+        # Let the selected child shell construct its own default module paths.
+        environment = {key: value for key, value in os.environ.items() if key.casefold() != 'psmodulepath'}
         return subprocess.run([POWERSHELL, '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
             '-File', str(self.script), '-Launcher', str(ROOT / 'client_patch/launcher/Launch-Client.ps1'),
-            '-Config', str(self.config)], capture_output=True, text=True, timeout=20)
+            '-Config', str(self.config)], capture_output=True, text=True, timeout=20, env=environment)
+
+    @unittest.skipUnless(shutil.which('powershell') and PWSH, 'Both PowerShell editions required')
+    def test_inherited_core_modules_do_not_hide_real_hash_validation(self):
+        core = subprocess.run([PWSH, '-NoProfile', '-NonInteractive', '-Command', '$env:PSModulePath'],
+                              capture_output=True, text=True, encoding='utf-8', timeout=20)
+        self.assertEqual(core.returncode, 0, core.stderr)
+        self.assertTrue(core.stdout.strip())
+        with mock.patch.dict(os.environ, {'PSModulePath': core.stdout.strip()}):
+            result = self.launch()
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(len(json.loads(result.stdout)), 1)
+            # The real Windows hash implementation must still protect the
+            # launcher; module isolation must not replace or bypass that check.
+            (self.game / 'BattleAcesOffline.dll').write_bytes(b'changed authored helper')
+            changed = self.launch()
+            self.assertNotEqual(changed.returncode, 0)
+            self.assertIn('Client/helper hash does not match patch manifest', changed.stderr)
 
     def test_no_server_settings_launch_one_visible_game_with_normal_ai(self):
         result = self.launch()

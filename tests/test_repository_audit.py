@@ -127,7 +127,9 @@ class HistoricalReviewTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             def git(*args):
-                return subprocess.check_output(['git', '-C', str(root), *args], stderr=subprocess.PIPE)
+                result = subprocess.run(['git', '-C', str(root), *args], capture_output=True)
+                self.assertEqual(result.returncode, 0, result.stderr.decode('utf-8', errors='replace'))
+                return result.stdout
             git('init', '--quiet')
             git('config', 'user.name', 'Audit fixture')
             git('config', 'user.email', 'audit@example.invalid')
@@ -157,10 +159,16 @@ class HistoricalReviewTests(unittest.TestCase):
                 git('add', 'README.md')
                 self.assertEqual(audit_repository.audit()[1], reviewed)
                 self.assertEqual(audit_repository.audit(history=True)[1], reviewed)
-                # A changed historical mode must not be hidden by blob deduplication.
+                # Construct the historical mode without materializing a symlink:
+                # Git's core.symlinks setting and OS privileges are irrelevant to
+                # an audit of Git objects. Keep the current checkout on base.
                 git('update-index', '--cacheinfo', '120000,' + historical + ',README.md')
-                git('-c', 'commit.gpgsign=false', 'commit', '--quiet', '-m', 'Unsupported historical mode')
-                git('checkout', '--quiet', '-b', 'clean-again', base)
+                tree = git('write-tree').decode().strip()
+                commit = git('-c', 'commit.gpgsign=false', 'commit-tree', tree, '-p', base,
+                             '-m', 'Unsupported historical mode').decode().strip()
+                git('branch', 'unsupported-mode', commit)
+                git('read-tree', base)
+                readme.write_bytes(b'Current clean documentation\n')
                 failures = audit_repository.audit(history=True)[1]
                 self.assertEqual(len(failures), 1)
                 self.assertEqual(failures[0]['reasons'], ['symlink or unsupported file mode'])
