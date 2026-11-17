@@ -1,9 +1,10 @@
 BATTLE ACES - CURRENT DELIVERY ROADMAP
 Updated:2026-11-17. Final release acceptance remains OPEN.
-[x] means complete at the stated scope;[ ] means remaining work/evidence.
+[x] means complete at the stated scope;[ ] means remaining work/evidence;
+[!] means a measured failure of the acceptance target.
 Prior baseline queue preserved at history/2026-11-15/scheduling-ai-base-plan.txt.
 
-ACTIVE GOAL - N43 HYBRID LINUX SERVER
+N43 HYBRID LINUX SERVER - FUNCTIONAL PORT,PERFORMANCE NOT ACCEPTED
 [x] Save proposed acceptance criteria in linux-native-coordinator-acceptance.txt.
 [x] Reproduce and profile large-army slowdown:800-unit Windows combat misses
     the50ms budget;native simulation and Python state decoding dominate.
@@ -12,13 +13,20 @@ ACTIVE GOAL - N43 HYBRID LINUX SERVER
     routing,and preserved fixture data across restart/full-Wine rollback.
 [x] Complete multi-mode same-host replay,fresh originalAI and native gameplay
     completion/history/companion-fallback flows at documentedF1..F7 scopes.
-[ ] Complete controlled repeated performance/resource measurements and later
-    prepared player acceptance under the dedicated criteria. First800-unit
-    controls show no speedup;the corrected external observer passes both native
-    preflights and repeated five-minute comparisons are running.
-The focused document owns the proposed gates;DEV.txt N43 owns Nick's answers.
-Evidence:linux-native-coordinator-evidence.txt. Implementation is in progress;
-no performance improvement,complete hybrid qualification or deployment claimed.
+[x] Evaluate the prototype with same-input worker profiles and corrected
+    five-minute small/800-unit public-protocol comparisons. Preserve failures.
+[!] Current candidate fails large-army cadence and startup-regression targets:
+    10.53Hz hybrid/10.05Hz Wine versus20Hz;hybrid startup adds3.70..4.48seconds.
+[x] Retain verified evidence and delete the temporary VM/firewall/tag plus its
+    owned cleanup task. Both live hosts and release artifacts remain unchanged.
+[ ] Next performance work:reduce dominant worker simulation/state-decoding cost
+    and startup overhead before another hybrid qualification attempt.
+[ ] A future qualifying candidate still needs3 alternating matched pairs per
+    load,full RTT/concurrency/resource coverage and prepared player acceptance.
+The current matrix stopped after mandatory failures;those remaining gates have
+not passed. No coordinator-latency win or perceived-lag fix is claimed.
+Criteria:linux-native-coordinator-acceptance.txt;results and limits:
+linux-native-coordinator-evidence.txt. DEV.txt N43 retains Nick's answers.
 
 COMPLETE - N42 PUBLIC GAME ACCESS
 [x] Open TCP47623 to all sources on Europe first,then America,without restarting.

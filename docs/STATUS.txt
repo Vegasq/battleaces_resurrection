@@ -1,4 +1,16 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-17UTC N43 PERFORMANCE CANDIDATE NOT ACCEPTED:functionalF1..F7 pass,
+but corrected five-minute800-unit movement trials yield10.53Hz hybrid/10.05Hz
+full-Wine against20Hz. Both saturate the single CPU;hybrid has739>100ms gaps,
+Wine825. Hybrid worker startup adds3.70..4.48s in small/maximum pairs. Profiles
+place the dominant costs inside simulation/state decoding. One pair per load
+is exploratory;three-pair/full-RTT/concurrency/player gates remain incomplete.
+Further qualification of this candidate stops at the mandatory failures.
+No latency-win claim,deployment,firewall change or release update. Evidence is
+downloaded/hash-verified;temporary VM/firewall/tag and cleanup task are removed.
+Next performance target:worker cost and startup. Exact scopes,unchanged targets
+and remaining gates:linux-native-coordinator-acceptance.txt and its evidence file.
+Earlier progress entries below retain their original checkpoint scope.
 2026-11-17UTC N43 FUNCTIONAL GATES COMPLETE:F1..F7 now pass at the focused
 evidence scopes. Solo2vAI companion fallback and three original bots pass a
 400frame check;the earlier120frame failure ended before normal frame131 AI

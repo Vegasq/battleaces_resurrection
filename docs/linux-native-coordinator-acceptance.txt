@@ -1,6 +1,7 @@
 BATTLE ACES - HYBRID LINUX SERVER ACCEPTANCE
-Updated:2026-11-17 UTC. N43. Status:ACTIVE;user selected this file as the goal.
-[x] means complete at the stated scope;[ ] means remaining work/evidence.
+Updated:2026-11-17 UTC. N43. Status:PERFORMANCE CANDIDATE NOT ACCEPTED.
+[x] means complete at the stated scope;[ ] means remaining work/evidence;
+[!] means an observed failure of the unchanged target. Full acceptance is OPEN.
 Numerical thresholds below are targets,not results.
 Nick's answers and any later actionable playtest request belong in DEV.txt N43.
 
@@ -11,6 +12,24 @@ and gameplay. Establish whether this improves measured and perceived latency.
 This is a hybrid server,not a recompilation of the original Windows DLLs.
 Prototype and benchmark in isolation. No production deployment,firewall change,
 server resize or release replacement is part of this acceptance exercise.
+
+CURRENT DECISION
+The functional hybrid port passesF1..F7 at the documented scopes. It is not
+accepted as a lag fix. Corrected five-minute800-unit movement trials sustain
+10.53Hz hybrid and10.05Hz full-Wine against the20Hz target;both consume roughly
+95..97percent of the single CPU and have hundreds of>100ms publication gaps.
+Hybrid worker startup is3.70..4.48s slower in the small/maximum exploratory pairs.
+The same-input unpaced worker profiles independently show simulation/decoding
+dominating cost. No qualifying coordinator-latency win is demonstrated.
+
+This candidate's qualification stops at those failures under the conditional
+decision below. One corrected pair per small/maximum load was completed,not
+three alternating pairs or the full RTT/concurrency matrix. M2..M4,fullP2/P4 and
+playerA1 remain incomplete;no thresholds are relaxed and no deployment follows.
+Retain the implementation and evidence. A subsequent performance candidate
+must address worker cost and startup before broader qualification/player tests.
+The temporary benchmark VM/firewall/tag were deleted after verified downloads;
+both live hosts and released installers remain unchanged.
 
 FIRST PRIORITY - LARGE-ARMY SLOWDOWN
 Nick reports large slowdowns when many units are present. Reproduce and measure
@@ -56,18 +75,18 @@ WORKLOAD AND MEASUREMENT
     Preserve inputs,source/asset hashes,raw timings and failed runs privately.
 
 PROPOSED PERFORMANCE AND RESOURCE GATES
-[ ] P1. After warmup,sustain19.8..20.2Hz publication with no server-caused gap
+[!] P1. After warmup,sustain19.8..20.2Hz publication with no server-caused gap
     above100ms under the defined benchmark loads. Attribute injected network
     delay separately;do not hide slow frames behind an overall average.
 [ ] P2. On the current1vCPU/1GiB server class,one and two matches avoid OOM and
     sustained swapping,and retain at least128MiB available memory. Record any
     baseline failure too;failure does not authorize a server resize.
-[ ] P3. Warm match startup<=15seconds and no more than2seconds slower than the
+[!] P3. Warm match startup<=15seconds and no more than2seconds slower than the
     baseline. Measure cold startup and any Wine-prefix preparation separately.
 [ ] P4. A coordinator latency-win claim requires>=15percent and>=1ms lower p95
     coordinator-attributable delay,repeatably across paired runs. No p99 command
     or publication latency regression beyond max(1ms,5percent of baseline).
-[ ] P5. The large-army workload satisfies the cadence gate and reproduces the
+[!] P5. The large-army workload satisfies the cadence gate and reproduces the
     same gameplay correctly. A coordinator-only speedup cannot close this gate.
 
 PLAYER ACCEPTANCE AND DECISION
@@ -124,6 +143,7 @@ Fresh2vAI on both hybrid and full-Wine regenerates all1562 Windows-reference
 inputs/observable states identically,including bootstrap and binary journal.
 Together with1v1fresh-AI and2v2replay,this qualifiesF2 for the tested original
 exports;opaque unexported internal DLL state is not claimed. F1..F7 are complete
-at their documented scopes. Next:finish repeated performance
-measurements. No live service is being tested under heavy benchmark load.
-Remaining gates stay open;no latency improvement or final release is claimed.
+at their documented scopes. Corrected exploratory timing now rejects this
+candidate underP1/P3/P5;see CURRENT DECISION and the focused evidence record.
+Remaining qualification gates stay open. No broader-matrix or perceived-lag
+success is claimed. No benchmark process or billable test VM remains running.

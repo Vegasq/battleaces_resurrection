@@ -1,6 +1,19 @@
 BATTLE ACES - HYBRID LINUX COORDINATOR EVIDENCE
-Updated:2026-11-17 UTC. N43. Active investigation;not a release qualification.
+Updated:2026-11-17 UTC. N43. Functional port;performance candidate NOT ACCEPTED.
 Criteria and unchecked gates:linux-native-coordinator-acceptance.txt.
+
+CURRENT OUTCOME
+F1..F7 pass at the documented scopes. The corrected five-minute800-unit pair
+fails cadence in both arms(10.53Hz hybrid/10.05Hz Wine,target20Hz). Hybrid startup
+also regresses beyond the2s target. Worker profiles identify simulation/state
+decoding as the main cost;moving coordinator Python outside Wine leaves those
+costs present. No qualifying latency win or perceived-lag fix is demonstrated.
+One corrected pair per small/maximum load is exploratory. The mandatory failures
+stop qualification of this candidate;three alternating pairs,the full latency/
+concurrency matrix and player acceptance remain incomplete. The conditional
+no-win decision is applied without changing any numerical acceptance threshold.
+Implementation/evidence are retained and the temporary cloud resources removed.
+Detailed final results and cleanup are at the end of this record.
 
 LARGE-ARMY BASELINE
 The reported slowdown is reproduced without Wine or networking on Windows.
@@ -406,3 +419,99 @@ selected and120frames for the completed-match matrix. An explicit120frame solo
 argument still reproduces the original short-window check. All10 focused
 controls pass. Native06b already qualified the exact400frame window explicitly;
 this default-only change does not require repeating that qualified native flow.
+
+EXTERNAL02 SMALL-MATCH FIVE-MINUTE PAIR01
+Both arms complete300seconds at the target population with actual movement,
+command conservation,unchanged pinned sources,clean worker exit and externally
+bound resource evidence. Hybrid publishes6000frames(20.000Hz);full-Wine5999
+(19.997Hz). Neither has a publication gap above100ms. Publication p95/p99/max
+are55.907/58.554/91.060ms hybrid and56.046/59.224/66.335ms full-Wine.
+The measured frame-work residual outside worker RPC/observer has p95
+1.208ms hybrid versus1.384ms Wine,a0.176ms difference. This single descriptive
+pair does not meet the1ms/15percent target or establish causal attribution.
+Live applied inputs/states differ;the strict exact-pair audit remains false.
+Neither M2 nor P4 is closed by this result.
+
+Warm worker startup is4.697s hybrid versus1.000s Wine,a3.697s regression above
+the2s target. Both avoid OOM/swap and retain at least128MiB host-available memory
+(observed minima446.9/422.7MiB). Whole-unit peaks515.2/247.4MiB include startup
+and prefix-copy file cache,not private process RSS. Native resource-observer CPU
+averages0.81/0.82percent over its lifetime. Measurement-interval unit CPU averages
+32.6/40.4percent of one core;different live workloads/runtime builds prevent a
+causal Wine-overhead percentage claim. Full distributions,per-thread counters,
+host pressure and IO remain in the private archive and derived analysis.
+Archive small-1-0-external02-pair01-evidence.zip,27 verified files,SHA256:
+1ca873366f9de5285723610345102433bd0adb731d4bd0089e5268e82196c7fd.
+Analysis:local/linux-hybrid-20261117/small-1-0-external02-pair01-analysis.json.
+
+EXTERNAL02 MAXIMUM-ARMY FIVE-MINUTE PAIR01 - CADENCE FAILS
+Both arms sustain all four200-Wasp armies for300seconds,with at least half of
+each army moving throughout the measured interval. All commands are conserved;
+original workers close normally and source/asset/resource bindings pass.
+These are scripted TLS endpoints with0ms nominal RTT plus the retained fixed
+jitter trace,not physical input or Internet transport.
+
+Metric                                      Hybrid             Full-Wine
+Published frames / effective Hz              3160 /10.533       3015 /10.050
+Publication gap p50 /p95 ms                  84.657 /160.245    89.028 /163.558
+Publication gap p99 /maximum ms             197.380 /296.862   211.242 /280.137
+Publication gaps above100ms                  739                825
+STEP RPC mean /p95 /p99 ms                   82.497/147.219/182.736 85.050/149.527/189.700
+STEP RPC above50ms                          3160/3160          3015/3015
+Frame residual outside worker p95 ms          2.192              2.582
+Command-created-to-delivered p95 /p99 ms     301.525/335.037     334.767/359.816
+Warm worker startup seconds                   5.553              1.069
+Measured whole-unit CPU percent of1core       95.46              97.39
+Minimum host available MiB                   427.22             414.88
+Whole-unit peak MiB including startup/cache  513.79             258.92
+
+Both arms have zero OOM and zero observed cgroup swap. Resource-observer CPU is
+0.81/0.79percent over its lifetime. Host CPU-pressure stall fractions during the
+measured sample interval are44.81/48.28percent;memory/IO pressure is small.
+Measured cgroup writes are27,869,184/26,324,992bytes,including diagnostic output.
+The separate per-frame observation work averages5.137/6.347ms and remains
+visible;it is not production cost. Every measured STEP RPC itself still exceeds
+50ms. The independent identical-input04 worker controls also exceed the budget.
+Per-thread birth-bound counters show active worker main/additional threads;
+one CPU and unknown DLL ownership still prevent a multicore-scaling claim.
+
+The0.390ms p95 frame residual difference is below the1ms target and is not a
+full causal coordinator metric. Applied command frames,inputs and observable
+states differ between these live-arrival arms;strict exact-pair audit is false.
+Different runtime builds and one pair prevent a comparative speedup claim.
+Absolute cadence failures and the4.484s startup regression reject the candidate
+underP1/P3/P5. M2/fullM3/M4/P2/P4/A1 are not promoted from partial evidence.
+Archive maximum-1-0-external02-pair01-evidence.zip,27 verified files,SHA256:
+4e847b87e37a48418ad8095000e172edf35cb39eb2eb3454b90b4dba6c4d4991.
+Analysis:local/linux-hybrid-20261117/maximum-1-0-external02-pair01-analysis.json.
+
+DECISION AND CLEANUP
+Retain the working hybrid implementation;do not deploy or release it as a lag
+fix. Stop this candidate's wider qualification after the mandatory failures.
+The planned three-pair/full-matrix checks remain explicitly incomplete. A new
+candidate must first reduce worker cost and startup overhead;state decoding is
+a source-owned optimization target,but native simulation alone can exceed50ms,
+so decoding improvement must not be promised to solve every large-army case.
+No new human A/B test is requested for this failed performance candidate.
+
+All19 prior cloud evidence archives match their remote hashes. The final bundle
+adds246 hash-verified regular diagnostic files,including source manifests,
+failed reports,raw resource/timing traces and matched journals. Archive:
+local/linux-hybrid-20261117/wine-results/final-diagnostics01-evidence.zip
+SHA256:8a208fe8f15f4e798f4d7770cf77bc116b69bc24c829ff96b7fb383e29188100.
+Owned systemd journals and final runtime executable hashes are retained locally.
+No recursive Wine-prefix traversal was used for these downloads.
+
+The temporary Droplet/firewall/tag are deleted and independently absent from
+the API as of2026-11-17T14:33:49Z. Both excluded live host IDs remain present;
+their services,IPs,configurations and firewall rules were not changed. The
+owned scheduled cleanup task is removed after cloud absence verification.
+Approximate compute cost isUSD0.14(excludes taxes/transfer;not an invoice).
+The first cleanup removed VM/firewall,then encountered an omitted tags field
+on unrelated untagged API rows. A guarded missing/null-tags fix passes four
+ownership/refusal controls;the retry deletes only the orphaned test tag and
+verifies absence. Failed cleanup/source bytes are retained privately.
+Final receipts:local/linux-hybrid-20261117/final-cloud-verification01.json and
+final-scheduled-task-verification01.json. An earlier partial local download
+remains because automatic approval review rejected its deletion as blocked by
+policy;no alternate deletion method was attempted.
