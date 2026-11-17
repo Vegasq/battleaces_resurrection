@@ -256,7 +256,7 @@ class SummaryTests(unittest.TestCase):
 
     def test_negative_overhead_duration_overflow_and_bad_calls_are_refused(self):
         for mutation in ('negative', 'overflow', 'parent_overflow', 'parent_smaller', 'bad_max', 'call_count',
-                         'negative_observer', 'rpc_short', 'rpc_overflow', 'receive_too_short'):
+                         'negative_observer', 'rpc_negative', 'rpc_overflow', 'receive_too_short'):
             with self.subTest(mutation=mutation):
                 profile, report, rows = self.rust_fixture()
                 record = profile['records'][2]
@@ -268,11 +268,40 @@ class SummaryTests(unittest.TestCase):
                 elif mutation == 'bad_max': metrics['rust.ffi.decode']['max_wall_ns'] = 99
                 elif mutation == 'call_count': metrics['rust.ffi.decode']['calls'] = 2
                 elif mutation == 'negative_observer': record['observer_thread_sample_wall_ns'] = -1
-                elif mutation == 'rpc_short': rows[1]['step_rpc_ms'] = .001
+                elif mutation == 'rpc_negative': rows[1]['step_rpc_ms'] = -.001
                 elif mutation == 'rpc_overflow': rows[1]['step_rpc_ms'] = 10**400
                 else: record['receive_wall_ns'] = 1
                 self.save(self.directory, profile, report, rows)
                 with self.assertRaises(ValueError): summary.summarize(self.directory)
+
+    def test_post_reply_worker_tail_keeps_signed_residual_and_explicit_scope(self):
+        profile, report, rows = self.rust_fixture(hybrid=True)
+        # A parent may finish at9us while the child records10us active plus1us
+        # pre-active observer time: the child endpoint follows its reply write.
+        # Native/decoder leaf costs remain inside the worker's active interval.
+        rows[1]['step_rpc_ms'] = .009
+        profile['records'][2]['observer_thread_sample_wall_ns'] = 1000
+        self.save(self.directory, profile, report, rows)
+        result = summary.summarize(self.directory)
+        phase = result['phases']['movement']
+        self.assertTrue(result['passed'])
+        self.assertAlmostEqual(phase['step_rpc_minus_active_ms']['mean'], -.001)
+        self.assertAlmostEqual(phase['step_rpc_minus_active_and_thread_sample_ms']['mean'], -.002)
+        self.assertEqual(phase['rpc_residual_diagnostics']['step_negative_count'], 1)
+        self.assertFalse(phase['rpc_residual_diagnostics']['negative_residual_is_qualification_failure'])
+        self.assertTrue(result['rpc_residual_scope']['worker_endpoint_after_reply_write'])
+        self.assertFalse(result['rpc_residual_scope']['causal_transport_cost'])
+        self.assertAlmostEqual(sum(v['fraction_of_active'] for v in phase['categories'].values()), 1)
+
+    def test_signed_rpc_difference_keeps_bounded_nonnegative_raw_inputs(self):
+        row = dict(operation='STEP', active_wall_ns=10000, observer_thread_sample_wall_ns=1000)
+        for field, value in (('active_wall_ns', -1), ('active_wall_ns', summary.MAX_DURATION_NS + 1),
+                             ('observer_thread_sample_wall_ns', -1), ('observer_thread_sample_wall_ns', True)):
+            with self.subTest(field=field, value=value):
+                with self.assertRaisesRegex(ValueError, 'outside bound'):
+                    summary.rpc_residual({**row, field: value}, {'step_rpc_ms': .009})
+        bot_row = {**row, 'operation': 'BOT_INPUT'}
+        self.assertAlmostEqual(summary.rpc_residual(bot_row, {'ai_rpc_ms': .009}), -.002)
 
     def test_validation_alone_refuses_overlapping_children(self):
         profile, report, rows = self.rust_fixture()

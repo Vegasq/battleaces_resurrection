@@ -207,13 +207,21 @@ def validate_profile_identity(profile, report):
 
 
 def rpc_residual(row, frame, *, include_observer=True):
+    """Signed difference, not a subtraction of causally nested intervals.
+
+    Recorder.write sends the response before recording its metrics/header and
+    finishing active time. The parent can finish its RPC while that bookkeeping
+    or a post-reply descheduling interval is still inside worker active time.
+    The parent may even consume the packet before the write call returns.
+    Therefore a negative difference does not invalidate either measured span.
+    """
     key = 'step_rpc_ms' if row['operation'] == 'STEP' else 'ai_rpc_ms'
     rpc = frame[key]
     require(finite(rpc) and 0 <= rpc <= MAX_DURATION_NS / 1e6, 'RPC duration outside bound')
+    require(duration(row['active_wall_ns']) and duration(row['observer_thread_sample_wall_ns']),
+            'worker/observer duration outside bound')
     accounted = row['active_wall_ns'] + (row['observer_thread_sample_wall_ns'] if include_observer else 0)
-    remaining = rpc - accounted / 1e6
-    require(remaining >= 0, 'RPC duration is smaller than worker active time and observer overhead')
-    return remaining
+    return rpc - accounted / 1e6
 
 
 def validate_profile(profile, benchmark, profile_sha):
@@ -346,6 +354,9 @@ def summarize_phases(records, frames):
                                  fraction_of_active=sum(leaf[name] for leaf in leaves)/active if active else 0)
                       for name in leaves[0]}
         labels = sorted({name for row in selected for name in row['metrics']})
+        step_residuals = [rpc_residual(row, frames[row['frame']]) for row in steps]
+        bots = [row for row in selected if row['operation'] == 'BOT_INPUT']
+        bot_residuals = [rpc_residual(row, frames[row['frame']]) for row in bots]
         result[phase] = dict(frames=len(steps), requests=len(selected),
             mean_active_ms_per_frame=active/len(steps)/1e6,
             active_ms=stats([row['active_wall_ns']/1e6 for row in selected]),
@@ -358,10 +369,12 @@ def summarize_phases(records, frames):
                                                if row['observer_thread_sample_wall_ns'] > 0]),
             step_rpc_without_thread_sample_ms=stats([frames[row['frame']]['step_rpc_ms'] for row in steps
                                                     if row['observer_thread_sample_wall_ns'] == 0]),
-            step_rpc_minus_active_and_thread_sample_ms=stats([rpc_residual(row, frames[row['frame']]) for row in steps]),
-            bot_rpc_ms=stats([frames[row['frame']]['ai_rpc_ms'] for row in selected if row['operation'] == 'BOT_INPUT']),
-            bot_rpc_minus_active_and_thread_sample_ms=stats([rpc_residual(row, frames[row['frame']])
-                for row in selected if row['operation'] == 'BOT_INPUT']),
+            step_rpc_minus_active_and_thread_sample_ms=stats(step_residuals),
+            bot_rpc_ms=stats([frames[row['frame']]['ai_rpc_ms'] for row in bots]),
+            bot_rpc_minus_active_and_thread_sample_ms=stats(bot_residuals),
+            rpc_residual_diagnostics=dict(step_negative_count=sum(value < 0 for value in step_residuals),
+                bot_negative_count=sum(value < 0 for value in bot_residuals),
+                negative_residual_is_qualification_failure=False),
             categories=categories,
             largest_active_category=max(categories, key=lambda name: categories[name]['fraction_of_active']),
             operations={operation: dict(requests=len(group),
@@ -431,18 +444,22 @@ def summarize(directory, control=None):
     result = dict(schema=1, passed=True, frames=len(benchmark['rows']),
         snapshot_decoder=decoder_identity(benchmark['report'].get('snapshot_decoder')),
         metric_parents=profile.get('metric_parents', {}),
+        rpc_residual_scope=dict(signed_duration_difference=True, causal_transport_cost=False,
+            worker_endpoint_after_reply_write=True, parent_may_finish_before_worker_write_returns=True,
+            post_reply_bookkeeping_and_scheduling_may_overlap_parent=True),
         evidence_sha256={**benchmark['evidence_sha256'], 'worker-profile.json': profile_sha},
         source_sha256=profile['source_sha256'], phases=summarize_phases(records, benchmark['rows']),
         thread_cpu=summarize_threads(profile.get('thread_samples'), records, benchmark['rows']),
         limitations=['nested metrics are inclusive; only named disjoint leaf categories form the active-time partition',
                      'Rust FFI decode includes native Rust decoding and Rust JSON serialization; they are not separately timed',
                      'Rust JSON parse includes duplicate-key hooks; validation includes raw SHA/schema checks; parent residual includes instrumentation overhead',
-                     'RPC minus worker active time includes coordinator scheduling/serialization/transport and observer tail; it is not pure IPC',
+                     'RPC residuals are signed differences between non-nested intervals, not transport or coordinator cost estimates',
+                     'parent RPC can finish before worker reply-write returns or its bookkeeping ends; post-reply scheduling can produce negative residuals',
                      'receive time includes parent pacing/idle and is excluded from active compute',
                      'thread CPU samples omit exited threads and do not identify which DLL created or used a thread',
                      'thread CPU totals include profiler/sampler overhead; thread enumeration can dominate sampled RPC tails',
                      'profile frame binding uses validated native worker PID/source/output digest and exact frame/size coverage; profiler stores no raw command data',
-                     'parent RPC minus worker active time compares durations, not cross-process clock origins; it also includes IPC and scheduling',
+                     'negative RPC residuals remain visible and do not relax bounded raw-duration or within-worker parent/child conservation checks',
                      'single profiled run does not establish performance improvement or network playability'])
     if control is not None:
         baseline = load_benchmark(control)
