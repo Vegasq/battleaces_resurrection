@@ -1,11 +1,24 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-17UTC N47 LINUX ATTRIBUTION QUALIFIED:corrected Rust control/profile
+pairs match all1562Wasp/1823Crab frames per arm with normal prefix/cgroup cleanup.
+On1CPU Linux,Wasp original simulation42.598ms movement/66.291ms combat versus
+65.816/87.678ms active worker. JSON parsing/validation/re-encoding16.513/14.947ms;
+Rust FFI1.597/1.462ms. Native alone exceeds50ms in443/600combat frames;20Hz remains
+unqualified. A false nonnegative cross-process residual guard was corrected;
+signed residuals and strict nested checks remain,failed evidence is retained.
+All32downloaded diagnostics verify;temporary VM/firewall/tag and cleanup task
+removed. Final CI44167840459 attempt2 passes1894tests/112skips on each Windows
+version,launcher build and4592-entry history audits;Linux44167840472 passes.
+Failed installer/transport timeouts remain recorded in the focused report.
+N47 profiling is complete. Next:compact ownership state without weakening command checks;
+native acceleration/scaling still requires work. Scope:rust-worker-profile.txt.
 2026-11-17UTC N47 WINDOWS ATTRIBUTION QUALIFIED:exact Rust control/profile pairs
 match all1562Wasp/1823Crab frames per arm with normal cleanup. Wasp combat active
 27.929ms partitions into20.952ms original simulation(75percent),0.564ms RustFFI,
 2.214ms Python parse,1.996ms validation,1.395ms responseJSON plus small remainder.
-These are this PC's durations;post-Rust1CPU Linux attribution is pendingVPN
-reachability under DEV.txt N47-SSH. The isolated profile VM has its approved
-72h cleanup deadline. CI44144077081 and44144077037 pass;Windows each1891tests/
+These are this PC's durations;the completed Linux attribution and resource
+cleanup are recorded above. This earlier Windows checkpoint preceded VPN
+reachability under DEV.txt N47-SSH. CI44144077081 and44144077037 pass;Windows each1891tests/
 112skips,launcher/history green after one unchanged-source installer-timeout
 retry. No production/runtime optimization or20Hz claim. Scope:rust-worker-profile.txt.
 2026-11-17UTC N46 FUNCTIONAL RUST/WINE PASS:explicit decoder identity travels

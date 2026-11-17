@@ -29,13 +29,16 @@ N46 - FUNCTIONAL RUST/WINE QUALIFIED;LARGE-ARMY CADENCE STILL FAILS
 [ ] Later:full repeated RTT/concurrency/resource matrix and player acceptance.
 Scope:rust-wine-worker.txt. Default launchers/live services remain unchanged.
 
-N47 - CURRENT RUST WORKER COST ATTRIBUTION
+COMPLETE - N47 CURRENT RUST WORKER COST ATTRIBUTION
 [x] Add explicit Rust-aware direct/Wine profiling and disjoint cost accounting.
 [x] Qualify authored identity,coverage,accounting and ownership controls.
 [x] Qualify Windows Wasp/Crab exact-input pairs;native combat cost dominates.
-[ ] Complete the same profile on Linux1CPU;pending private DEV.txt N47-SSH choice.
+[x] Complete Linux1CPU attribution:Wasp native42.6ms movement/66.3ms combat.
 [x] Complete compatibility checks and retain Windows profile/control evidence.
-[ ] Complete Linux attribution and remove the approved temporary profiling VM.
+[x] Retain verified Linux/failed-run evidence and remove temporary resources.
+[x] Finish corrected-source CI:Windows1894tests/112skips each;Linux checks pass.
+Next:compact per-frame ownership state;retain command checks/full diagnostics.
+Native simulation acceleration/CPU-scaling qualification remains separately needed.
 Scope:rust-worker-profile.txt. Live services/normal launchers remain unchanged.
 
 N43 HYBRID LINUX SERVER - FUNCTIONAL PORT,PERFORMANCE NOT ACCEPTED

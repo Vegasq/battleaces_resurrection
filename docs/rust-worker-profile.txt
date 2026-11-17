@@ -1,5 +1,5 @@
 BATTLE ACES - N47 CURRENT RUST WORKER COST ATTRIBUTION
-Updated:2026-11-17UTC. Windows attribution qualified;Linux access pending.
+Updated:2026-11-17UTC. Windows/Linux attribution qualified;not an optimization.
 
 QUESTION
 N46 improves maximum-army publication to13.04Hz but misses20Hz. Identify the
@@ -33,7 +33,9 @@ recorded commands. Every observable state must match the journal. Profile
 coverage,source/decoder identity,metrics hierarchy,ordinary cleanup and final
 input/evidence stability are required. The summary preserves per-phase profile
 overhead relative to control. A timing delta can be negative due to run variation;
-negative accounting remainders or missing/overlapping metrics are rejected.
+negative within-worker accounting remainders or missing/overlapping metrics are
+rejected. Cross-process RPC residuals remain signed because their scopes are
+not nested.
 Recorded AI inputs in a replay do not profile a fresh AI producer.
 
 Use a fresh private output directory and explicit source-bound library hash:
@@ -90,15 +92,86 @@ Each directory retains raw control/profile benchmark,journal,frame trace and
 profile sidecar. Runtime is Windows10x64/Python3.12.10 on this PC;these absolute
 durations are not measurements of the1vCPU Linux host.
 
-LINUX STATUS AND NEXT DECISION
-The approved isolated profile VM is created with the usual owner-only SSH rule.
-This PC currently exits through a VPN address,so SSH is filtered. DEV.txt N47-SSH
-records a pending choice to allow that one VPN address on the test VM only or
-disconnect the VPN. No rule was broadened;no remote workload has started.
-The source/library bundle is prepared at local/rust-profile-20261117/source-profile01.zip.
-The exact-server-class profile remains required before using these Windows
-measurements to choose a cloud/native optimization. Earlier N43 Linux native
-simulation55ms is historical evidence,not a post-Rust Linux measurement.
+LINUX QUALIFICATION AND MEASUREMENTS
+Nick disconnected the VPN;owner-IP SSH succeeds at19:49Z. The isolated machine
+uses1CPU/1GiB,Ubuntu24.04 Python3.12.3,Wine9.0 and Windows Python3.14.8.
+The first Wasp pair matches all1562states and closes normally but fails an
+invalid cross-process timing-order check. Parent RPC can finish before the
+worker completes write-return/profiler bookkeeping.31setup residuals are
+negative,worst-0.855ms;within-worker timing conservation passes. The failed
+benchmark/profile/source remain unchanged under download01/app-profile01/.
+
+Fix d415fed preserves signed residuals and their negative counts with an explicit
+non-nested scope. Raw-duration bounds,source/library identity,frame coverage and
+within-worker conservation remain strict. No residual is clamped or subtracted
+as a causal IPC estimate.30focused summarizer/orchestration controls pass.
+Fresh source-bound control/profile pairs linux-wasp02 and linux-crab01 pass at
+the corrected source. All1562/1823recorded inputs/states match per arm;all four
+workers close with exit0,closed threads,removed prefixes/cgroups and no failure.
+Source,library,assets,journals and retained evidence are unchanged.
+
+Linux Wasp mean milliseconds/frame,disjoint active categories:
+Category                         movement         combat
+Original simulation                42.598         66.291
+Native snapshot export              0.985          1.020
+Rust FFI incl Rust JSON              1.597          1.462
+Python parse of Rust JSON           5.221          4.816
+Python output validation            6.845          6.127
+Response serialization              4.448          4.005
+Response pipe write                 0.523          0.506
+All other active/wrapper work       3.600          3.452
+Total active worker                65.816         87.678
+Profiled STEP RPC                   70.517         92.141
+Unprofiled STEP RPC                 70.354         89.208
+
+Original simulation is65/76percent of active movement/combat work. It alone
+exceeds50ms in131/600movement and443/600combat frames;native-step p95 is
+101.142/104.079ms. Large-combat20Hz cannot be reached on this measured workload
+by eliminating the remaining wrapper alone. These are accelerated worker-cost
+measurements,not another public-protocol publication or perceived-lag result.
+Python parsing+validation+response JSON costs16.513/14.947ms per frame.
+Rust FFI itself costs1.597/1.462ms and is a much smaller remaining target.
+
+Wasp profiled-control STEP mean deltas:+0.164ms movement,+2.933ms combat.
+Crab:control22.464/33.587ms versus profile25.783/35.423ms;native simulation
+15.085/24.636ms,active24.268/33.927ms. Its+3.319/+1.836ms differences are
+material. These single-pair differences combine instrumentation and environment
+effects;do not subtract them as exact profiler overhead. AI inputs are recorded;
+fresh AI production is not measured. No frame-time file writes or thread
+enumeration were enabled. Wasp retains21negative signed residuals(setup only);
+Crab retains122(79setup,21movement,22combat),without weakening nested checks.
+
+SimStep whole-process CPU exceeds caller-thread CPU in these runs. Other worker
+threads consume CPU within that scope,but useful multicore scaling is unproven.
+A controlled CPU-scaling experiment would be needed before recommending cores.
+
+Evidence under local/rust-profile-20261117/download01/app-profile02/local/:
+linux-wasp02/verification.json SHA256:
+7ba2a410b23da9f169f1c58a166fea01a8309e629765cfceec4edf1bf16c701c
+linux-crab01/verification.json SHA256:
+0064811f87eebf2f1b37c221bf4c0175dcb4c168da88d23de16c00c5f7d1aa15
+All32downloaded diagnostics verify against the archive manifest,including the
+failed first run. Archive rust-profile-evidence01.zip,2715587bytes,SHA256:
+e7e3d246a7821189b5d5855f85b778aa04101a8d7fd3ef974a3c0c487757fc9c
+Temporary VM/firewall/tag were deleted and API absence verified at20:07Z;
+both excluded live VM IDs remain present. Owned deadline task removed.
+Compute estimateUSD0.022308(excludes taxes/transfer;not an invoice).
+Receipts:local/rust-profile-20261117/evidence-downloaded.json,
+final-cloud-verification01.json,final-scheduled-task-verification01.json.
+
+NEXT DECISION
+Normal server command validation needs per-frame unit ID/army/type ownership
+history(dedicated_server.py refresh_native_state;game_data.py InputValidation).
+It does not consume full health/position output for normal STEP handling. An
+explicit compact ownership projection plus unchanged summary/checksums is a
+promising source-owned optimization;simply disabling entities is unsafe.
+Preserve newly built units,ownership changes,dead-unit history,nonfinite-position
+refusal and full diagnostic output. Native AI consumes independent raw frames.
+This targets the measured JSON costs,but native simulation still needs faster
+execution to satisfy the large-combat budget. Profiling is complete;no runtime
+optimization,20Hz acceptance,deployment or player acceptance is claimed.
+
+COMPATIBILITY
 Linux CI44144077081 passes Rust tests/authored decoder checks. Windows3.14.8
 passes1891tests/112skips,launcher and history audit. The first3.12 run times out
 in the unchanged PowerShell installer argv test(25s),before profiler tests;that
@@ -109,5 +182,27 @@ failures. The original timeout is retained,not treated as a proven runner cause.
 CI:https://github.com/Vegasq/battleaces_resurrection/actions/runs/44144077037/attempts/2
 Failed/retry logs:local/rust-profile-20261117/windows-ci44144077037-attempt1.log
 and windows-ci44144077037-attempt2.log. Linux CI44144077081 also passes.
-No20Hz improvement,deployment or player acceptance is claimed. The test VM
-retains its approved72h deadline2026-11-20T17:58:35Z and owned local cleanup task.
+The signed-residual fix has passing focused controls and Linux CI44164464068.
+Windows44164464039 attempts1/2 both stop at the unchanged installer PowerShell
+25s timeout;the original combined argv/render fixture passes locally but does
+not provide a reliable CI result. All profiling controls pass. Both failure
+logs are retained in the private directory. Test-only cd861fa separates actual
+source-function argv execution from full form preview rendering into independent
+processes. It retains hostile-character/Unicode roundtrip,PNG-size assertions
+and10s/25s bounds;both tests pass locally on Python3.12/3.14. The timeout cause
+remains unproven;no production installer code or timing limit was changed.
+Final compatibility CI44167840459 attempt1 passes both installer tests on both
+Python versions. Python3.12 completes1894tests with112skips but has one error:
+unchanged BufferedTLSControl waits10s for a synthetic public MATCH assignment.
+Focused local3.12 control passes in1.568s. Python3.14 is canceled by matrix
+fail-fast. Original log retained as windows-ci44167840459-attempt1.log;one
+unchanged-source full retry passes both Python3.12/3.14.8:1894tests/112skips
+per version,launcher build and4592-entry history audits with9reviewed historical
+findings and zero failures. No test timeout or assertions changed. The cause of
+the transient MATCH timeout is unproven;the failed test uses a synthetic worker
+without the Rust decoder/profiler. Failed and passing logs remain private.
+Final source:cd861fa5ca15973a138250e204e0efc9d9391a9d.
+Windows CI:https://github.com/Vegasq/battleaces_resurrection/actions/runs/44167840459/attempts/2
+Linux CI:https://github.com/Vegasq/battleaces_resurrection/actions/runs/44167840472
+Linux Rust8tests plus67authored Python controls pass. N47 profiling is complete;
+performance targets and live rollout remain open.
