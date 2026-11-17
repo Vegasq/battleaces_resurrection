@@ -352,5 +352,20 @@ class BenchmarkTests(unittest.TestCase):
                 self.assertFalse(b.backend_cleanup_complete(changed))
 
 
+class RustProfileForwardingTests(unittest.IsolatedAsyncioTestCase):
+    async def test_rust_profile_options_reach_owned_profiler(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            args = SimpleNamespace(assets=root/'assets', output=root, profile_worker=True,
+                profile_thread_interval=0, snapshot_decoder_library=root/'decoder.dll',
+                snapshot_decoder_sha256='a'*64)
+            from tools import profile_worker_timing
+            with mock.patch.object(profile_worker_timing, 'create_profiled_worker', new_callable=mock.AsyncMock) as create:
+                await b.create_worker(args, b'authored', root/'worker', backend=None)
+            self.assertEqual(create.call_args.kwargs['snapshot_decoder_library'], args.snapshot_decoder_library)
+            self.assertEqual(create.call_args.kwargs['snapshot_decoder_sha256'], 'a'*64)
+            self.assertEqual(create.call_args.kwargs['thread_sample_interval'], 0)
+
+
 if __name__ == '__main__':
     unittest.main()

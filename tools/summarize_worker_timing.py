@@ -10,14 +10,22 @@ import argparse
 import hashlib
 import json
 import math
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import statistics
 import struct
+
+from server.native_simulation import SUPPORTED_DLL_SHA256
 
 PHASES = ('setup', 'movement', 'combat')
 PROFILE_SOURCES = ('tools/profile_worker_timing.py', 'server/worker_client.py', 'server/simulation_worker.py',
                    'server/native_simulation.py', 'server/native_ai.py', 'server/worker_ai.py')
 HYBRID_PROFILE_SOURCES = ('server/wine_worker.py', 'server/wine_worker_guardian.py', 'server/wine_worker_cgroup.py')
+RUST_PROFILE_SOURCES = ('server/rust_snapshot_decoder.py', 'rust/snapshot-decoder/Cargo.toml',
+                        'rust/snapshot-decoder/Cargo.lock', 'rust/snapshot-decoder/src/lib.rs',
+                        'rust/snapshot-decoder/src/ffi.rs')
+RUST_CHILDREN = ('rust.ffi.decode', 'rust.copy_output', 'rust.json.loads', 'rust.validate', 'rust.ffi.free')
+RUST_METRIC_PARENTS = {'rust.decode': None, **{name: 'rust.decode' for name in RUST_CHILDREN}}
+MAX_DURATION_NS = (1 << 63) - 1
 MAX_FRAMES = 32000
 MAX_FRAME_BYTES = 4 * 65536 + 1024
 
@@ -36,12 +44,38 @@ def valid_sha(value):
 
 
 def finite(value):
-    return type(value) in (float, int) and math.isfinite(value)
+    try:
+        return type(value) in (float, int) and math.isfinite(value)
+    except OverflowError:
+        return False
+
+
+def duration(value):
+    return type(value) is int and 0 <= value <= MAX_DURATION_NS
+
+
+def decoder_identity(value):
+    # Historical Python sidecars predate the explicit identity field.
+    if value is None:
+        return {'implementation': 'python'}
+    require(isinstance(value, dict), 'decoder identity missing/invalid')
+    if value.get('implementation') == 'python':
+        require(value == {'implementation': 'python'}, 'Python decoder identity differs')
+    else:
+        require(set(value) == {'implementation', 'abi_version', 'library_sha256', 'library_path'}
+                and value['implementation'] == 'rust' and type(value['abi_version']) is int and value['abi_version'] == 1
+                and valid_sha(value['library_sha256']) and isinstance(value['library_path'], str)
+                and PureWindowsPath(value['library_path']).is_absolute()
+                and not any(char in value['library_path'] for char in ('\x00', '\r', '\n')),
+                'Rust decoder identity missing/invalid')
+    return value
 
 
 def read_json(path, limit=128 * 1024 * 1024):
-    require(path.stat().st_size <= limit, f'JSON evidence exceeds bound: {path.name}')
-    raw = path.read_bytes()
+    require(path.is_file() and not path.is_symlink(), f'JSON evidence missing/redirected: {path.name}')
+    with path.open('rb') as stream:
+        raw = stream.read(limit + 1)
+    require(len(raw) <= limit, f'JSON evidence exceeds bound: {path.name}')
     def reject(value):
         raise ValueError('nonfinite JSON evidence')
     return json.loads(raw, parse_constant=reject), sha(raw)
@@ -64,15 +98,19 @@ def load_benchmark(directory):
             'benchmark did not qualify a native run')
     require(report.get('source_unchanged') is True and report.get('source_at_start') == report.get('source_at_finish'),
             'benchmark source changed during run')
-    require(isinstance(report.get('source_at_start'), dict) and all(valid_sha(v) for v in report['source_at_start'].values()),
+    require(isinstance(report.get('source_at_start'), dict) and report['source_at_start']
+            and all(valid_sha(v) for v in report['source_at_start'].values()),
             'benchmark source hashes missing/invalid')
     cleanup = report.get('cleanup', {})
     require(type(cleanup.get('exit_code')) is int and cleanup['exit_code'] == 0 and cleanup.get('failure') is None
-            and cleanup.get('stderr_thread_closed') is True and cleanup.get('io_threads_closed') is True,
+            and cleanup.get('stderr_thread_closed') is True and cleanup.get('io_threads_closed') is True
+            and 'cleanup_error' not in report,
             'benchmark worker cleanup incomplete')
     require(type(report.get('frames')) is int and 1 <= report['frames'] <= MAX_FRAMES, 'benchmark frame count invalid')
     for field in ('bootstrap_sha256', 'simulation_sha256', 'asset_manifest_sha256', 'input_journal_sha256'):
         require(valid_sha(report.get(field)), f'benchmark {field} missing/invalid')
+    require(report['simulation_sha256'] == SUPPORTED_DLL_SHA256, 'benchmark did not use the original native simulation')
+    decoder_identity(report.get('snapshot_decoder'))
     trace = directory/'frames.jsonl'
     require(trace.stat().st_size <= 128 * 1024 * 1024, 'frame trace exceeds bound')
     raw = trace.read_bytes()
@@ -86,6 +124,8 @@ def load_benchmark(directory):
                     'frame trace order/phase invalid')
             require(valid_sha(row.get('input_sha256')) and valid_sha(row.get('state_sha256')), 'frame digest invalid')
             require(finite(row.get('step_rpc_ms')) and row['step_rpc_ms'] >= 0, 'frame RPC timing invalid')
+            if report.get('ai') is not None:
+                require(finite(row.get('ai_rpc_ms')) and row['ai_rpc_ms'] >= 0, 'frame AI RPC timing invalid')
             header = stream.read(4)
             require(len(header) == 4, 'input journal truncated')
             length = struct.unpack('<I', header)[0]
@@ -113,6 +153,22 @@ def validate_profile_identity(profile, report):
     kind = backend.get('kind') if isinstance(backend, dict) else None
     hybrid = kind == 'native-linux-wine-worker'
     required_sources = PROFILE_SOURCES
+    expected_decoder = decoder_identity(report.get('snapshot_decoder'))
+    require(decoder_identity(profile.get('snapshot_decoder')) == expected_decoder, 'profile decoder identity differs')
+    rust = expected_decoder['implementation'] == 'rust'
+    if 'source_unchanged' in profile:
+        require(profile['source_unchanged'] is True, 'profile source changed')
+    if rust:
+        require(profile.get('snapshot_decoder_requested') == expected_decoder
+                and profile.get('source_unchanged') is True and profile.get('snapshot_decoder_library_unchanged') is True,
+                'Rust profile requested/loaded library or source stability differs')
+        require(profile.get('metric_parents') == RUST_METRIC_PARENTS, 'Rust metric parent schema differs')
+        required_sources += RUST_PROFILE_SOURCES
+    else:
+        require(profile.get('metric_parents', {}) == {}, 'Python profile contains Rust metric parents')
+        if 'snapshot_decoder_requested' in profile:
+            require(profile['snapshot_decoder_requested'] == expected_decoder and profile.get('source_unchanged') is True
+                    and profile.get('snapshot_decoder_library_unchanged') is None, 'Python profile identity/stability differs')
     expected_pid = report.get('worker_pid')
     if hybrid:
         runtime, cleanup = report.get('worker_runtime', {}), report.get('backend_statistics', {})
@@ -135,23 +191,42 @@ def validate_profile_identity(profile, report):
     else:
         require(kind in (None, 'windows-worker') and profile.get('launch_kind') in (None, 'direct-worker'),
                 'unknown/mismatched profile launch kind')
+        if rust:
+            runtime = report.get('worker_runtime', {})
+            require(isinstance(runtime, dict) and runtime.get('platform') == 'win32' and runtime.get('os_name') == 'nt'
+                    and runtime.get('pointer_bits') == 64 and runtime.get('implementation') == 'cpython'
+                    and all(isinstance(runtime.get(key), str) and runtime[key] for key in ('python_version', 'executable')),
+                    'Rust worker runtime identity missing/invalid')
     require(type(profile.get('pid')) is int and profile['pid'] > 0 and profile['pid'] == expected_pid,
             'profile worker PID differs')
     sources = profile.get('source_sha256', {})
     require(isinstance(sources, dict) and set(sources) == set(required_sources)
             and all(valid_sha(sources[name]) and sources[name] == report['source_at_start'].get(name)
                     for name in required_sources), 'profile source binding differs')
+    return expected_decoder
+
+
+def rpc_residual(row, frame, *, include_observer=True):
+    key = 'step_rpc_ms' if row['operation'] == 'STEP' else 'ai_rpc_ms'
+    rpc = frame[key]
+    require(finite(rpc) and 0 <= rpc <= MAX_DURATION_NS / 1e6, 'RPC duration outside bound')
+    accounted = row['active_wall_ns'] + (row['observer_thread_sample_wall_ns'] if include_observer else 0)
+    remaining = rpc - accounted / 1e6
+    require(remaining >= 0, 'RPC duration is smaller than worker active time and observer overhead')
+    return remaining
 
 
 def validate_profile(profile, benchmark, profile_sha):
     report, frames = benchmark['report'], benchmark['rows']
     require(profile.get('schema') == 1 and profile.get('completed') is True
             and type(profile.get('exit_code')) is int and profile['exit_code'] == 0
-            and profile.get('failure') is None and profile.get('dropped_records') == 0
+            and profile.get('failure') is None and type(profile.get('dropped_records')) is int and profile['dropped_records'] == 0
             and profile.get('synthetic_test_backend') is False, 'worker profile incomplete/failed/synthetic')
     require(report.get('profiled') is True and report.get('worker_profile_sha256') == profile_sha,
             'profile sidecar is not bound to this benchmark')
-    validate_profile_identity(profile, report)
+    require(report.get('simulation_sha256') == SUPPORTED_DLL_SHA256, 'profile did not use the original native simulation')
+    decoder = validate_profile_identity(profile, report)
+    rust = decoder['implementation'] == 'rust'
     records = profile.get('records')
     require(isinstance(records, list) and 3 <= len(records) <= 20000, 'profile records absent/outside bound')
     require(records[0].get('operation') == 'CREATE' and records[0].get('frame') == -1
@@ -178,22 +253,35 @@ def validate_profile(profile, benchmark, profile_sha):
                 require(row.get('request_payload_bytes') == 0 and number == len(seen_steps), 'bot input coverage/order differs')
         for name in ('active_wall_ns', 'active_thread_cpu_ns', 'active_process_cpu_ns', 'receive_wall_ns',
                      'observer_thread_sample_wall_ns', 'response_bytes'):
-            require(type(row.get(name)) is int and row[name] >= 0, f'profile {name} missing/invalid')
+            require(duration(row.get(name)), f'profile {name} missing/invalid')
         metrics = row.get('metrics')
         require(isinstance(metrics, dict) and len(metrics) <= 128, 'profile metrics missing/unbounded')
         for label, value in metrics.items():
             require(isinstance(label, str) and isinstance(value, dict), 'invalid metric object')
-            require(type(value.get('calls')) is int and value['calls'] > 0, 'invalid metric call count')
+            require(type(value.get('calls')) is int and 0 < value['calls'] <= 0x7fffffff, 'invalid metric call count')
             for field in ('wall_ns', 'thread_cpu_ns', 'process_cpu_ns', 'max_wall_ns'):
-                require(type(value.get(field)) is int and value[field] >= 0, f'invalid {label} metric')
-            require(value['max_wall_ns'] <= value['wall_ns'], 'metric maximum exceeds total')
+                require(duration(value.get(field)), f'invalid {label} metric')
+            require(value['max_wall_ns'] <= value['wall_ns'] <= value['max_wall_ns'] * value['calls'],
+                    'metric maximum/total/call count differs')
+            limit = row['receive_wall_ns'] if label == 'ipc.decode_metadata' else row['active_wall_ns']
+            require(value['wall_ns'] <= limit, 'metric exceeds its containing request interval')
+        require(rust or not any(name.startswith('rust.') for name in metrics), 'Python profile has Rust decoder metrics')
         require({'ipc.encode', 'ipc.write', 'ipc.decode_metadata'} <= metrics.keys(), 'IPC instrumentation incomplete')
         if operation == 'STEP':
-            require({'sim.SimProcessMsg', 'sim.SimStep', 'sim.SimMakeSimFrame', 'sim.SimGetSimFrameBuffer',
-                     'decode_snapshot', 'simulation.state', 'simulation.process_frame'} <= metrics.keys(),
+            required = {'sim.SimProcessMsg', 'sim.SimStep', 'sim.SimMakeSimFrame', 'sim.SimGetSimFrameBuffer',
+                        'simulation.process_frame'}
+            required |= ({'simulation.snapshot_bytes', *RUST_METRIC_PARENTS} if rust else {'decode_snapshot', 'simulation.state'})
+            require(required <= metrics.keys(),
                     'native STEP instrumentation incomplete')
-            require(metrics['sim.SimStep']['calls'] == 1 and metrics['sim.SimProcessMsg']['calls'] == 1,
+            require(all(metrics[name]['calls'] == 1 for name in required),
                     'native frame has unexpected step/message count')
+            require(not rust or not {'decode_snapshot', 'simulation.state'}.intersection(metrics),
+                    'Rust STEP includes a Python decoder/state path')
+        if operation in ('STEP', 'BOT_INPUT'):
+            rpc_residual(row, frames[row['frame']])
+        # Validate disjoint accounting even when a caller only asks for validation.
+        require(sum(leaf_categories(metrics).values()) <= row['active_wall_ns'],
+                'leaf timings exceed active request time; overlapping metrics')
     require(seen_steps == list(range(len(frames))), 'profile STEP frames truncated/duplicated/reordered')
     if report.get('ai') is not None:
         require(seen_bots == list(range(len(frames))), 'profile AI request coverage incomplete')
@@ -204,11 +292,16 @@ def validate_profile(profile, benchmark, profile_sha):
 
 def leaf_categories(metrics):
     categories = dict(native_simulation=0, native_snapshot=0, snapshot_decode=0, native_ai=0,
-                      native_other=0, ai_action_decode=0, response_json=0, response_pipe_write=0)
+                      native_other=0, ai_action_decode=0, response_json=0, response_pipe_write=0,
+                      native_process_wrapper=0, snapshot_export_wrapper=0, python_state_wrapper=0,
+                      rust_ffi_decode=0, rust_output_copy=0, rust_json_parse=0, rust_validation=0,
+                      rust_ffi_free=0, rust_adapter_overhead=0)
     exact = {'sim.SimProcessMsg': 'native_simulation', 'sim.SimStep': 'native_simulation',
              'sim.SimMakeSimFrame': 'native_snapshot', 'sim.SimGetSimFrameBuffer': 'native_snapshot',
              'decode_snapshot': 'snapshot_decode', 'decode_ai_actions': 'ai_action_decode',
-             'ipc.encode': 'response_json', 'ipc.write': 'response_pipe_write'}
+             'ipc.encode': 'response_json', 'ipc.write': 'response_pipe_write',
+             'rust.ffi.decode': 'rust_ffi_decode', 'rust.copy_output': 'rust_output_copy',
+             'rust.json.loads': 'rust_json_parse', 'rust.validate': 'rust_validation', 'rust.ffi.free': 'rust_ffi_free'}
     for name, metric in metrics.items():
         category = exact.get(name)
         if category is None and name.startswith('sim.'):
@@ -217,6 +310,24 @@ def leaf_categories(metrics):
             category = 'native_ai'
         if category is not None:
             categories[category] += metric['wall_ns']
+    def remainder(parent, children):
+        require(all(name in metrics for name in children), f'{parent} child instrumentation incomplete')
+        value = metrics[parent]['wall_ns'] - sum(metrics[name]['wall_ns'] for name in children)
+        require(value >= 0, f'{parent} children exceed inclusive parent; negative overhead')
+        return value
+    if 'simulation.process_frame' in metrics:
+        categories['native_process_wrapper'] = remainder('simulation.process_frame', ('sim.SimProcessMsg', 'sim.SimStep'))
+    if 'simulation.snapshot_bytes' in metrics:
+        categories['snapshot_export_wrapper'] = remainder('simulation.snapshot_bytes', ('sim.SimMakeSimFrame', 'sim.SimGetSimFrameBuffer'))
+    if 'simulation.state' in metrics:
+        children = (('simulation.snapshot_bytes',) if 'simulation.snapshot_bytes' in metrics
+                    else ('sim.SimMakeSimFrame', 'sim.SimGetSimFrameBuffer')) + ('decode_snapshot',)
+        categories['python_state_wrapper'] = remainder('simulation.state', children)
+    if any(name.startswith('rust.') for name in metrics):
+        require(set(RUST_METRIC_PARENTS) <= metrics.keys()
+                and {name for name in metrics if name.startswith('rust.')} == set(RUST_METRIC_PARENTS),
+                'Rust decoder instrumentation incomplete/unknown')
+        categories['rust_adapter_overhead'] = remainder('rust.decode', RUST_CHILDREN)
     return categories
 
 
@@ -241,14 +352,16 @@ def summarize_phases(records, frames):
             active_thread_cpu_ms=stats([row['active_thread_cpu_ns']/1e6 for row in selected]),
             active_process_cpu_ms=stats([row['active_process_cpu_ns']/1e6 for row in selected]),
             step_rpc_ms=stats([frames[row['frame']]['step_rpc_ms'] for row in steps]),
-            step_rpc_minus_active_ms=stats([frames[row['frame']]['step_rpc_ms']-row['active_wall_ns']/1e6 for row in steps]),
+            step_rpc_minus_active_ms=stats([rpc_residual(row, frames[row['frame']], include_observer=False) for row in steps]),
             thread_sample_overhead_ms=stats([row['observer_thread_sample_wall_ns']/1e6 for row in selected]),
             step_rpc_on_thread_sample_ms=stats([frames[row['frame']]['step_rpc_ms'] for row in steps
                                                if row['observer_thread_sample_wall_ns'] > 0]),
             step_rpc_without_thread_sample_ms=stats([frames[row['frame']]['step_rpc_ms'] for row in steps
                                                     if row['observer_thread_sample_wall_ns'] == 0]),
-            step_rpc_minus_active_and_thread_sample_ms=stats([frames[row['frame']]['step_rpc_ms']
-                -(row['active_wall_ns']+row['observer_thread_sample_wall_ns'])/1e6 for row in steps]),
+            step_rpc_minus_active_and_thread_sample_ms=stats([rpc_residual(row, frames[row['frame']]) for row in steps]),
+            bot_rpc_ms=stats([frames[row['frame']]['ai_rpc_ms'] for row in selected if row['operation'] == 'BOT_INPUT']),
+            bot_rpc_minus_active_and_thread_sample_ms=stats([rpc_residual(row, frames[row['frame']])
+                for row in selected if row['operation'] == 'BOT_INPUT']),
             categories=categories,
             largest_active_category=max(categories, key=lambda name: categories[name]['fraction_of_active']),
             operations={operation: dict(requests=len(group),
@@ -316,10 +429,14 @@ def summarize(directory, control=None):
     profile, profile_sha = read_json(Path(directory)/'worker-profile.json')
     records = validate_profile(profile, benchmark, profile_sha)
     result = dict(schema=1, passed=True, frames=len(benchmark['rows']),
+        snapshot_decoder=decoder_identity(benchmark['report'].get('snapshot_decoder')),
+        metric_parents=profile.get('metric_parents', {}),
         evidence_sha256={**benchmark['evidence_sha256'], 'worker-profile.json': profile_sha},
         source_sha256=profile['source_sha256'], phases=summarize_phases(records, benchmark['rows']),
         thread_cpu=summarize_threads(profile.get('thread_samples'), records, benchmark['rows']),
         limitations=['nested metrics are inclusive; only named disjoint leaf categories form the active-time partition',
+                     'Rust FFI decode includes native Rust decoding and Rust JSON serialization; they are not separately timed',
+                     'Rust JSON parse includes duplicate-key hooks; validation includes raw SHA/schema checks; parent residual includes instrumentation overhead',
                      'RPC minus worker active time includes coordinator scheduling/serialization/transport and observer tail; it is not pure IPC',
                      'receive time includes parent pacing/idle and is excluded from active compute',
                      'thread CPU samples omit exited threads and do not identify which DLL created or used a thread',
@@ -332,6 +449,22 @@ def summarize(directory, control=None):
         require(baseline['report'].get('profiled') is False, 'control must be unprofiled')
         for field in ('bootstrap_sha256', 'simulation_sha256', 'asset_manifest_sha256', 'frames', 'input_journal_sha256'):
             require(benchmark['report'][field] == baseline['report'][field], f'control {field} differs')
+        require(decoder_identity(benchmark['report'].get('snapshot_decoder'))
+                == decoder_identity(baseline['report'].get('snapshot_decoder')), 'control decoder identity differs')
+        for field in ('source_at_start', 'worker_runtime', 'ai', 'workload', 'paced', 'timestep_ms'):
+            require(benchmark['report'].get(field) == baseline['report'].get(field), f'control {field} differs')
+        actual_backend = dict(benchmark['report'].get('backend') or {})
+        control_backend = dict(baseline['report'].get('backend') or {})
+        # Version-probe duration is an observation, not an executable/config identity.
+        actual_backend.pop('wine_version_probe_ms', None)
+        control_backend.pop('wine_version_probe_ms', None)
+        require(actual_backend == control_backend, 'control backend identity differs')
+        if actual_backend.get('kind') == 'native-linux-wine-worker':
+            cleanup = baseline['report'].get('backend_statistics', {})
+            require(cleanup.get('cleanup_complete') is True and cleanup.get('prefix_removed') is True
+                    and cleanup.get('cgroup_removed') is True
+                    and all(type(cleanup.get(key)) is int and cleanup[key] == 0 for key in ('exit_code', 'native_exit_code')),
+                    'control hybrid cleanup incomplete')
         for actual, expected in zip(benchmark['rows'], baseline['rows']):
             require(all(actual[key] == expected[key] for key in ('frame', 'phase', 'input_sha256', 'state_sha256')),
                     'control input/state/phase differs')
@@ -345,6 +478,7 @@ def summarize(directory, control=None):
                 mean_ratio=observed['mean']/ordinary['mean'] if ordinary['mean'] else None,
                 p95_ratio=observed['p95']/ordinary['p95'] if ordinary['p95'] else None)
         result['control'] = dict(evidence_sha256=baseline['evidence_sha256'], exact_input_and_observable_state_match=True,
+                                 exact_runtime_and_decoder_identity_match=True,
                                  phases=comparisons,
                                  scope='paired instrumentation/environment difference; not a causal estimate from one pair')
     return result

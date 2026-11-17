@@ -22,6 +22,36 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKER_BOOTSTRAP = "import runpy,sys;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('server.simulation_worker',run_name='__main__')"
 PROFILE_BOOTSTRAP = "import runpy,sys;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('tools.profile_worker_timing',run_name='__main__')"
 OPERATIONS = {1: 'CREATE', 2: 'STEP', 3: 'STATE', 4: 'SNAPSHOT', 5: 'CLOSE', 6: 'TEST_CONTROL', 7: 'BOT_INPUT'}
+DECODER_FIELDS = ('--snapshot-decoder-library', '--snapshot-decoder-sha256')
+RUST_PROFILE_SOURCES = ('server/rust_snapshot_decoder.py', 'rust/snapshot-decoder/Cargo.toml',
+                        'rust/snapshot-decoder/Cargo.lock', 'rust/snapshot-decoder/src/lib.rs',
+                        'rust/snapshot-decoder/src/ffi.rs')
+RUST_METRIC_PARENTS = {'rust.decode': None, 'rust.ffi.decode': 'rust.decode',
+                       'rust.copy_output': 'rust.decode', 'rust.json.loads': 'rust.decode',
+                       'rust.validate': 'rust.decode', 'rust.ffi.free': 'rust.decode'}
+
+
+def _decoder_arguments(library=None, sha256=None, *, wine=False):
+    if library is None and sha256 is None:
+        return []
+    from server.rust_snapshot_decoder import verified_library_path
+    if wine:
+        from server.wine_worker import snapshot_decoder_path
+        path = snapshot_decoder_path(library, sha256)
+    else:
+        path = verified_library_path(library, sha256)
+    return [DECODER_FIELDS[0], str(path), DECODER_FIELDS[1], sha256]
+
+
+def _check_decoder_arguments(arguments, *, wine=False):
+    if not arguments:
+        return []
+    if len(arguments) != 4 or tuple(arguments[::2]) != DECODER_FIELDS:
+        raise RuntimeError('unexpected diagnostic decoder arguments')
+    expected = _decoder_arguments(arguments[1], arguments[3], wine=wine)
+    if arguments != expected:
+        raise RuntimeError('unexpected diagnostic decoder path or hash')
+    return expected
 
 
 def _limits(max_records, thread_sample_interval):
@@ -33,12 +63,13 @@ def _limits(max_records, thread_sample_interval):
 
 class _OneLaunch:
     """Intercept exactly one known launch, restoring the module before Popen."""
-    def __init__(self, module, output, max_records, thread_sample_interval):
+    def __init__(self, module, output, max_records, thread_sample_interval, decoder_arguments=None):
         self.module, self.original = module, module.subprocess
         self.output, self.max_records = output, max_records
         self.thread_sample_interval = thread_sample_interval
         self.owner_thread = threading.get_ident()
         self.used = False
+        self.decoder_arguments = list(decoder_arguments or [])
 
     def __getattr__(self, name):
         return getattr(self.original, name)
@@ -57,7 +88,9 @@ class _OneLaunch:
     def Popen(self, args, *positional, **kwargs):
         self.restore()
         expected = [sys.executable, '-I', '-S', '-B', '-u', '-c', WORKER_BOOTSTRAP, str(ROOT), '--stdio']
-        if (not isinstance(args, list) or args[:9] != expected or args[9:] not in ([], ['--test-backend'])
+        decoder_arguments = _check_decoder_arguments(self.decoder_arguments)
+        allowed_tails = [decoder_arguments] if decoder_arguments else [[], ['--test-backend']]
+        if (not isinstance(args, list) or args[:9] != expected or args[9:] not in allowed_tails
                 or positional or kwargs.get('stdin') != self.original.PIPE
                 or kwargs.get('stdout') != self.original.PIPE or kwargs.get('stderr') != self.original.PIPE
                 or kwargs.get('close_fds') is not True or kwargs.get('shell', False)):
@@ -76,10 +109,13 @@ HYBRID_PROFILE_SOURCES = ('server/wine_worker.py', 'server/wine_worker_guardian.
 
 
 def _guardian_fields(argv):
-    if (not isinstance(argv, list) or len(argv) != len(GUARDIAN_FIELDS)*2
-            or tuple(argv[::2]) != GUARDIAN_FIELDS or not all(isinstance(v, str) for v in argv)):
+    if not isinstance(argv, list):
         raise RuntimeError('unexpected diagnostic guardian arguments')
-    return dict(zip(GUARDIAN_FIELDS, argv[1::2]))
+    fields = GUARDIAN_FIELDS + (DECODER_FIELDS if len(argv) == (len(GUARDIAN_FIELDS)+2)*2 else ())
+    if (not isinstance(argv, list) or len(argv) != len(fields)*2
+            or tuple(argv[::2]) != fields or not all(isinstance(v, str) for v in argv)):
+        raise RuntimeError('unexpected diagnostic guardian arguments')
+    return dict(zip(fields, argv[1::2]))
 
 
 def _wine_output(output):
@@ -94,8 +130,8 @@ def _wine_output(output):
 
 
 class _OneGuardianLaunch(_OneLaunch):
-    def __init__(self, module, output, max_records, thread_sample_interval, backend, directory):
-        super().__init__(module, output, max_records, thread_sample_interval)
+    def __init__(self, module, output, max_records, thread_sample_interval, backend, directory, decoder_arguments=None):
+        super().__init__(module, output, max_records, thread_sample_interval, decoder_arguments)
         self.backend, self.directory = backend, directory
 
     def Popen(self, args, *positional, **kwargs):
@@ -105,6 +141,9 @@ class _OneGuardianLaunch(_OneLaunch):
         if not isinstance(args, list) or args[:8] != expected:
             raise RuntimeError('unexpected diagnostic guardian bootstrap')
         fields = _guardian_fields(args[8:])
+        expected_decoder = _check_decoder_arguments(self.decoder_arguments, wine=True)
+        if args[8+len(GUARDIAN_FIELDS)*2:] != expected_decoder:
+            raise RuntimeError('unexpected diagnostic guardian decoder selection')
         runtime, cgroup = Path(fields['--runtime-directory']), Path(fields['--cgroup'])
         try:
             descriptors = tuple(int(fields[name]) for name in ('--watch-fd', '--status-fd'))
@@ -143,6 +182,11 @@ class _OneWineChildLaunch(_OneLaunch):
         runtime = Path(fields['--runtime-directory'])
         expected = [fields['--wine'], windows_path(Path(fields['--windows-python'])),
                     '-I', '-S', '-B', '-u', '-c', WORKER_BOOTSTRAP, windows_path(ROOT), '--stdio']
+        options = ([DECODER_FIELDS[0], fields[DECODER_FIELDS[0]], DECODER_FIELDS[1], fields[DECODER_FIELDS[1]]]
+                   if DECODER_FIELDS[0] in fields else [])
+        decoder_arguments = _check_decoder_arguments(options, wine=True)
+        if decoder_arguments:
+            expected += [DECODER_FIELDS[0], windows_path(Path(decoder_arguments[1])), DECODER_FIELDS[1], decoder_arguments[3]]
         pass_fds = kwargs.get('pass_fds')
         environment = kwargs.get('env', {})
         if (args != expected or positional or kwargs.get('cwd') != runtime/'work'
@@ -199,6 +243,8 @@ async def create_profiled_worker(game_data, dll_path=None, *, profile_path,
         from server import wine_worker
         if type(backend) is not wine_worker.WineWorkerBackend:
             raise ValueError('diagnostic profiling requires an explicit WineWorkerBackend or direct backend')
+    decoder_arguments = _decoder_arguments(kwargs.get('snapshot_decoder_library'), kwargs.get('snapshot_decoder_sha256'),
+                                           wine=backend is not None)
     output = Path(profile_path).absolute()
     if output.exists() or output.is_symlink():
         raise FileExistsError(output)
@@ -209,13 +255,13 @@ async def create_profiled_worker(game_data, dll_path=None, *, profile_path,
     if isinstance(module.subprocess, _OneLaunch):
         raise RuntimeError('another diagnostic worker launch is active')
     if backend is None:
-        proxy = _OneLaunch(module, output, max_records, thread_sample_interval)
+        proxy = _OneLaunch(module, output, max_records, thread_sample_interval, decoder_arguments)
     else:
         _wine_output(output)
         if kwargs.get('working_directory') is None:
             raise ValueError('profiled Wine worker requires an explicit working directory')
         directory = Path(kwargs['working_directory']).resolve(strict=True)
-        proxy = _OneGuardianLaunch(module, output, max_records, thread_sample_interval, backend, directory)
+        proxy = _OneGuardianLaunch(module, output, max_records, thread_sample_interval, backend, directory, decoder_arguments)
     module.subprocess = proxy
     try:
         return await worker_client.SimulationWorker.create(game_data, dll_path, **kwargs)
@@ -305,6 +351,7 @@ class Recorder:
         self.current = None
         self.dropped_records = 0
         self.requests = 0
+        self.decoder_info = None
 
     def measure(self, label, function, *args, **kwargs):
         start = _clocks()
@@ -384,7 +431,7 @@ class Recorder:
 @contextmanager
 def instrumentation(recorder):
     """Install wrappers only inside this explicitly launched diagnostic child."""
-    from server import native_ai, native_simulation, simulation_worker as ipc, worker_ai
+    from server import native_ai, native_simulation, simulation_worker as ipc, worker_ai, rust_snapshot_decoder as rust
     replacements = []
     def replace(owner, name, replacement):
         original = getattr(owner, name)
@@ -404,10 +451,30 @@ def instrumentation(recorder):
                 return recorder.measure(prefix + name, original, instance, name, *args)
             return call
         return build
+    class ModuleView:
+        """Replace one consumer's module reference, not the shared module itself."""
+        def __init__(self, module, name, label):
+            self.module, self.name = module, name
+            self.function = timed(label)(getattr(module, name))
+        def __getattr__(self, name):
+            return self.function if name == self.name else getattr(self.module, name)
+    def decoder_init(original):
+        @wraps(original)
+        def initialize(instance, *args, **kwargs):
+            original(instance, *args, **kwargs)
+            recorder.decoder_info = dict(instance.info)
+            replace(instance, '_decode', timed('rust.ffi.decode'))
+            replace(instance, '_free', timed('rust.ffi.free'))
+        return initialize
     try:
         replace(native_simulation._Runtime, 'call', exports('sim.'))
         replace(native_ai._Runtime, 'call', exports('ai.'))
         replace(native_simulation, 'decode_snapshot', timed('decode_snapshot'))
+        replace(rust.RustSnapshotDecoder, '__init__', decoder_init)
+        replace(rust.RustSnapshotDecoder, 'decode', timed('rust.decode'))
+        replace(rust, '_validate_state', timed('rust.validate'))
+        replace(rust, 'json', lambda original: ModuleView(original, 'loads', 'rust.json.loads'))
+        replace(rust, 'C', lambda original: ModuleView(original, 'string_at', 'rust.copy_output'))
         replace(native_ai, 'decode_action_queue', timed('decode_ai_actions'))
         for name in ('process_frame', 'snapshot_bytes', 'state'):
             replace(native_simulation.NativeSimulation, name, timed('simulation.' + name))
@@ -424,11 +491,13 @@ def instrumentation(recorder):
             setattr(owner, name, original)
 
 
-def source_hashes(hybrid=False):
+def source_hashes(hybrid=False, rust_decoder=False):
     names = ('tools/profile_worker_timing.py', 'server/worker_client.py', 'server/simulation_worker.py',
              'server/native_simulation.py', 'server/native_ai.py', 'server/worker_ai.py')
     if hybrid:
         names += HYBRID_PROFILE_SOURCES
+    if rust_decoder:
+        names += RUST_PROFILE_SOURCES
     return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in names}
 
 
@@ -441,10 +510,15 @@ def main(argv=None):
     parser.add_argument('--max-records', type=int, default=20000)
     parser.add_argument('--thread-sample-interval', type=int, default=0)
     parser.add_argument('--profile-hybrid-worker', action='store_true')
+    parser.add_argument('--snapshot-decoder-library', type=Path)
+    parser.add_argument('--snapshot-decoder-sha256')
     args = parser.parse_args(argv)
     _limits(args.max_records, args.thread_sample_interval)
     if args.test_backend and os.environ.get('BA_ENABLE_SYNTHETIC_WORKER_TESTS') != '1':
         parser.error('synthetic backend requires explicit test environment gate')
+    decoder_arguments = _decoder_arguments(args.snapshot_decoder_library, args.snapshot_decoder_sha256)
+    if decoder_arguments and args.test_backend:
+        parser.error('Rust snapshot decoder requires a native worker')
     if args.profile_hybrid_worker and (args.test_backend or os.name != 'nt' or sys.platform != 'win32' or sys.maxsize <= 2**32):
         parser.error('hybrid profile requires the actual Windows x64 native worker')
     if not args.profile_output.is_absolute():
@@ -452,13 +526,18 @@ def main(argv=None):
     # Reserve the destination before any native execution. No frame-time writes.
     with args.profile_output.open('x', encoding='utf-8') as output:
         recorder = Recorder(args.max_records, args.thread_sample_interval)
-        hashes = source_hashes(args.profile_hybrid_worker)
+        hashes = source_hashes(args.profile_hybrid_worker, bool(decoder_arguments))
+        requested_decoder = ({'implementation': 'rust', 'abi_version': 1,
+                              'library_path': decoder_arguments[1], 'library_sha256': decoder_arguments[3]}
+                             if decoder_arguments else {'implementation': 'python'})
         sink = ipc.isolate_protocol_stdout()
         exit_code = 2
         failure = None
         try:
             with instrumentation(recorder):
-                exit_code = ipc.serve(sys.stdin.buffer, sink, test_backend=args.test_backend)
+                exit_code = ipc.serve(sys.stdin.buffer, sink, test_backend=args.test_backend,
+                                     snapshot_decoder_library=args.snapshot_decoder_library,
+                                     snapshot_decoder_sha256=args.snapshot_decoder_sha256)
         except Exception as error:
             failure = type(error).__name__
             print(f'Profiled worker failed: {failure}: {error}', file=sys.stderr, flush=True)
@@ -466,8 +545,22 @@ def main(argv=None):
             recorder.finish(False)
             recorder.sample_threads(recorder.requests)
             sink.close()
+            try:
+                unchanged = source_hashes(args.profile_hybrid_worker, bool(decoder_arguments)) == hashes
+            except OSError:
+                unchanged = False
+            library_unchanged = None
+            if decoder_arguments:
+                try:
+                    library_unchanged = hashlib.sha256(Path(decoder_arguments[1]).read_bytes()).hexdigest() == decoder_arguments[3]
+                except OSError:
+                    library_unchanged = False
             report = dict(schema=1, completed=True, exit_code=exit_code, failure=failure, pid=os.getpid(),
                 synthetic_test_backend=args.test_backend, source_sha256=hashes,
+                source_unchanged=unchanged,
+                snapshot_decoder=recorder.decoder_info if decoder_arguments else {'implementation': 'python'},
+                snapshot_decoder_requested=requested_decoder, snapshot_decoder_library_unchanged=library_unchanged,
+                metric_parents=RUST_METRIC_PARENTS if decoder_arguments else {},
                 launch_kind='native-linux-wine-worker' if args.profile_hybrid_worker else 'direct-worker',
                 clock_resolution_seconds={name: time.get_clock_info(name).resolution
                                           for name in ('perf_counter', 'thread_time', 'process_time')},

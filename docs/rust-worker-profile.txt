@@ -1,0 +1,48 @@
+BATTLE ACES - N47 CURRENT RUST WORKER COST ATTRIBUTION
+Updated:2026-11-17UTC. Diagnostic attribution;not a runtime optimization.
+
+QUESTION
+N46 improves maximum-army publication to13.04Hz but misses20Hz. Identify the
+remaining cost on the actual Rust-enabled worker before choosing more rewrites.
+The50ms budget applies to a complete20Hz update;76.7ms publication spacing in
+N46 is not a direct measurement of simulation compute alone.
+
+IMPLEMENTATION
+tools/profile_worker_timing.py explicitly profiles direct or owned Wine workers
+with the same Rust DLL/hash options as normal worker creation. Exact launch,
+pipe,prefix,cgroup and parent ownership guards remain. It changes no production
+worker/launcher code. The sidecar binds requested/loaded decoder identity,ABI,
+source/library stability and the actual native worker process.
+Scoped module proxies measure only the Rust consumer's JSON parsing/output
+copy;global json/ctypes functions remain unchanged. Per-instance FFI/free hooks
+and all module wrappers are restored on exit,including failure paths.
+
+Categories cover original simulation,snapshot export,Rust FFI,output copy,
+JSON parsing,output validation,buffer freeing,response serialization and pipe
+write. Rust FFI includes the Rust library's own JSON serialization. Parent Rust
+decode timing is inclusive;the summary partitions its children and remainder
+instead of adding parents twice. Wall,main-thread CPU and process CPU durations
+remain distinct. Expensive live-thread enumeration defaults to disabled.
+RPC minus active worker duration includes parent work/scheduling/transport and
+instrumentation tails;it must not be labelled pure IPC or Internet latency.
+
+QUALIFICATION
+tools/verify_rust_worker_profile.py runs an unprofiled current-Rust control,
+then an instrumented replay using identical assets,bootstrap,DLL,runtime and
+recorded commands. Every observable state must match the journal. Profile
+coverage,source/decoder identity,metrics hierarchy,ordinary cleanup and final
+input/evidence stability are required. The summary preserves per-phase profile
+overhead relative to control. A timing delta can be negative due to run variation;
+negative accounting remainders or missing/overlapping metrics are rejected.
+Recorded AI inputs in a replay do not profile a fresh AI producer.
+
+Use a fresh private output directory and explicit source-bound library hash:
+  python -B -m tools.verify_rust_worker_profile --assets <assets> --journal <retained-journal> --library <absolute-Windows-DLL> --library-sha256 <SHA256> --output local/<new-run>
+For native Linux coordination add --wine-executable,--windows-python and
+--wine-prefix-template. Outputs and original inputs remain private,never Git/CI.
+Reuse the retained library build receipt;the diagnostic runner does not rebuild
+the library. This keeps the profiled binary identical to the N46 candidate.
+
+RESULTS
+Authored controls74/74 pass. Native control/profile runs are being prepared.
+No20Hz improvement,server deployment or player acceptance is claimed.

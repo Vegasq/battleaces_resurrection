@@ -31,9 +31,11 @@ class SummaryTests(unittest.TestCase):
             metrics = {name: dict(metric) for name in ('ipc.encode', 'ipc.write', 'ipc.decode_metadata')}
             if operation == 'STEP':
                 metrics.update({name: dict(metric) for name in ('sim.SimProcessMsg', 'sim.SimStep', 'sim.SimMakeSimFrame',
-                    'sim.SimGetSimFrameBuffer', 'decode_snapshot', 'simulation.state', 'simulation.process_frame')})
+                    'sim.SimGetSimFrameBuffer', 'decode_snapshot', 'simulation.state', 'simulation.process_frame', 'simulation.snapshot_bytes')})
                 metrics['simulation.state']['wall_ns'] = 9000  # Inclusive parent is deliberately much larger.
                 metrics['simulation.state']['max_wall_ns'] = 9000
+                for label, ns in (('simulation.process_frame', 700), ('simulation.snapshot_bytes', 500)):
+                    metrics[label].update(wall_ns=ns, max_wall_ns=ns)
             records.append(dict(request_id=index, operation=operation, frame=frame, replied=True, response_error=False,
                 request_payload_bytes=2, active_wall_ns=10000, active_thread_cpu_ns=2000, active_process_cpu_ns=3000,
                 receive_wall_ns=500, observer_thread_sample_wall_ns=0, response_bytes=200, metrics=metrics))
@@ -44,7 +46,7 @@ class SummaryTests(unittest.TestCase):
                             dict(available=True, request_id=5, perf_counter_ns=1000001, threads=[thread(100)])])
         journal = b''.join(struct.pack('<I', 2)+f'f{i}'.encode() for i in range(3))
         report = dict(passed=True, native_qualified=True, source_unchanged=True, source_at_start=sources,
-            source_at_finish=sources, frames=3, bootstrap_sha256='b'*64, simulation_sha256='c'*64,
+            source_at_finish=sources, frames=3, bootstrap_sha256='b'*64, simulation_sha256=summary.SUPPORTED_DLL_SHA256,
             asset_manifest_sha256='d'*64, input_journal_sha256=summary.sha(journal), profiled=True,
             worker_pid=1234, ai=None,
             phases={phase: {'frames': 1} for phase in summary.PHASES},
@@ -177,6 +179,144 @@ class SummaryTests(unittest.TestCase):
         profile['pid'] = 32
         self.save(self.directory, profile, report, rows)
         with self.assertRaisesRegex(ValueError, 'PID differs'): summary.summarize(self.directory)
+
+    def rust_fixture(self, hybrid=False):
+        profile, report, rows = (self.hybrid_fixture() if hybrid else copy.deepcopy((self.profile, self.report, self.rows)))
+        sources = {**profile['source_sha256'], **{name: 'a'*64 for name in summary.RUST_PROFILE_SOURCES}}
+        identity = dict(implementation='rust', abi_version=1, library_sha256='e'*64,
+                        library_path='Z:\\owned\\decoder.dll' if hybrid else 'C:\\owned\\decoder.dll')
+        profile.update(snapshot_decoder=identity, snapshot_decoder_requested=dict(identity), source_unchanged=True,
+            snapshot_decoder_library_unchanged=True, metric_parents=dict(summary.RUST_METRIC_PARENTS), source_sha256=sources)
+        report.update(snapshot_decoder=dict(identity), source_at_start=sources, source_at_finish=sources)
+        if not hybrid:
+            report['worker_runtime'] = dict(platform='win32', os_name='nt', pointer_bits=64, implementation='cpython',
+                                           python_version='authored Windows Python', executable='C:\\python.exe')
+        for row in profile['records']:
+            if row['operation'] != 'STEP':
+                continue
+            metrics = row['metrics']
+            del metrics['decode_snapshot']
+            del metrics['simulation.state']
+            for name in summary.RUST_METRIC_PARENTS:
+                wall = 800 if name == 'rust.decode' else 100
+                metrics[name] = dict(calls=1, wall_ns=wall, thread_cpu_ns=20, process_cpu_ns=40, max_wall_ns=wall)
+        return profile, report, rows
+
+    def test_rust_direct_and_wine_children_partition_without_double_counting(self):
+        for hybrid in (False, True):
+            with self.subTest(hybrid=hybrid):
+                profile, report, rows = self.rust_fixture(hybrid)
+                self.save(self.directory, profile, report, rows)
+                control = dict(report, profiled=False)
+                self.save(self.control, profile, control, rows)
+                result = summary.summarize(self.directory, self.control)
+                self.assertTrue(result['passed'])
+                self.assertTrue(result['control']['exact_runtime_and_decoder_identity_match'])
+                categories = result['phases']['combat']['categories']
+                self.assertAlmostEqual(sum(value['fraction_of_active'] for key, value in categories.items()
+                                           if key.startswith('rust_')), .08)
+                self.assertAlmostEqual(categories['rust_adapter_overhead']['mean_ms_per_frame'], .0003)
+                self.assertEqual(categories['snapshot_decode']['mean_ms_per_frame'], 0)
+                self.assertAlmostEqual(sum(value['fraction_of_active'] for value in categories.values()), 1)
+                self.assertEqual(result['metric_parents'], summary.RUST_METRIC_PARENTS)
+
+    def test_rust_requires_exact_loaded_requested_library_source_and_parent_schema(self):
+        mutations = ('missing_identity', 'requested', 'hash', 'path', 'relative_path', 'abi', 'bool_abi',
+                     'source_changed', 'library_changed', 'missing_source', 'wrong_source', 'parent_map', 'runtime')
+        for mutation in mutations:
+            with self.subTest(mutation=mutation):
+                profile, report, rows = self.rust_fixture()
+                if mutation == 'missing_identity': del profile['snapshot_decoder']
+                elif mutation == 'requested': profile['snapshot_decoder_requested']['library_sha256'] = 'f'*64
+                elif mutation == 'hash': report['snapshot_decoder']['library_sha256'] = 'f'*64
+                elif mutation == 'path': report['snapshot_decoder']['library_path'] = 'C:\\other.dll'
+                elif mutation == 'relative_path': profile['snapshot_decoder']['library_path'] = 'relative.dll'
+                elif mutation == 'abi': report['snapshot_decoder']['abi_version'] = 2
+                elif mutation == 'bool_abi': report['snapshot_decoder']['abi_version'] = True
+                elif mutation == 'source_changed': profile['source_unchanged'] = False
+                elif mutation == 'library_changed': profile['snapshot_decoder_library_unchanged'] = False
+                elif mutation == 'missing_source': del profile['source_sha256'][summary.RUST_PROFILE_SOURCES[0]]
+                elif mutation == 'wrong_source': profile['source_sha256'] = {**profile['source_sha256'], summary.RUST_PROFILE_SOURCES[0]: 'f'*64}
+                elif mutation == 'parent_map': profile['metric_parents']['rust.json.loads'] = None
+                else: report['worker_runtime']['platform'] = 'linux'
+                self.save(self.directory, profile, report, rows)
+                with self.assertRaises(ValueError): summary.summarize(self.directory)
+
+    def test_rust_missing_child_or_mixed_python_path_is_not_partial_success(self):
+        for name in (*summary.RUST_METRIC_PARENTS, 'simulation.snapshot_bytes', 'mixed_python'):
+            with self.subTest(name=name):
+                profile, report, rows = self.rust_fixture()
+                metrics = profile['records'][2]['metrics']
+                if name == 'mixed_python':
+                    metrics['decode_snapshot'] = dict(metrics['rust.ffi.decode'])
+                else:
+                    del metrics[name]
+                self.save(self.directory, profile, report, rows)
+                with self.assertRaises(ValueError): summary.summarize(self.directory)
+
+    def test_negative_overhead_duration_overflow_and_bad_calls_are_refused(self):
+        for mutation in ('negative', 'overflow', 'parent_overflow', 'parent_smaller', 'bad_max', 'call_count',
+                         'negative_observer', 'rpc_short', 'rpc_overflow', 'receive_too_short'):
+            with self.subTest(mutation=mutation):
+                profile, report, rows = self.rust_fixture()
+                record = profile['records'][2]
+                metrics = record['metrics']
+                if mutation == 'negative': metrics['rust.ffi.decode']['wall_ns'] = -1
+                elif mutation == 'overflow': metrics['rust.ffi.decode']['wall_ns'] = 1 << 64
+                elif mutation == 'parent_overflow': record['active_wall_ns'] = 1 << 64
+                elif mutation == 'parent_smaller': metrics['rust.decode'].update(wall_ns=400, max_wall_ns=400)
+                elif mutation == 'bad_max': metrics['rust.ffi.decode']['max_wall_ns'] = 99
+                elif mutation == 'call_count': metrics['rust.ffi.decode']['calls'] = 2
+                elif mutation == 'negative_observer': record['observer_thread_sample_wall_ns'] = -1
+                elif mutation == 'rpc_short': rows[1]['step_rpc_ms'] = .001
+                elif mutation == 'rpc_overflow': rows[1]['step_rpc_ms'] = 10**400
+                else: record['receive_wall_ns'] = 1
+                self.save(self.directory, profile, report, rows)
+                with self.assertRaises(ValueError): summary.summarize(self.directory)
+
+    def test_validation_alone_refuses_overlapping_children(self):
+        profile, report, rows = self.rust_fixture()
+        profile['records'][2]['metrics']['rust.decode'].update(wall_ns=400, max_wall_ns=400)
+        self.save(self.directory, profile, report, rows)
+        benchmark = summary.load_benchmark(self.directory)
+        loaded, digest = summary.read_json(self.directory/'worker-profile.json')
+        with self.assertRaisesRegex(ValueError, 'negative overhead'):
+            summary.validate_profile(loaded, benchmark, digest)
+
+    def test_control_decoder_runtime_source_backend_and_workload_must_match(self):
+        for mutation in ('decoder', 'runtime', 'source', 'backend', 'workload', 'paced', 'timestep', 'ai'):
+            with self.subTest(mutation=mutation):
+                profile, report, rows = self.rust_fixture()
+                control = copy.deepcopy(report); control['profiled'] = False
+                if mutation == 'decoder': control['snapshot_decoder'] = {'implementation': 'python'}
+                elif mutation == 'runtime': control['worker_runtime']['python_version'] = 'another runtime'
+                elif mutation == 'source':
+                    control['source_at_start'] = control['source_at_finish'] = {**control['source_at_start'], 'extra.py': 'f'*64}
+                elif mutation == 'backend': control['backend'] = {'kind': 'windows-worker', 'worker_interpreter_sha256': 'f'*64}
+                elif mutation == 'workload': control['workload'] = {'opponent': 'ai'}
+                elif mutation == 'paced': control['paced'] = True
+                elif mutation == 'timestep': control['timestep_ms'] = 60
+                else: control['ai'] = {'bots': {'1': 58}}
+                self.save(self.directory, profile, report, rows)
+                self.save(self.control, profile, control, rows)
+                with self.assertRaises(ValueError): summary.summarize(self.directory, self.control)
+
+    def test_nonoriginal_native_hash_and_false_successful_cleanup_are_rejected(self):
+        for mutation in ('native', 'cleanup_error'):
+            with self.subTest(mutation=mutation):
+                profile, report, rows = self.rust_fixture()
+                if mutation == 'native': report['simulation_sha256'] = 'f'*64
+                else: report['cleanup_error'] = 'forced exit'
+                self.save(self.directory, profile, report, rows)
+                with self.assertRaises(ValueError): summary.summarize(self.directory)
+
+    def test_profiled_control_delta_can_be_negative_without_negative_accounting(self):
+        rows = copy.deepcopy(self.rows)
+        for row in rows:
+            row['step_rpc_ms'] = 2
+        self.save(self.control, self.profile, {**self.report, 'profiled': False}, rows)
+        result = summary.summarize(self.directory, self.control)
+        self.assertEqual(result['control']['phases']['combat']['paired_rpc_delta_ms']['mean'], -1)
 
 
 if __name__ == '__main__':

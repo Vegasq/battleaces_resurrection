@@ -1,5 +1,7 @@
 """Diagnostic-only profiling preserves real worker IPC and process isolation."""
 import asyncio
+import ctypes
+import hashlib
 import io
 import json
 import os
@@ -67,6 +69,33 @@ class LaunchProxyTests(unittest.TestCase):
                 self.assertEqual(calls, [])
                 self.assertIs(module.subprocess, original)
 
+    def test_explicit_rust_options_are_exact_hash_bound_and_preserved(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            library = Path(temporary).resolve()/'authored.dll'; library.write_bytes(b'authored')
+            sha = hashlib.sha256(library.read_bytes()).hexdigest()
+            options = ['--snapshot-decoder-library', str(library), '--snapshot-decoder-sha256', sha]
+            module, original, proxy, args, kwargs, calls = self.make()
+            proxy.decoder_arguments = options
+            self.assertEqual(proxy.Popen(args+options, **kwargs), 'owned child')
+            self.assertEqual(calls[0][0][9:13], options)
+            for mutation in ('missing', 'hash', 'path', 'synthetic', 'unrequested'):
+                module, original, proxy, args, kwargs, calls = self.make()
+                proxy.decoder_arguments = options if mutation != 'unrequested' else []
+                tail = list(options)
+                if mutation == 'missing': tail = []
+                elif mutation == 'hash': tail[-1] = '0'*64
+                elif mutation == 'path': tail[1] = str(library.with_name('other.dll'))
+                elif mutation == 'synthetic': tail.append('--test-backend')
+                with self.subTest(mutation=mutation), self.assertRaises(RuntimeError):
+                    proxy.Popen(args+tail, **kwargs)
+                self.assertIs(module.subprocess, original); self.assertEqual(calls, [])
+            module, original, proxy, args, kwargs, calls = self.make()
+            proxy.decoder_arguments = options
+            library.write_bytes(b'changed after selection')
+            with self.assertRaisesRegex(ValueError, 'SHA256'):
+                proxy.Popen(args+options, **kwargs)
+            self.assertIs(module.subprocess, original); self.assertEqual(calls, [])
+
 
 class RecorderTests(unittest.TestCase):
     def test_real_protocol_roundtrip_is_byte_identical_and_hooks_restore(self):
@@ -125,6 +154,71 @@ class RecorderTests(unittest.TestCase):
         self.assertGreater(own[0]['creation'], 0)
         self.assertGreaterEqual(own[0]['kernel_cpu_ns'], 0)
         self.assertGreaterEqual(own[0]['user_cpu_ns'], 0)
+
+    def test_rust_stages_are_disjoint_nested_and_all_hooks_restore_on_failure(self):
+        from server import rust_snapshot_decoder as rust
+        from tests.test_rust_worker_decoder import AuthoredLibrary
+        from tests.snapshot_decoder_fixtures import make_snapshot
+        raw, library = make_snapshot(3), AuthoredLibrary()
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary).resolve()/'authored.dll'; path.write_bytes(b'authored')
+            sha = hashlib.sha256(path.read_bytes()).hexdigest()
+            recorder = profile.Recorder()
+            recorder.current = {'metrics': {}}
+            original = (rust.C, rust.json, rust._validate_state, rust.RustSnapshotDecoder.__init__, rust.RustSnapshotDecoder.decode)
+            global_functions = json.loads, ctypes.string_at
+            with patch.object(ctypes, 'CDLL', return_value=library):
+                with self.assertRaisesRegex(ValueError, 'authored exit'):
+                    with profile.instrumentation(recorder):
+                        decoder = rust.RustSnapshotDecoder(path, sha)
+                        self.assertIsNot(rust.C, ctypes); self.assertIsNot(rust.json, json)
+                        self.assertEqual((json.loads, ctypes.string_at), global_functions)
+                        self.assertEqual(decoder.decode(raw, include_entities=True)['byte_count'], len(raw))
+                        library.output = b'{'
+                        with self.assertRaises(rust.RustDecoderError): decoder.decode(raw)
+                        self.assertEqual(len(library.freed), 2)
+                        raise ValueError('authored exit')
+            self.assertEqual((rust.C, rust.json, rust._validate_state, rust.RustSnapshotDecoder.__init__,
+                              rust.RustSnapshotDecoder.decode), original)
+            self.assertIs(decoder._decode, library.ba_decode_snapshot)
+            self.assertIs(decoder._free, library.ba_free_buffer)
+            self.assertEqual(recorder.decoder_info, decoder.info)
+            metrics = recorder.current['metrics']
+            self.assertEqual(set(metrics), set(profile.RUST_METRIC_PARENTS))
+            self.assertEqual(metrics['rust.decode']['calls'], 2)
+            self.assertEqual(metrics['rust.validate']['calls'], 1)
+            for label in set(metrics)-{'rust.decode', 'rust.validate'}:
+                self.assertEqual(metrics[label]['calls'], 2, label)
+            self.assertGreaterEqual(metrics['rust.decode']['wall_ns'],
+                                    sum(value['wall_ns'] for key, value in metrics.items() if key != 'rust.decode'))
+
+    def test_rust_receipt_binds_observed_identity_sources_and_unchanged_library(self):
+        from tests.test_rust_worker_decoder import AuthoredLibrary
+        from tests.snapshot_decoder_fixtures import make_snapshot
+        from server import rust_snapshot_decoder as rust
+        library = AuthoredLibrary()
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary).resolve()
+            path = directory/'authored.dll'; path.write_bytes(b'authored')
+            sha = hashlib.sha256(path.read_bytes()).hexdigest()
+            def serve(source, sink, **kwargs):
+                decoder = rust.RustSnapshotDecoder(kwargs['snapshot_decoder_library'], kwargs['snapshot_decoder_sha256'])
+                decoder.decode(make_snapshot(1), include_entities=True)
+                return 0
+            output = directory/'profile.json'
+            with patch.object(ctypes, 'CDLL', return_value=library), \
+                 patch.object(ipc, 'serve', side_effect=serve), \
+                 patch.object(ipc, 'isolate_protocol_stdout', return_value=io.BytesIO()), \
+                 patch.object(profile.sys, 'stdin', SimpleNamespace(buffer=io.BytesIO())):
+                self.assertEqual(profile.main(['--stdio', '--profile-output', str(output),
+                    '--snapshot-decoder-library', str(path), '--snapshot-decoder-sha256', sha]), 0)
+            report = json.loads(output.read_bytes())
+            self.assertEqual(report['snapshot_decoder'], report['snapshot_decoder_requested'])
+            self.assertEqual(report['snapshot_decoder']['library_sha256'], sha)
+            self.assertEqual(report['snapshot_decoder']['library_path'], str(path))
+            self.assertEqual(report['metric_parents'], profile.RUST_METRIC_PARENTS)
+            self.assertTrue(report['source_unchanged']); self.assertTrue(report['snapshot_decoder_library_unchanged'])
+            self.assertTrue(set(profile.RUST_PROFILE_SOURCES) <= report['source_sha256'].keys())
 
 
 class ProfiledWorkerTests(unittest.IsolatedAsyncioTestCase):
@@ -229,21 +323,29 @@ class HybridLaunchProxyTests(unittest.TestCase):
             return 'owned child'
         self.original.Popen = popen
 
-    def parent(self):
+    def decoder_options(self):
+        from tests.test_wine_worker import authored_decoder_pe
+        library = self.directory/'authored.dll'; library.write_bytes(authored_decoder_pe())
+        sha = hashlib.sha256(library.read_bytes()).hexdigest()
+        return ['--snapshot-decoder-library', str(library), '--snapshot-decoder-sha256', sha]
+
+    def parent(self, decoder_options=None):
         from server.wine_worker import GUARDIAN_BOOTSTRAP
         proxy = profile._OneGuardianLaunch(self.module, self.directory/'profile.json', 100, 0,
-                                           self.backend, self.directory)
+                                           self.backend, self.directory, decoder_options)
         self.module.subprocess = proxy
-        args = [sys.executable, '-I', '-S', '-B', '-u', '-c', GUARDIAN_BOOTSTRAP, str(profile.ROOT)]+self.argv
+        args = [sys.executable, '-I', '-S', '-B', '-u', '-c', GUARDIAN_BOOTSTRAP, str(profile.ROOT)]+self.argv+(decoder_options or [])
         kwargs = dict(cwd=self.directory, stdin=-1, stdout=-1, stderr=-1, close_fds=True,
                       pass_fds=(10, 11), start_new_session=True, env={'unchanged': 'yes'}, bufsize=0)
         return proxy, args, kwargs
 
-    def child(self):
-        proxy = profile._OneWineChildLaunch(self.module, self.directory/'profile.json', 100, 0, self.argv)
+    def child(self, decoder_options=None):
+        proxy = profile._OneWineChildLaunch(self.module, self.directory/'profile.json', 100, 0, self.argv+(decoder_options or []))
         self.module.subprocess = proxy
         args = [str(self.backend.wine_executable), 'wine:'+str(self.backend.windows_python),
                 '-I', '-S', '-B', '-u', '-c', profile.WORKER_BOOTSTRAP, 'wine:'+str(profile.ROOT), '--stdio']
+        if decoder_options:
+            args += [decoder_options[0], 'wine:'+decoder_options[1], *decoder_options[2:]]
         kwargs = dict(cwd=self.runtime/'work', stdin=sys.stdin.buffer, stdout=sys.stdout.buffer,
                       stderr=sys.stderr.buffer, close_fds=True, pass_fds=(17,), preexec_fn=lambda: None,
                       env=dict(WINEPREFIX=str(self.runtime/'prefix'), WINEARCH='win64', WINEDLLOVERRIDES='mscoree,mshtml='))
@@ -258,6 +360,35 @@ class HybridLaunchProxyTests(unittest.TestCase):
         self.assertEqual(command[7:-6], args[7:])
         self.assertEqual(options, kwargs)
         self.assertIs(self.module.subprocess, self.original)
+
+    def test_rust_guardian_and_wine_options_remain_exact_and_translated(self):
+        options = self.decoder_options()
+        proxy, args, kwargs = self.parent(options)
+        proxy.Popen(args, **kwargs)
+        self.assertEqual(self.calls.pop()[0][-10:-6], options)
+        proxy, args, kwargs = self.child(options)
+        with patch('server.wine_worker.windows_path', side_effect=lambda p: 'wine:'+str(p)):
+            proxy.Popen(args, **kwargs)
+        self.assertEqual(self.calls.pop()[0][10:14], [options[0], 'wine:'+options[1], *options[2:]])
+        for stage in ('guardian', 'child'):
+            for mutation in ('missing', 'hash', 'path', 'synthetic'):
+                proxy, args, kwargs = self.parent(options) if stage == 'guardian' else self.child(options)
+                if mutation == 'missing': args = args[:-4]
+                elif mutation == 'hash': args[-1] = '0'*64
+                elif mutation == 'path': args[-3] = 'unrelated-library.dll'
+                else: args.append('--test-backend')
+                with self.subTest(stage=stage, mutation=mutation), \
+                     patch('server.wine_worker.windows_path', side_effect=lambda p: 'wine:'+str(p)):
+                    with self.assertRaises(RuntimeError): proxy.Popen(args, **kwargs)
+                self.assertEqual(self.calls, []); self.assertIs(self.module.subprocess, self.original)
+
+    def test_wine_decoder_changed_after_selection_refuses_before_spawn(self):
+        options = self.decoder_options()
+        proxy, args, kwargs = self.child(options)
+        Path(options[1]).write_bytes(b'changed DLL')
+        with patch('server.wine_worker.windows_path', side_effect=lambda p: 'wine:'+str(p)):
+            with self.assertRaisesRegex(ValueError, 'SHA256'): proxy.Popen(args, **kwargs)
+        self.assertEqual(self.calls, []); self.assertIs(self.module.subprocess, self.original)
 
     def test_guardian_invalid_command_and_ownership_refuse_before_launch(self):
         for mutation in ('root', 'cgroup', 'runtime', 'prefix', 'fds', 'session', 'thread', 'shell', 'extra'):

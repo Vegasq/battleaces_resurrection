@@ -61,6 +61,11 @@ def source_hashes():
         path = ROOT/name
         if path.exists():
             paths.append(path)
+    for name in ('rust/snapshot-decoder/Cargo.toml', 'rust/snapshot-decoder/Cargo.lock',
+                 'rust/snapshot-decoder/src/lib.rs', 'rust/snapshot-decoder/src/ffi.rs'):
+        path = ROOT/name
+        if path.exists():
+            paths.append(path)
     return {p.relative_to(ROOT).as_posix(): digest(p.read_bytes()) for p in paths}
 
 
@@ -357,7 +362,6 @@ def validate_args(args):
 async def create_worker(args, data, output, *, ai=None, backend=None):
     kwargs = dict(working_directory=output, ai=ai, startup_timeout=120, request_timeout=10, close_timeout=3)
     if getattr(args, 'snapshot_decoder_library', None):
-        require(not args.profile_worker, 'decoder experiment requires an unprofiled worker')
         kwargs.update(snapshot_decoder_library=args.snapshot_decoder_library,
                       snapshot_decoder_sha256=args.snapshot_decoder_sha256)
     if args.profile_worker:

@@ -26,9 +26,15 @@ N46 - FUNCTIONAL RUST/WINE QUALIFIED;LARGE-ARMY CADENCE STILL FAILS
 [x] Complete an isolated paired publication comparison and record failures/limits.
 [!] Maximum-army trial improves9.88->13.04Hz but misses20Hz;497gaps>100ms remain.
 [x] Complete compatibility CI,download evidence and delete temporary resources.
-[ ] Next:profile remaining worker cost before another performance qualification.
 [ ] Later:full repeated RTT/concurrency/resource matrix and player acceptance.
 Scope:rust-wine-worker.txt. Default launchers/live services remain unchanged.
+
+N47 - CURRENT RUST WORKER COST ATTRIBUTION
+[x] Add explicit Rust-aware direct/Wine profiling and disjoint cost accounting.
+[x] Qualify authored identity,coverage,accounting and ownership controls.
+[ ] Run exact-input unprofiled/profiled pairs and identify remaining dominant cost.
+[ ] Complete compatibility checks,retain evidence and clean temporary resources.
+Scope:rust-worker-profile.txt. Live services/normal launchers remain unchanged.
 
 N43 HYBRID LINUX SERVER - FUNCTIONAL PORT,PERFORMANCE NOT ACCEPTED
 [x] Save proposed acceptance criteria in linux-native-coordinator-acceptance.txt.
