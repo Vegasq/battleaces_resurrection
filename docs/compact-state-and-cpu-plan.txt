@@ -1,0 +1,157 @@
+BATTLE ACES - N48 COMPACT STATE AND N49 CPU SCALING PLAN
+Updated:2026-11-17. Planned work;implementation and performance gates remain open.
+Baseline:fc796e0 on feature/rust-snapshot-decoder;N47 evidence is retained.
+Current task checkboxes live in REMAINING_DELIVERY_PLAN.txt.
+
+OUTCOME AND ORDER
+N48 reduces repeated state serialization/parsing without weakening command
+validation. N49 measures whether two cores improve the original simulation.
+N47 Linux Wasp combat:66.291ms native simulation,14.947ms Python parse plus
+validation plus response JSON,1.462ms Rust FFI. A complete20Hz update has50ms.
+Compact state alone cannot close that large-combat deficit. Neither milestone
+closes the existing Linux performance or player-acceptance gates by itself.
+
+MODEL AND EFFORT ALLOCATION
+Task  Work                                      Model              Effort
+T1    Consumer audit and frozen state contract   gpt-6.1-sol        high
+T2    Rust projection and explicit native API    gpt-6.1-sol        high
+T3    Python adapter/worker/server integration   gpt-6.1-sol        high
+T4    Parity verifier and regression controls    gpt-6.1-sol        medium
+T5    Owned-worker CPU scaling benchmark         gpt-6.1-sol        medium
+T6    Independent interface/validation review    gpt-6.1-astra      high
+T7    Measurements,CI and evidence reconciliation gpt-6.1-sol       medium
+
+Use the regular available service tier;no ultrafast tier. No blanket maximum
+reasoning or flagship-model sweep. Reserve Astra for one bounded review of the
+native interface and command-authorization changes after integration. Its author
+must not be an implementation author. Routine follow-up stays with Sol;increase
+effort only for a specific unresolved finding. Do not repeat reviews or tests
+without a changed path or concrete concern. These are routing choices,not token
+or dollar price quotations.
+
+EXECUTION AND FILE OWNERSHIP
+The primary agent coordinates integration,Git and public/private status records.
+At most three child agents are active,within the four-slot total limit.
+After T1 freezes the contract,T2 and T3 can run concurrently;T4 can prepare
+independent verifier fixtures against that contract. Each agent has exclusive
+write ownership of its assigned files. Shared-contract changes return to T1
+before dependent edits. T5 can prepare its new tool concurrently;changes needed
+in worker_client.py or Wine ownership code are handed to T3's owner. Actual
+timed runs are sequential on an idle test environment,after the source freezes.
+T6 reviews the integrated diff before qualification runs. T7 owns all actual
+native runs,CI execution and evidence summaries to avoid duplicated workloads.
+
+T1 - CONTRACT AND CONSUMER AUDIT
+Depends:none. Owner:contract agent;read source,write the focused contract only.
+Audit native_simulation.py,rust_snapshot_decoder.py,simulation_worker.py,
+worker_client.py,dedicated_server.py,game_data.py,native_ai.py and diagnostic
+consumers. Freeze explicit summary/full/ownership modes and their negotiation.
+Full remains the diagnostic reference. Ownership is a stateless,sorted projection
+of complete ID/army/type records plus the unchanged summary and checksums.
+Match full-mode behavior for partial component records;do not invent owners.
+Keep full component scanning,canonical/raw checksum semantics,malformed-input
+refusals and rejection of nonfinite positions even when positions are omitted.
+Specify initial STATE and every STEP,CREATE identity,unsupported modes and
+version mismatch behavior. Existing ABI1/include_entities calls retain their
+meaning;use an explicit compatible extension or versioned entry point. Never
+reinterpret the boolean or silently fall back to an unrequested decoder/mode.
+Done:a field-by-field consumer map and testable contract,including pure-Python
+and synthetic-worker behavior,with no unresolved authorization requirement.
+
+T2 - RUST OWNERSHIP PROJECTION
+Depends:T1. Own:rust/snapshot-decoder/ and decoder-specific authored tests.
+Implement the compact projection and native API agreed in T1. Preserve borrowed
+input/owned output/free contracts,bounds and error semantics. Keep existing
+full/summary results compatible. Add controls for malformed vectors,duplicate
+IDs,partial records,sorting,nonfinite values and invalid mode/API arguments.
+Coordinate shared Python fixture edits through T4 rather than editing its files.
+Done:Rust and authored FFI checks pass on Windows and native Linux;an explicit
+hash-bound candidate library/build receipt is available privately for integration.
+
+T3 - PYTHON AND SERVER INTEGRATION
+Depends:T1;integrated execution also needs T2. Own:server/ adapter,worker,client,
+Room integration and their focused tests. Implement negotiated compact mode
+through direct and Wine workers with strict mode-specific output validation.
+Apply ownership records to the existing cumulative entity_history so dead units
+remain known and new units/ownership/type changes appear at the correct frame.
+Retain current command rejection behavior and raw-frame AI behavior. Preserve
+full explicit diagnostic mode and the Python path. Keep source/library/mode
+identity checks and cleanup strict. Initially opt the experiment in explicitly;
+normal launcher/default selection changes only after the qualification gate.
+Done:initial state and STEP work in both modes;invalid claims fail closed;
+existing full-mode tools and normal command checks remain functional.
+
+T4 - PARITY VERIFIER AND REGRESSION CONTROLS
+Depends:T1;native execution needs T2/T3. Own:new focused compact-state verifier,
+its tests and shared authored projection fixtures. Reuse qualified N47 Wasp/Crab
+inputs;do not recapture them. Compare full ownership projected by an independent
+reference with compact ownership on every frame,plus all unchanged summary and
+checksum fields. Schema differences are explicit;do not weaken full-state hashes
+or accept arbitrary mismatches to accommodate the smaller output.
+Cover creation,death,delayed commands,ownership/type changes,partial records,
+forged or unknown unit commands,cancellation and unsupported mode negotiation.
+Exercise fresh original AI through the compact server path;recorded AI replay
+alone does not qualify AI generation. Retain source/input/library/mode bindings,
+normal process/thread/prefix/cgroup cleanup and original failed reports.
+Done:zero parity mismatches and unchanged command acceptance/rejection on all
+reference frames and authored cases;full diagnostic output remains available.
+
+T5 - CPU SCALING TOOL
+Depends:T1 for workload selection;freeze integration before timing runs.
+Own:new focused CPU benchmark tool/tests;coordinate shared launch hooks via T3.
+Run the same hash-bound worker/library/journal on one versus two distinct
+physical cores of the same host. Record topology,SMT mapping,actual affinity,
+runtime,clock/power limitations and contention. Apply affinity through retained
+owned process handles before CREATE/engine initialization. On Linux scope any
+cpuset to task-owned worker descendants and verify the effective mask;preserve
+Wine guardian/cgroup/prefix ownership. Never change affinity globally or attach
+to an existing game,live server,coordinator agent or unrelated wineserver.
+Separate host-wide one-vCPU limits from worker-only affinity experiments.
+If topology or isolation cannot be established,report the limited scope rather
+than labelling two logical siblings as two physical cores. Three alternating
+one/two-core pairs per retained Wasp/Crab workload;all arms must reproduce state.
+Done:strict refusal/cleanup controls and local owned-worker preflight pass;the
+tool is ready for controlled native measurement without changing live services.
+
+T6 - INDEPENDENT REVIEW
+Depends:integrated T2/T3/T4 and T5 changes. Read-only reviewer;return exact
+findings to file owners. Focus on ABI compatibility,allocation/free behavior,
+mode identity,ownership history,forged-command refusal,nonfinite validation,
+unchanged checksums,diagnostic compatibility and owned-affinity enforcement.
+Done:material findings fixed and targeted checks pass. Re-review changed
+contracts only;do not commission another broad review without a new concern.
+
+T7 - MEASUREMENT AND COMPLETION
+Depends:T4,T5,T6. Freeze source and build once;retain exact identities.
+N48:three alternating full/compact unprofiled pairs on the same retained
+Wasp/Crab inputs,runtime and host. Report movement/combat mean,p50,p95,p99,max,
+50/100ms misses,reply bytes and memory. Use a separate bounded profiled pair to
+attribute JSON savings;do not mix instrumentation with primary performance runs.
+Functional acceptance requires every T4 invariant. Performance acceptance
+requires repeatable unprofiled STEP improvement and no p95 regression exceeding
+max(1ms,5percent of the baseline). A25percent reduction in the measured JSON
+category is a target,not an assumed result. Preserve a failed/no-gain outcome.
+N49:run T5's matched pairs;report native simulation and whole-STEP separately.
+CPU consumption alone is not scaling. Windows results qualify Windows only;
+repeat on a controlled Linux host before making Linux-hosting recommendations.
+Use an already authorized suitable environment if available. N47's VM was
+deleted;its approval does not authorize another resource. Prepare the concrete
+environment and cleanup scripts before any new billable-resource request in
+canonical DEV.txt. Complete independent local work before requesting that step.
+Finish applicable Windows3.12/3.14 and Linux decoder CI,launcher/history checks;
+retain failures and avoid blind repeated retries or relaxed timing thresholds.
+Reconcile roadmap,STATUS,focused evidence and DEV answers. Private originals,
+libraries,raw timings and generated artifacts stay outside Git/public CI.
+
+DECISION AFTER RESULTS
+If compact mode passes parity and performance,retain it as a qualified server
+candidate and keep full diagnostics. If it fails,evidence remains and full mode
+remains the baseline. If two cores measurably help native execution,prepare a
+Linux capacity qualification next;otherwise investigate per-core execution cost.
+Do not claim a Wine penalty from the existing cross-hardware Windows/Linux data.
+End-to-end20Hz still requires the existing acceptance matrix:19.8..20.2Hz with
+no server-caused publication gap above100ms,at least three alternating paired
+five-minute runs per tested load,defined RTT/jitter,concurrency/resource/startup
+checks and later player acceptance. Refer to linux-native-coordinator-acceptance.txt.
+Local implementation/testing is authorized. Live deployment,installer/release
+replacement,host resizing and new cloud spending are separate later actions.

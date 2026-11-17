@@ -1,4 +1,11 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-17UTC N48/N49 PLANNED:Nick authorized compact server state followed by
+controlled simulation CPU scaling and requested per-task model/effort routing.
+Plan:compact-state-and-cpu-plan.txt. Sol6.1 handles implementation/tooling at
+high/medium effort;one bounded Astra6.1 high independent review covers the native
+interface and command validation. Contract,parity,owned-affinity and repeated
+measurement gates precede acceptance. Implementation/performance remain open;
+this planning update changes no runtime,live server or release artifact.
 2026-11-17UTC N47 LINUX ATTRIBUTION QUALIFIED:corrected Rust control/profile
 pairs match all1562Wasp/1823Crab frames per arm with normal prefix/cgroup cleanup.
 On1CPU Linux,Wasp original simulation42.598ms movement/66.291ms combat versus
