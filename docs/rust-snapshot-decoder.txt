@@ -96,7 +96,48 @@ Crab/AI combat f1523                 277        3.708/0.070         4.130/0.120
 
 These measurements include complete decode/checksum/destruction;JSON columns
 add serialization. They are not per-frame p95/p99,cloud timings or server Hz.
-Native Linux authored comparison remains pending CI.
+Native Linux CI44114388000 PASS at9b7fbd78fd6f9c4023f63461552b3d980ee498ce:
+https://github.com/Vegasq/battleaces_resurrection/actions/runs/44114388000
+Ubuntu24.04 standard runner,4 logical CPUs,Python3.12.16,Rust1.98.1,x86_64 ELF.
+The same32 valid/287 malformed/3 nonfinite authored cases pass,including size,
+directory and FIFO refusal. Rust3tests,42Python controls,fmt and clippy pass.
+Source/executable are unchanged throughout. This job contains no game assets,
+no original snapshots and no Wine. Native Linux deployment is not qualified.
+Authored800 medians:Python15.702ms/Rust0.163ms decode;Python16.934ms/Rust0.335ms
+including JSON. Seven alternating100-iteration pairs,identical snapshot SHA256:
+c85339b7597016c47f0a515d55709eaa4199a44ee9be229dabc03fe49b9ab77c
+These are separate machines:do not compare Linux and Windows absolute timings
+as an OS-performance result. Each Python/Rust pair uses its own same machine.
+ELF SHA256:5440db1be8efebfe32cd7b4a67f40ebac804f1bf8e1c9fcbfe2147fa1518e48d
+Linux verification SHA256:c47e7a8c58e8300292a9ff9bb9021c14e20f0a1a6b2627c8f471a89cb794362b
+Retained log:local/rust-decoder-20261117/linux-ci44114388000.log.
+
+Local full Windows regression:1824tests PASS,111expected skips,225.617seconds.
+Log:local/rust-decoder-20261117/windows-regression01.log
+SHA256:c5b3090dac5e6a076fe818dc0662f672fa340d12561134d527af86b251694cc9
+Strict staged source audit:1382 entries,zero failures. The narrow Rust source
+allowlist retains binary,secret and generated-output rejection controls.
+
+CI44114387771 attempt1:Python3.12 passes1824tests/111skips. Both history audits
+pass4536 entries with9 exact historical reviews and zero failures;3.14.8 launcher
+build passes. Python3.14.8 passes all new decoder/exporter controls but has three
+existing Node subprocess5second timeouts before assertions:test_ads_caller,
+test_webview_pipe and test_webview_process_metadata. Their code is unchanged;
+the first timeout occurs before new tests execute. Runner delay is consistent
+with the slower full run but its exact cause is unproven. The failed log is kept:
+local/rust-decoder-20261117/windows-ci44114387771.log
+SHA256:4e1a672c1a1db50d2c801db8f7d1a5421a6d45a69b67c2f0359715f40ad3c4c1
+Local Python3.14 follow-up runs those three modules and all new tooling controls:
+60tests PASS in5.230seconds,with unchanged timeout limits. Retained log:
+local/rust-decoder-20261117/python314-focused01.log
+SHA256:d1ba4f8915b8bb326012b63069130be38ee4446b9553881da359bc4b014ab950
+CI44114387771 attempt2 PASS at the same9b7fbd7 source:Python3.14.8 passes all
+1824tests/111skips in112.146seconds,including all three prior timeout cases.
+No code or limit changed. Both matrix versions are now green;retain attempt1
+as an observed transient failure,not an assertion of a proven runner cause.
+https://github.com/Vegasq/battleaces_resurrection/actions/runs/44114387771/attempts/2
+Log:local/rust-decoder-20261117/windows-ci44114387771-attempt2.log
+SHA256:1c8eda51ca743d03a69cf3a3f63f215643e0c4f9ad25ef23470a572c9820f2f2
 
 NEXT BOUNDARY
 Passing this milestone qualifies a portable decoder and its isolated cost.

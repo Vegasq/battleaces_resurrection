@@ -1,4 +1,16 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-17UTC N44 PORTABLE DECODER MILESTONE COMPLETE:Windows original-snapshot
+parity and native Linux authored parity pass. Linux CI44114388000 builds a real
+x86_64 ELF without Wine;all decoder/tooling controls pass. Authored800 median
+decode15.702ms Python versus0.163ms Rust on that same runner. Windows native
+large-army decode12.39..13.45ms versus0.296..0.320ms is separate local evidence.
+This qualifies the portable component,not a native server or lag fix. Minimal
+worker integration and end-to-end cadence remain next;live hosts are unchanged.
+Exact hashes,comparison method and limits:rust-snapshot-decoder.txt.
+Source CI44114387771 is green for Python3.12/3.14.8,1824tests/111skips each;
+both history audits and launcher build pass. The first3.14 attempt had three
+unchanged Node harness5s timeouts;focused60tests and one exact-source CI retry
+pass without changing limits. Original failure and retry evidence are retained.
 2026-11-17UTC N44 WINDOWS DECODER PASS:portable safe Rust matches Python on32
 authored valid cases and all30 original snapshots in full/summary modes;287
 malformed and3 nonfinite JSON cases refuse. Same-input warmed large-army decode

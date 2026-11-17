@@ -4,14 +4,18 @@ Updated:2026-11-17. Final release acceptance remains OPEN.
 [!] means a measured failure of the acceptance target.
 Prior baseline queue preserved at history/2026-11-15/scheduling-ai-base-plan.txt.
 
-N44 PORTABLE RUST SNAPSHOT DECODER - ISOLATED FIRST MILESTONE
+COMPLETE - N44 PORTABLE RUST SNAPSHOT DECODER FIRST MILESTONE
 [x] Implement the existing Python observable-state contract in portable safe Rust.
 [x] Capture30 private original snapshots after all1562/1823 reference frames match.
 [x] Complete full-field/checksum parity on authored and private original snapshots.
-[ ] Verify native Linux build/parity and measure paired decoder cost per platform.
-[ ] Record results and limits before considering minimal worker integration.
+[x] Verify native Linux build/parity and measure paired decoder cost per platform.
+[x] Record results and limits before considering minimal worker integration.
 No production runtime or prediction changes. Original DLLs/captures remain local;
 Linux CI uses authored inputs. Scope and checks:rust-snapshot-decoder.txt.
+
+NEXT - ISOLATED RUST DECODER INTEGRATION
+[ ] Integrate into an isolated worker,preserve all native
+    ownership/protocol/cleanup contracts,then measure end-to-end match cadence.
 
 N43 HYBRID LINUX SERVER - FUNCTIONAL PORT,PERFORMANCE NOT ACCEPTED
 [x] Save proposed acceptance criteria in linux-native-coordinator-acceptance.txt.
