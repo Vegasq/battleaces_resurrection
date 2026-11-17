@@ -130,18 +130,19 @@ class SimulationWorker:
         if any(not isinstance(value, (int, float)) or not 0 < value <= 600
                for value in (startup_timeout, request_timeout, close_timeout)):
             raise ValueError("worker timeouts must be in (0,600] seconds")
-        decoder_path = None
-        if snapshot_decoder_library is not None or snapshot_decoder_sha256 is not None:
-            if _test_backend or backend is not None or os.name != 'nt':
-                raise ValueError('Rust snapshot decoder requires a native Windows worker without a Wine backend')
-            from .rust_snapshot_decoder import verified_library_path
-            decoder_path = verified_library_path(snapshot_decoder_library, snapshot_decoder_sha256)
         if backend is not None:
             from .wine_worker import WineWorkerBackend
             if not isinstance(backend, WineWorkerBackend) or _test_backend:
                 raise ValueError('Wine workers require an explicit native WineWorkerBackend; synthetic controls are forbidden')
             if dll_path is None or working_directory is None:
                 raise ValueError('Wine workers require explicit DLL and owned working directory paths')
+        decoder_path = decoder_worker_path = None
+        if snapshot_decoder_library is not None or snapshot_decoder_sha256 is not None:
+            if _test_backend or (backend is None and os.name != 'nt'):
+                raise ValueError('Rust snapshot decoder requires a native Windows worker or explicit Wine backend')
+            from .rust_snapshot_decoder import verified_library_path
+            decoder_path = verified_library_path(snapshot_decoder_library, snapshot_decoder_sha256)
+            decoder_worker_path = str(decoder_path) if backend is None else backend.translate_path(decoder_path)
         if os.name != "nt" and not _test_backend and backend is None:
             raise WorkerError("production simulation workers require Windows x64")
         roster = None
@@ -182,7 +183,10 @@ class SimulationWorker:
                 metadata['ai'] = {**metadata['ai'], 'directory': backend.translate_path(ai.directory)}
             nonce = secrets.token_hex(32)
             metadata['worker_nonce'] = nonce
-            process, owner = backend.launch(source_root=ROOT, working_directory=working_directory)
+            decoder_options = ({'snapshot_decoder_library': decoder_path,
+                                'snapshot_decoder_sha256': snapshot_decoder_sha256}
+                               if decoder_path is not None else {})
+            process, owner = backend.launch(source_root=ROOT, working_directory=working_directory, **decoder_options)
         worker = None
         try:
             worker = cls(process, request_timeout=request_timeout, close_timeout=close_timeout, test_backend=_test_backend)
@@ -210,9 +214,10 @@ class SimulationWorker:
                     raise WorkerError("unexpected worker backend")
                 decoder_info = response.get('snapshot_decoder', {'implementation': 'python'})
                 expected_decoder = ({'implementation': 'rust', 'abi_version': 1,
-                                     'library_sha256': snapshot_decoder_sha256, 'library_path': str(decoder_path)}
+                                     'library_sha256': snapshot_decoder_sha256, 'library_path': decoder_worker_path}
                                     if decoder_path is not None else {'implementation': 'python'})
-                if decoder_info != expected_decoder:
+                if (decoder_info != expected_decoder or
+                        (decoder_path is not None and type(decoder_info.get('abi_version')) is not int)):
                     raise WorkerError('worker snapshot decoder identity mismatch')
                 runtime_info = response.get('runtime')
                 if backend is not None:

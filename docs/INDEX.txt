@@ -20,6 +20,7 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
+  rust-wine-worker.txt - N46 Linux guardian decoder routing,fresh AI and isolated publication comparison
   rust-worker-integration.txt - N45 opted-in decoder library,worker parity and same-machine cost comparison
   rust-snapshot-decoder.txt - N44 portable decoder contract,parity fixtures,native corpus and paired measurements
   linux-native-coordinator-acceptance.txt - N43 proposed hybrid server gates,large-army profiling and comparison plan

@@ -16,9 +16,20 @@ import sys
 import tempfile
 import time
 
-from .wine_worker import ROOT, TEMPLATE_MARKER, WineWorkerBackend, require
+from .wine_worker import ROOT, TEMPLATE_MARKER, WineWorkerBackend, require, snapshot_decoder_path
 
 WORKER_BOOTSTRAP = "import runpy,sys;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('server.simulation_worker',run_name='__main__')"
+
+
+def worker_command(backend, *, snapshot_decoder_library=None, snapshot_decoder_sha256=None):
+    """Build explicit Windows argv after rechecking the host decoder identity."""
+    command = [str(backend.wine_executable), backend.translate_path(backend.windows_python),
+               '-I', '-S', '-B', '-u', '-c', WORKER_BOOTSTRAP, backend.translate_path(ROOT), '--stdio']
+    decoder_path = snapshot_decoder_path(snapshot_decoder_library, snapshot_decoder_sha256)
+    if decoder_path is not None:
+        command.extend(['--snapshot-decoder-library', backend.translate_path(decoder_path),
+                        '--snapshot-decoder-sha256', snapshot_decoder_sha256])
+    return command
 
 
 class Stopped(Exception):
@@ -195,6 +206,8 @@ def run(args):
         backend = WineWorkerBackend(args.wine, args.windows_python, args.prefix_template, args.cgroup.parent)
         require(working_directory.is_dir() and not working_directory.is_relative_to(backend.prefix_template),
                 'invalid Wine guardian working directory')
+        command = worker_command(backend, snapshot_decoder_library=args.snapshot_decoder_library,
+                                 snapshot_decoder_sha256=args.snapshot_decoder_sha256)
         import fcntl
         # The prepared template is a source, not a running deployment prefix.
         # Cooperating template preparation takes an exclusive marker lock.
@@ -207,8 +220,6 @@ def run(args):
         scratch = runtime/'work'; scratch.mkdir(mode=0o700)
         environment = dict(os.environ)
         environment.update(WINEPREFIX=str(prefix), WINEARCH='win64', WINEDEBUG='-all', WINEDLLOVERRIDES='mscoree,mshtml=')
-        command = [str(backend.wine_executable), backend.translate_path(backend.windows_python),
-                   '-I', '-S', '-B', '-u', '-c', WORKER_BOOTSTRAP, backend.translate_path(ROOT), '--stdio']
         check_stop()
         launched = time.perf_counter()
         guardian_pid = os.getpid()
@@ -279,6 +290,8 @@ def main(argv=None):
     parser.add_argument('--parent-pid', type=int, required=True)
     parser.add_argument('--watch-fd', type=int, required=True)
     parser.add_argument('--status-fd', type=int, required=True)
+    parser.add_argument('--snapshot-decoder-library', type=Path)
+    parser.add_argument('--snapshot-decoder-sha256')
     return run(parser.parse_args(argv))
 
 

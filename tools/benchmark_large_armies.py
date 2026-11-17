@@ -357,7 +357,7 @@ def validate_args(args):
 async def create_worker(args, data, output, *, ai=None, backend=None):
     kwargs = dict(working_directory=output, ai=ai, startup_timeout=120, request_timeout=10, close_timeout=3)
     if getattr(args, 'snapshot_decoder_library', None):
-        require(not args.profile_worker and backend is None, 'decoder experiment requires unprofiled native worker')
+        require(not args.profile_worker, 'decoder experiment requires an unprofiled worker')
         kwargs.update(snapshot_decoder_library=args.snapshot_decoder_library,
                       snapshot_decoder_sha256=args.snapshot_decoder_sha256)
     if args.profile_worker:

@@ -357,4 +357,22 @@ class SyntheticTLSControl(unittest.IsolatedAsyncioTestCase):
             self.assertFalse((output/'benchmark.json').exists())  # No native acceptance receipt from fixture control.
 
 
+class RustDecoderFactoryTests(unittest.IsolatedAsyncioTestCase):
+    async def test_explicit_decoder_is_forwarded_to_wine_worker_and_recorded(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            args = SimpleNamespace(output=root, assets=root/'assets', matches=1,
+                snapshot_decoder_library=root/'decoder.dll', snapshot_decoder_sha256='a'*64)
+            identity = {'implementation': 'rust', 'library_sha256': 'a'*64}
+            worker = SimpleNamespace(pid=123, native_pid=456, runtime_info={'platform': 'win32'}, decoder_info=identity)
+            backend = object()
+            experiment = b.Experiment(args, MemoryTrace(), None, {}, backend)
+            with mock.patch.object(b.SimulationWorker, 'create', new_callable=mock.AsyncMock, return_value=worker) as create, mock.patch.object(b, 'ObservedWorker', side_effect=lambda w, *unused: w):
+                self.assertIs(await experiment.factory(b'authored'), worker)
+            self.assertIs(create.call_args.kwargs['backend'], backend)
+            self.assertEqual(create.call_args.kwargs['snapshot_decoder_library'], args.snapshot_decoder_library)
+            self.assertEqual(create.call_args.kwargs['snapshot_decoder_sha256'], 'a'*64)
+            self.assertEqual(experiment.startups[0]['snapshot_decoder'], identity)
+
+
 if __name__ == '__main__': unittest.main()

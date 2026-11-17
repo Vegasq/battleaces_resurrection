@@ -18,9 +18,15 @@ COMPLETE - N45 ISOLATED RUST DECODER INTEGRATION
 [x] Verify native ownership/protocol/cleanup and every replayed observable state.
 [x] Measure alternating same-machine worker RPC pairs and record limits.
 [x] Finish native Linux library and complete compatibility CI.
-[ ] Next:qualify fresh AI and Linux Wine-worker packaging/integration.
-[ ] Later:qualify end-to-end public match cadence and player acceptance.
 Scope:rust-worker-integration.txt. Live services remain unchanged.
+
+N46 - RUST DECODER WINE WORKER AND FRESH AI
+[x] Carry explicit DLL/hash through the owned Wine guardian;retain identity/cleanup.
+[x] Qualify fresh original AI and every state on Windows and actual Linux/Wine.
+[ ] Complete an isolated paired publication comparison and record failures/limits.
+[ ] Complete compatibility CI,download evidence and delete temporary resources.
+[ ] Later:full repeated RTT/concurrency/resource matrix and player acceptance.
+Scope:rust-wine-worker.txt. Default launchers/live services remain unchanged.
 
 N43 HYBRID LINUX SERVER - FUNCTIONAL PORT,PERFORMANCE NOT ACCEPTED
 [x] Save proposed acceptance criteria in linux-native-coordinator-acceptance.txt.

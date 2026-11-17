@@ -18,13 +18,20 @@ import textwrap
 import threading
 import time
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from server import simulation_worker as ipc
 from server.native_simulation import SUPPORTED_DLL_SHA256
 from server.protobuf_wire import field_uint
 from server.wine_worker import ROOT, TEMPLATE_MARKER, TEMPLATE_PURPOSE, WineWorkerBackend
 from server.worker_client import SimulationWorker, WorkerError, WorkerTimeout
+
+
+def authored_decoder_pe(*, machine=0x8664, dll=True):
+    binary = bytearray(88); binary[:2] = b'MZ'; struct.pack_into('<I', binary, 60, 64)
+    binary[64:68] = b'PE\0\0'; struct.pack_into('<H', binary, 68, machine)
+    struct.pack_into('<H', binary, 86, 0x2000 if dll else 0)
+    return bytes(binary)
 
 
 def frame(number):
@@ -62,6 +69,74 @@ class NonceProtocolTests(unittest.TestCase):
                 self.assertIn('nonce', ipc.read_message(output)[4]['message'])
 
 
+class WineDecoderOptionTests(unittest.TestCase):
+    """Portable argument/identity controls without launching Wine or a guardian."""
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
+        self.directory = Path(self.temp.name).resolve()
+        self.decoder = self.directory/'authored decoder.dll'
+        self.decoder.write_bytes(authored_decoder_pe())
+        self.sha = hashlib.sha256(self.decoder.read_bytes()).hexdigest()
+        self.backend = object.__new__(WineWorkerBackend)
+        for name, value in (('wine_executable', self.directory/'wine'),
+                            ('windows_python', self.directory/'python.exe'),
+                            ('prefix_template', self.directory/'template'),
+                            ('cgroup_parent', self.directory/'groups')):
+            object.__setattr__(self.backend, name, value)
+
+    def test_guardian_command_defaults_and_explicit_translated_decoder(self):
+        from server.wine_worker_guardian import worker_command, WORKER_BOOTSTRAP
+        def translate(value): return 'Z:\\authored\\'+Path(value).name
+        with patch.object(WineWorkerBackend, 'translate_path', side_effect=translate):
+            baseline = worker_command(self.backend)
+            self.assertEqual(baseline, [str(self.backend.wine_executable), translate(self.backend.windows_python),
+                             '-I', '-S', '-B', '-u', '-c', WORKER_BOOTSTRAP, translate(ROOT), '--stdio'])
+            command = worker_command(self.backend, snapshot_decoder_library=self.decoder,
+                                     snapshot_decoder_sha256=self.sha)
+            self.assertEqual(command, baseline+['--snapshot-decoder-library', translate(self.decoder),
+                                               '--snapshot-decoder-sha256', self.sha])
+            self.decoder.write_bytes(b'changed after coordinator validation')
+            with self.assertRaisesRegex(ValueError, 'SHA256'):
+                worker_command(self.backend, snapshot_decoder_library=self.decoder, snapshot_decoder_sha256=self.sha)
+
+    def test_wrong_native_format_or_malformed_options_refused_before_owned_resources(self):
+        from server.wine_worker_guardian import worker_command
+        invalid = [(self.decoder, None), (None, self.sha), (self.decoder, '0'*64), ('relative.dll', self.sha)]
+        for data in (b'\x7fELF'+bytes(100), authored_decoder_pe(machine=0x14c), authored_decoder_pe(dll=False)):
+            path = self.directory/('bad-'+hashlib.sha256(data).hexdigest()+'.dll'); path.write_bytes(data)
+            invalid.append((path, hashlib.sha256(data).hexdigest()))
+        with patch('server.wine_worker_cgroup.OwnedCgroup') as group, \
+             patch('server.wine_worker.subprocess.Popen') as spawn, \
+             patch.object(WineWorkerBackend, 'translate_path', return_value=r'Z:\fixture'):
+            for library, sha in invalid:
+                with self.subTest(library=library, sha=sha):
+                    with self.assertRaises(ValueError):
+                        self.backend.launch(source_root=ROOT, working_directory=self.directory,
+                                            snapshot_decoder_library=library, snapshot_decoder_sha256=sha)
+                    with self.assertRaises(ValueError):
+                        worker_command(self.backend, snapshot_decoder_library=library, snapshot_decoder_sha256=sha)
+            group.assert_not_called(); spawn.assert_not_called()
+            self.assertEqual(list(self.directory.glob('ba-wine-worker-*')), [])
+
+    def test_backend_argv_carries_host_path_to_guardian_without_environment_override(self):
+        def owner(process, watch, status, *args):
+            os.close(watch); os.close(status)
+            return Mock()
+        with patch('server.wine_worker.validate_template'), \
+             patch.object(WineWorkerBackend, 'translate_path', return_value=r'Z:\translated\decoder.dll'), \
+             patch('server.wine_worker_cgroup.OwnedCgroup') as group, \
+             patch('server.wine_worker.WineWorkerOwner', side_effect=owner), \
+             patch('server.wine_worker.subprocess.Popen', return_value=Mock()) as spawn:
+            group.return_value.path = self.directory/'authored-group'
+            self.backend.launch(source_root=ROOT, working_directory=self.directory,
+                                snapshot_decoder_library=self.decoder, snapshot_decoder_sha256=self.sha)
+            command = spawn.call_args.args[0]
+            self.assertEqual(command[-4:], ['--snapshot-decoder-library', str(self.decoder),
+                                           '--snapshot-decoder-sha256', self.sha])
+            self.assertFalse(spawn.call_args.kwargs.get('shell', False))
+            self.assertNotIn('BA_ENABLE_SYNTHETIC_WORKER_TESTS', spawn.call_args.kwargs['env'])
+
+
 @unittest.skipUnless(sys.platform.startswith('linux'), 'Linux private Wine guardian tests')
 class WineWorkerLinuxTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
@@ -89,6 +164,8 @@ class WineWorkerLinuxTests(unittest.IsolatedAsyncioTestCase):
         self.python.write_bytes(binary)
         self.work = self.directory/'workers'; self.work.mkdir()
         self.dll = self.directory/'Simulation.dll'; self.dll.write_bytes(b'authored fake asset')
+        self.decoder = self.directory/'authored decoder.dll'; self.decoder.write_bytes(authored_decoder_pe())
+        self.decoder_sha = hashlib.sha256(self.decoder.read_bytes()).hexdigest()
         self.wine = self.directory/'authored-wine'
         self.pid_files = self.directory/'pids'; self.pid_files.mkdir()
         body = '''
@@ -97,6 +174,14 @@ sys.path.insert(0, ROOT)
 from server import simulation_worker as p
 from server.native_simulation import _protobuf_header,SUPPORTED_DLL_SHA256
 prefix=pathlib.Path(os.environ['WINEPREFIX'])
+decoder={'implementation':'python'}
+if '--snapshot-decoder-library' in sys.argv:
+    decoder_path=sys.argv[sys.argv.index('--snapshot-decoder-library')+1]
+    decoder_sha=sys.argv[sys.argv.index('--snapshot-decoder-sha256')+1]
+    assert decoder_path.startswith('Z:')
+    actual=pathlib.Path(decoder_path[2:].replace(chr(92),'/'))
+    assert hashlib.sha256(actual.read_bytes()).hexdigest()==decoder_sha
+    decoder={'implementation':'rust','abi_version':1,'library_path':decoder_path,'library_sha256':decoder_sha}
 receipt=pathlib.Path(PID_DIRECTORY)/str(os.getpid())
 child=os.fork()
 if child==0:
@@ -124,6 +209,7 @@ while True:
             while True: time.sleep(1)
         result={'pid':77,'worker_nonce':metadata['worker_nonce'],'game_data_sha256':hashlib.sha256(payload).hexdigest(),
                 'dll_sha256':SUPPORTED_DLL_SHA256,'synthetic_test_backend':False,'ai':None,
+                'snapshot_decoder':dict(decoder),
                 'runtime':{'python_version':sys.version,'implementation':'cpython','executable':'authored-peer',
                            'platform':'win32','os_name':'nt','pointer_bits':64}}
         if mode=='wrong_nonce': result['worker_nonce']='0'*64
@@ -131,6 +217,9 @@ while True:
         if mode=='wrong_dll': result['dll_sha256']='0'*64
         if mode=='wrong_digest': result['game_data_sha256']='0'*64
         if mode=='synthetic': result['synthetic_test_backend']=True
+        if mode=='wrong_decoder_path': result['snapshot_decoder']['library_path']='Z:'+chr(92)+'wrong.dll'
+        if mode=='wrong_decoder_sha': result['snapshot_decoder']['library_sha256']='0'*64
+        if mode=='wrong_decoder_abi': result['snapshot_decoder']['abi_version']=2
     elif op==p.STEP:
         if mode=='hang':
             signal.signal(signal.SIGTERM,signal.SIG_IGN)
@@ -227,6 +316,18 @@ while True:
             with self.subTest(mode=mode):
                 with self.assertRaises(WorkerError): await self.make(mode)
                 self.no_scratch()
+
+    async def test_decoder_options_cross_guardian_and_bad_identity_cleans_owned_worker(self):
+        options = {'snapshot_decoder_library': self.decoder, 'snapshot_decoder_sha256': self.decoder_sha}
+        worker = await self.make(**options)
+        self.assertEqual(worker.decoder_info, {'implementation': 'rust', 'abi_version': 1,
+                         'library_path': self.backend.translate_path(self.decoder), 'library_sha256': self.decoder_sha})
+        self.assertEqual((await worker.process_frame(frame(0))).frame, 0)
+        await worker.close(); self.no_scratch()
+        for mode in ('wrong_decoder_path', 'wrong_decoder_sha', 'wrong_decoder_abi'):
+            with self.subTest(mode=mode), self.assertRaisesRegex(WorkerError, 'decoder identity'):
+                await self.make(mode, **options)
+            self.no_scratch()
 
     async def test_backend_refuses_synthetic_gate_and_unprepared_or_public_template(self):
         with self.assertRaisesRegex(ValueError, 'synthetic'):

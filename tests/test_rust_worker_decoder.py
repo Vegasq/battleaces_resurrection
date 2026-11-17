@@ -16,6 +16,7 @@ from server import rust_snapshot_decoder as rust
 from server import simulation_worker as ipc
 from server import worker_client as client
 from server.native_simulation import decode_snapshot
+from server.wine_worker import WineWorkerBackend
 from server.protobuf_wire import field_uint
 from tests.snapshot_decoder_fixtures import make_snapshot
 
@@ -235,9 +236,14 @@ class ClientDecoderTests(unittest.IsolatedAsyncioTestCase):
     async def test_forbidden_backends_fail_before_spawn(self):
         with patch.object(client.subprocess, 'Popen') as spawn:
             for kwargs in ({'_test_backend': True}, {'backend': object()}):
-                with self.subTest(kwargs=kwargs), self.assertRaisesRegex(ValueError, 'native Windows'):
+                with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
                     await client.SimulationWorker.create(b'authored', snapshot_decoder_library='explicit',
                                                         snapshot_decoder_sha256='a'*64, **kwargs)
+            spawn.assert_not_called()
+            with patch.object(client, 'os', SimpleNamespace(name='posix')):
+                with self.assertRaisesRegex(ValueError, 'native Windows'):
+                    await client.SimulationWorker.create(b'authored', snapshot_decoder_library='explicit',
+                                                        snapshot_decoder_sha256='a'*64)
             spawn.assert_not_called()
 
     async def test_explicit_options_forward_and_response_identity_is_required(self):
@@ -261,10 +267,71 @@ class ClientDecoderTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(spawn.call_args.args[0][-4:], ['--snapshot-decoder-library', str(path),
                                                               '--snapshot-decoder-sha256', sha])
                 for wrong in ({'implementation': 'python'}, {**identity, 'library_sha256': '0'*64},
-                              {**identity, 'abi_version': 2}):
+                              {**identity, 'abi_version': 2}, {**identity, 'abi_version': True}):
                     response['snapshot_decoder'] = wrong
                     with self.assertRaisesRegex(client.WorkerError, 'decoder identity'):
                         await Client.create(b'authored', snapshot_decoder_library=path, snapshot_decoder_sha256=sha)
+
+    async def test_wine_forwards_host_options_but_checks_translated_worker_identity(self):
+        from server.native_simulation import SUPPORTED_DLL_SHA256
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary).resolve()
+            path = directory/'authored.dll'; path.write_bytes(b'authored')
+            sha = hashlib.sha256(path.read_bytes()).hexdigest()
+            windows_path = r'Z:\authored directory\decoder.dll'
+            identity = {'implementation': 'rust', 'abi_version': 1,
+                        'library_path': windows_path, 'library_sha256': sha}
+            response = {'pid': 77, 'game_data_sha256': sha, 'synthetic_test_backend': False,
+                        'dll_sha256': SUPPORTED_DLL_SHA256, 'snapshot_decoder': identity,
+                        'runtime': {'python_version': 'test', 'implementation': 'cpython', 'executable': 'test',
+                                    'platform': 'win32', 'os_name': 'nt', 'pointer_bits': 64}}
+            instances = []
+            class Client(client.SimulationWorker):
+                def __init__(self, process, **kwargs):
+                    self._lock = asyncio.Lock()
+                    self._abort = AsyncMock()
+                    instances.append(self)
+                async def _exchange(self, op, frame, metadata, data, **kwargs):
+                    return {**response, 'worker_nonce': metadata['worker_nonce']}, b''
+            backend = object.__new__(WineWorkerBackend)  # Authored process stub; no Wine, prefix or cgroup.
+            owner = Mock()
+            with patch.object(client, 'os', SimpleNamespace(name='posix', environ={})), \
+                 patch.object(client.subprocess, 'Popen') as native_spawn, \
+                 patch.object(WineWorkerBackend, 'translate_path', return_value=windows_path), \
+                 patch.object(WineWorkerBackend, 'launch', return_value=(SimpleNamespace(pid=123), owner)) as launch:
+                worker = await Client.create(b'authored', path, backend=backend, working_directory=directory,
+                                            snapshot_decoder_library=path, snapshot_decoder_sha256=sha)
+                self.assertEqual(worker.decoder_info, identity)
+                self.assertIs(worker._backend_owner, owner)
+                launch.assert_called_once_with(source_root=client.ROOT, working_directory=directory,
+                                               snapshot_decoder_library=path, snapshot_decoder_sha256=sha)
+                owner.on_exit.assert_called_once()
+                for wrong in (None, {'implementation': 'python'}, {**identity, 'library_path': str(path)},
+                              {**identity, 'library_sha256': '0'*64}, {**identity, 'abi_version': 2},
+                              {**identity, 'abi_version': True}):
+                    if wrong is None:
+                        response.pop('snapshot_decoder', None)
+                    else:
+                        response['snapshot_decoder'] = wrong
+                    with self.subTest(wrong=wrong), self.assertRaisesRegex(client.WorkerError, 'decoder identity'):
+                        await Client.create(b'authored', path, backend=backend, working_directory=directory,
+                                            snapshot_decoder_library=path, snapshot_decoder_sha256=sha)
+                    instances[-1]._abort.assert_awaited_once()
+                native_spawn.assert_not_called()
+
+    async def test_wine_malformed_decoder_options_never_launch(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary).resolve()
+            path = directory/'authored.dll'; path.write_bytes(b'authored')
+            sha = hashlib.sha256(path.read_bytes()).hexdigest()
+            backend = object.__new__(WineWorkerBackend)
+            with patch.object(client, 'os', SimpleNamespace(name='posix', environ={})), \
+                 patch.object(WineWorkerBackend, 'launch') as launch:
+                for library, expected in ((path, None), (None, sha), (path, '0'*64), ('relative.dll', sha)):
+                    with self.subTest(library=library, expected=expected), self.assertRaises(ValueError):
+                        await client.SimulationWorker.create(b'authored', path, backend=backend,
+                            working_directory=directory, snapshot_decoder_library=library, snapshot_decoder_sha256=expected)
+                launch.assert_not_called()
 
 
 if __name__ == '__main__':

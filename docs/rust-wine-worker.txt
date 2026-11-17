@@ -1,0 +1,51 @@
+BATTLE ACES - N46 RUST DECODER IN LINUX/WINE WORKERS
+Updated:2026-11-17UTC. Isolated qualification;default launchers remain Python.
+
+IMPLEMENTATION
+An explicit Windows Rust DLL path/hash now passes from the Linux coordinator
+through the owned Wine guardian to Windows Python. Host paths are validated,
+translated through the prepared Z: mapping and checked again in the worker.
+CREATE must report the expected translated path,exact hash and integer ABI1.
+The Wine boundary refuses ELF/non-DLL/non-x64 or wrong-hash files before owned
+resource creation. Synthetic workers remain excluded;there is no fallback.
+Existing cgroup,pidfd,prefix and parent-death cleanup contracts are retained.
+The simulation/AI DLLs and native worker ABI are unchanged.
+
+FRESH ORIGINAL AI
+tools/verify_rust_fresh_ai.py regenerates original bot decisions before each
+recorded frame,compares bot bytes and every observable state,and requires
+identical AI/DLL/rules/bootstrap identities plus normal cleanup. Recorded
+commands are still used for STEP only after regenerated decisions match.
+Explicit --assets/--journal relocation accepts only the original captured hashes.
+Private captures and outputs are never supplied to public CI.
+
+Windows fresh-ai-windows01 PASS:both Python/Rust arms reproduce all1823frames,
+with463 post-join bot actions each and identical bot journals. Source,library
+and inputs are unchanged. Report:local/rust-wine-20261117/fresh-ai-windows01/verification.json
+SHA256:535dffdef4e0642b5840c6605b9e4a3b750438ddd95fcb26b6644635629cc521
+Linux/Wine fresh-ai-linux01 also PASS on the isolated1vCPU/1GiB benchmark host:
+both arms match1823frames and close normally. Runtime:Ubuntu24.04 system
+Python3.12.3 coordinator,Wine9.0,private Windows Python3.14.8 worker. This is
+correctness evidence,not a timing or Internet-gameplay qualification.
+Authored Linux guardian/lifecycle controls36tests PASS in19.636seconds,including
+the new decoder forwarding/mismatched-identity cleanup case. These use an
+authored protocol peer;the separate fresh-AI run uses the actual original DLLs.
+
+PUBLICATION COMPARISON
+Prepared one exploratory five-minute maximum-population movement pair:the same
+Linux coordinator/Wine worker runtime on the same isolated1CPU/1GiB machine,
+first Python decoding,then Rust. TLS peers use fixed0ms modeled RTT and the
+same0,10,-10,0ms delivery jitter. Original supply limits and four armies remain.
+The external Linux resource observer is identical in both arms and stays out
+of the benchmark event loop. No in-loop resource sampler is enabled.
+Private scripts/plan and raw receipts:local/rust-wine-20261117/.
+One pair cannot supply the original three-pair/network/concurrency/player gates.
+Arrival scheduling can change applied command frames;the exact-pair audit must
+remain visible rather than treating independently arriving commands as identical.
+Results pending. No performance acceptance or perceived-lag fix is claimed.
+
+RESOURCE SCOPE
+Nick approved one temporary benchmark VM up toUSD1 compute,with deletion after
+downloaded evidence or within72hours. Its resources are independent of both live
+regional hosts. Private DEV.txt N46-LINUXENV holds approval/IDs/deadline/receipts.
+No public game/dashboard listeners or live service changes are part of this work.

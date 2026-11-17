@@ -50,6 +50,24 @@ def windows_path(value):
     return 'Z:\\' + '\\'.join(path.parts[1:])
 
 
+def snapshot_decoder_path(library_path, expected_sha256):
+    """A Wine worker loads a hash-bound Windows x64 DLL, never a host ELF library."""
+    if library_path is None and expected_sha256 is None:
+        return None
+    from .rust_snapshot_decoder import verified_library_path
+    path = verified_library_path(library_path, expected_sha256)
+    with path.open('rb') as stream:
+        header = stream.read(64)
+        require(len(header) == 64 and header[:2] == b'MZ', 'Wine snapshot decoder must be a Windows x64 DLL')
+        offset = struct.unpack_from('<I', header, 60)[0]
+        require(64 <= offset <= 1024*1024, 'invalid snapshot decoder PE offset')
+        stream.seek(offset); pe = stream.read(24)
+        require(len(pe) == 24 and pe[:4] == b'PE\0\0' and struct.unpack_from('<H', pe, 4)[0] == 0x8664
+                and struct.unpack_from('<H', pe, 22)[0] & 0x2000,
+                'Wine snapshot decoder must be a Windows x64 DLL')
+    return path
+
+
 def validate_template(prefix):
     require(prefix != Path.home()/'.wine', 'the default user Wine prefix is not a worker template')
     private_path(prefix, directory=True)
@@ -111,11 +129,14 @@ class WineWorkerBackend:
     def translate_path(self, path):
         return windows_path(path)
 
-    def launch(self, *, source_root, working_directory):
+    def launch(self, *, source_root, working_directory, snapshot_decoder_library=None, snapshot_decoder_sha256=None):
         require(Path(source_root).resolve() == ROOT, 'Wine worker source must be the coordinator checkout')
         directory = Path(working_directory).resolve(strict=True)
         require(directory.is_dir(), 'Wine worker working directory must exist')
         require(not directory.is_relative_to(self.prefix_template), 'worker scratch may not be inside the Wine template')
+        decoder_path = snapshot_decoder_path(snapshot_decoder_library, snapshot_decoder_sha256)
+        if decoder_path is not None:
+            self.translate_path(decoder_path)  # Refuse unrepresentable paths before allocating ownership resources.
         validate_template(self.prefix_template)
         # No synthetic environment gate or external loader override crosses the
         # backend boundary. Command arguments are always an argv list, no shell.
@@ -139,6 +160,9 @@ class WineWorkerBackend:
                 '--prefix-template', str(self.prefix_template), '--working-directory', str(directory),
                 '--runtime-directory', str(runtime), '--cgroup', str(cgroup.path),
                 '--parent-pid', str(os.getpid()), '--watch-fd', str(watch_read), '--status-fd', str(status_write)]
+            if decoder_path is not None:
+                command.extend(['--snapshot-decoder-library', str(decoder_path),
+                                '--snapshot-decoder-sha256', snapshot_decoder_sha256])
             process = subprocess.Popen(command, cwd=directory, env=environment, stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0, close_fds=True,
                 pass_fds=(watch_read, status_write), start_new_session=True)

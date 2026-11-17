@@ -645,9 +645,13 @@ class Experiment:
         started = self.trace.now()
         worker = await SimulationWorker.create(data, self.args.assets/'Simulation.dll', working_directory=directory,
             ai=AISetup(self.args.assets, bots) if bots else None, backend=self.backend,
+            **({'snapshot_decoder_library': self.args.snapshot_decoder_library,
+                'snapshot_decoder_sha256': self.args.snapshot_decoder_sha256}
+               if getattr(self.args, 'snapshot_decoder_library', None) else {}),
             startup_timeout=120, request_timeout=15, close_timeout=3)
         self.startups.append(dict(start_ms=started, elapsed_ms=self.trace.now()-started, worker_pid=worker.pid,
-                                 native_pid=worker.native_pid, runtime=worker.runtime_info))
+                                 native_pid=worker.native_pid, runtime=worker.runtime_info,
+                                 snapshot_decoder=worker.decoder_info))
         wrapped = ObservedWorker(worker, self.trace, self.spec)
         self.workers.append(wrapped)
         return wrapped
@@ -1049,6 +1053,8 @@ def arguments(argv=None):
     parser.add_argument('--jitter-ms', default='0', help='fixed comma-separated one-way offsets, repeated permessage')
     parser.add_argument('--activity', choices=('movement', 'combat'), default='movement')
     parser.add_argument('--ai', action='store_true')
+    parser.add_argument('--snapshot-decoder-library', type=Path, help='explicit experimental Windows Rust DLL')
+    parser.add_argument('--snapshot-decoder-sha256', help='required exact experimental DLL identity')
     parser.add_argument('--compare', type=Path, help='completed prior coordinator run; exact input/state pairing is audited, never assumed')
     parser.add_argument('--max-episodes', type=int, default=3)
     parser.add_argument('--depletion-seconds', type=float, default=5)
