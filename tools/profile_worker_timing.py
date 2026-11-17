@@ -352,6 +352,11 @@ class Recorder:
         self.dropped_records = 0
         self.requests = 0
         self.decoder_info = None
+        self.decoder_projection_version = None
+        self.ffi_decode_exports = []
+        self.state_projection_requested = None
+        self.state_projection = None
+        self.state_projection_modes = None
 
     def measure(self, label, function, *args, **kwargs):
         start = _clocks()
@@ -392,6 +397,10 @@ class Recorder:
             self.current = None
             return None
         operation, flags, request_id, frame, metadata, payload = message
+        if operation == 1:  # CREATE only; no additional STEP metadata parsing.
+            self.state_projection_requested = metadata.get('state_projection')
+        elif operation == 3:  # Bounded initial diagnostics are validated by the summarizer.
+            self.current['state_query'] = dict(metadata)
         self.requests += 1
         self.current.update(request_id=request_id, operation=OPERATIONS.get(operation, str(operation)), frame=frame,
                             request_payload_bytes=len(payload), receive_wall_ns=elapsed[0],
@@ -410,6 +419,20 @@ class Recorder:
             operation, flags, request_id, frame, metadata_size, payload_size = ipc.decode_header(packet[:ipc.HEADER.size])
             self.current.update(response_bytes=len(packet), response_metadata_bytes=metadata_size,
                                 response_payload_bytes=payload_size, response_error=bool(flags))
+            if operation == (ipc.CREATE | ipc.RESPONSE):
+                decode = getattr(ipc.decode_metadata, '__wrapped__', ipc.decode_metadata)
+                metadata = decode(packet[ipc.HEADER.size:ipc.HEADER.size+metadata_size])
+                self.state_projection = metadata.get('state_projection')
+                self.state_projection_modes = metadata.get('state_projection_modes')
+            elif operation == (ipc.STATE | ipc.RESPONSE):
+                decode = getattr(ipc.decode_metadata, '__wrapped__', ipc.decode_metadata)
+                metadata = decode(packet[ipc.HEADER.size:ipc.HEADER.size+metadata_size])
+                state = metadata.get('state')
+                self.current['state_reply'] = dict(keys=sorted(metadata), state_mode=metadata.get('state_mode'),
+                    state_projection_version=metadata.get('state_projection_version'),
+                    state_frame=state.get('frame') if isinstance(state, dict) else None,
+                    state_viewer=state.get('viewer') if isinstance(state, dict) else None,
+                    state_keys=sorted(state) if isinstance(state, dict) else None)
             self.finish(True)
         return result
 
@@ -463,7 +486,11 @@ def instrumentation(recorder):
         def initialize(instance, *args, **kwargs):
             original(instance, *args, **kwargs)
             recorder.decoder_info = dict(instance.info)
-            replace(instance, '_decode', timed('rust.ffi.decode'))
+            recorder.decoder_projection_version = getattr(instance, 'projection_version', None)
+            for name in ('_decode', '_decode_v2'):
+                if callable(getattr(instance, name, None)):
+                    replace(instance, name, timed('rust.ffi.decode'))
+                    recorder.ffi_decode_exports.append(name)
             replace(instance, '_free', timed('rust.ffi.free'))
         return initialize
     try:
@@ -481,6 +508,7 @@ def instrumentation(recorder):
         replace(native_ai.NativeAI, 'commands', timed('ai.commands'))
         replace(worker_ai.WorkerAI, 'prepare', timed('worker.prepare_bots'))
         replace(worker_ai.WorkerAI, 'before_step', timed('worker.validate_bot_frame'))
+        replace(ipc, 'validate_state', timed('worker.validate_state'))
         replace(ipc, 'decode_metadata', timed('ipc.decode_metadata'))
         replace(ipc, 'encode_message', timed('ipc.encode'))
         replace(ipc, 'read_message', lambda original: lambda source: recorder.read(original, source))
@@ -498,6 +526,8 @@ def source_hashes(hybrid=False, rust_decoder=False):
         names += HYBRID_PROFILE_SOURCES
     if rust_decoder:
         names += RUST_PROFILE_SOURCES
+    if (ROOT/'server/state_projection.py').is_file():
+        names += ('server/state_projection.py',)
     return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in names}
 
 
@@ -560,6 +590,11 @@ def main(argv=None):
                 source_unchanged=unchanged,
                 snapshot_decoder=recorder.decoder_info if decoder_arguments else {'implementation': 'python'},
                 snapshot_decoder_requested=requested_decoder, snapshot_decoder_library_unchanged=library_unchanged,
+                snapshot_decoder_projection_version=recorder.decoder_projection_version,
+                rust_ffi_decode_exports=recorder.ffi_decode_exports,
+                state_projection_requested=recorder.state_projection_requested,
+                state_projection=recorder.state_projection,
+                state_projection_modes=recorder.state_projection_modes,
                 metric_parents=RUST_METRIC_PARENTS if decoder_arguments else {},
                 launch_kind='native-linux-wine-worker' if args.profile_hybrid_worker else 'direct-worker',
                 clock_resolution_seconds={name: time.get_clock_info(name).resolution

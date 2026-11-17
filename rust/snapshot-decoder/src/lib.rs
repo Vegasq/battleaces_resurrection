@@ -11,6 +11,7 @@ use sha2::{Digest, Sha256};
 use std::{collections::BTreeMap, error::Error, fmt};
 
 pub const MAX_SNAPSHOT_BYTES: usize = 16 * 1024 * 1024;
+pub const PROJECTION_VERSION: u32 = 1;
 const MAX_VECTOR_ITEMS: usize = 1_000_000;
 const FNV_OFFSET: u64 = 14_695_981_039_346_656_037;
 const FNV_PRIME: u64 = 1_099_511_628_211;
@@ -182,6 +183,37 @@ pub struct Entity {
     pub position: Option<[f64; 3]>,
 }
 
+/// Explicit projection selection. Every projection validates all selected
+/// components, including finite positions, before returning any state.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u32)]
+pub enum ProjectionMode {
+    Summary = 0,
+    Full = 1,
+    Ownership = 2,
+}
+
+impl TryFrom<u32> for ProjectionMode {
+    type Error = DecodeError;
+
+    fn try_from(value: u32) -> Result<Self> {
+        match value {
+            0 => Ok(Self::Summary),
+            1 => Ok(Self::Full),
+            2 => Ok(Self::Ownership),
+            _ => Err(DecodeError("unsupported snapshot projection mode")),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+pub struct Ownership {
+    pub id: u32,
+    pub army: u32,
+    #[serde(rename = "type")]
+    pub kind: u32,
+}
+
 #[derive(Debug, Serialize, PartialEq)]
 pub struct Snapshot {
     pub frame: u32,
@@ -195,6 +227,8 @@ pub struct Snapshot {
     pub game_state: GameState,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub entities: Option<Vec<Entity>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ownership: Option<Vec<Ownership>>,
 }
 
 fn hash_word(hash: &mut u64, word: u32) {
@@ -213,6 +247,31 @@ fn word(bytes: &[u8], offset: usize) -> u32 {
 /// Position bits enter the checksum before f32-to-f64 conversion. Nonfinite
 /// positions remain representable here; JSON serialization explicitly rejects them.
 pub fn decode_snapshot(data: &[u8], viewer: u32, include_entities: bool) -> Result<Snapshot> {
+    decode_internal(
+        data,
+        viewer,
+        if include_entities {
+            ProjectionMode::Full
+        } else {
+            ProjectionMode::Summary
+        },
+        false,
+    )
+}
+
+/// Decode a version1 projection with strict validation in every mode. Ownership
+/// includes only IDs present in both army and type components, ordered by ID.
+/// Checksums still scan every original selected component and the complete input.
+pub fn decode_snapshot_v2(data: &[u8], viewer: u32, mode: ProjectionMode) -> Result<Snapshot> {
+    decode_internal(data, viewer, mode, true)
+}
+
+fn decode_internal(
+    data: &[u8],
+    viewer: u32,
+    mode: ProjectionMode,
+    strict: bool,
+) -> Result<Snapshot> {
     if data.len() > MAX_SNAPSHOT_BYTES {
         return Err(DecodeError("snapshot exceeds16MiB"));
     }
@@ -227,6 +286,7 @@ pub fn decode_snapshot(data: &[u8], viewer: u32, include_entities: bool) -> Resu
     let mut counts = BTreeMap::new();
     let mut resources = BTreeMap::new();
     let mut entities: BTreeMap<u32, Entity> = BTreeMap::new();
+    let mut ownership: BTreeMap<u32, (Option<u32>, Option<u32>)> = BTreeMap::new();
     for (field, words, name, health) in [
         (2, 1, "army", false),
         (3, 1, "type", false),
@@ -265,6 +325,14 @@ pub fn decode_snapshot(data: &[u8], viewer: u32, include_entities: bool) -> Resu
             if health {
                 hash_word(&mut canonical, current_damage);
             }
+            if strict
+                && name == "position"
+                && row[..3]
+                    .iter()
+                    .any(|value| !f32::from_bits(*value).is_finite())
+            {
+                return Err(DecodeError("nonfinite snapshot position"));
+            }
             if name == "resources" {
                 resources.insert(
                     id,
@@ -273,7 +341,14 @@ pub fn decode_snapshot(data: &[u8], viewer: u32, include_entities: bool) -> Resu
                         .zip(row.map(|v| v as i32))
                         .collect(),
                 );
-            } else if include_entities {
+            } else if mode == ProjectionMode::Ownership && matches!(name, "army" | "type") {
+                let record = ownership.entry(id).or_default();
+                if name == "army" {
+                    record.0 = Some(row[0]);
+                } else {
+                    record.1 = Some(row[0]);
+                }
+            } else if mode == ProjectionMode::Full {
                 let entity = entities.entry(id).or_insert_with(|| Entity {
                     id,
                     ..Entity::default()
@@ -314,13 +389,276 @@ pub fn decode_snapshot(data: &[u8], viewer: u32, include_entities: bool) -> Resu
             army_conceded_flag: b.scalar_u32(state, 3)?,
             game_over_checksum: b.scalar_u64(state, 4)?,
         },
-        entities: include_entities.then(|| entities.into_values().collect()),
+        ownership: (mode == ProjectionMode::Ownership).then(|| {
+            ownership
+                .into_iter()
+                .filter_map(|(id, (army, kind))| {
+                    Some(Ownership {
+                        id,
+                        army: army?,
+                        kind: kind?,
+                    })
+                })
+                .collect()
+        }),
+        entities: (mode == ProjectionMode::Full).then(|| entities.into_values().collect()),
     })
 }
 
 #[cfg(test)]
+pub(crate) mod test_support {
+    /// Small independent authored FlatBuffer layout; no game binaries or captures.
+    pub struct Builder(pub Vec<u8>);
+
+    impl Builder {
+        pub fn new() -> Self {
+            let mut result = Self(vec![0; 156]);
+            result.u32(0, 56);
+            result.u16(4, 52);
+            result.u16(6, 100);
+            result.u32(56, 52);
+            result
+        }
+
+        pub fn u32(&mut self, at: usize, value: u32) {
+            self.0[at..at + 4].copy_from_slice(&value.to_le_bytes());
+        }
+
+        fn u16(&mut self, at: usize, value: u16) {
+            self.0[at..at + 2].copy_from_slice(&value.to_le_bytes());
+        }
+
+        fn allocate(&mut self, size: usize) -> usize {
+            self.0.resize(self.0.len().next_multiple_of(4), 0);
+            let at = self.0.len();
+            self.0.resize(at + size, 0);
+            at
+        }
+
+        fn vector(&mut self, words: &[u32], width: usize) -> usize {
+            let at = self.allocate(4 + words.len() * 4);
+            self.u32(at, (words.len() / width) as u32);
+            for (index, word) in words.iter().enumerate() {
+                self.u32(at + 4 + index * 4, *word);
+            }
+            at
+        }
+
+        /// Returns the ID vector offset so tests can forge its count or rows.
+        pub fn component(
+            &mut self,
+            field: usize,
+            ids: &[u32],
+            values: &[u32],
+            damage: &[u32],
+        ) -> usize {
+            let health = field == 5;
+            let width = match field {
+                7 => 3,
+                21 => 8,
+                _ => 1,
+            };
+            let vtable = self.allocate(if health { 10 } else { 8 });
+            let table = self.allocate(if health { 16 } else { 12 });
+            self.u16(vtable, if health { 10 } else { 8 });
+            self.u16(vtable + 2, if health { 16 } else { 12 });
+            self.u16(vtable + 4, 4);
+            self.u16(vtable + 6, 8);
+            self.u32(table, (table - vtable) as u32);
+            if health {
+                self.u16(vtable + 8, 12);
+            }
+            let root_field = 56 + 4 * (field + 1);
+            self.u16(8 + 2 * field, (4 * (field + 1)) as u16);
+            self.u32(root_field, (table - root_field) as u32);
+            let id_vector = self.vector(ids, 1);
+            let value_vector = self.vector(values, width);
+            self.u32(table + 4, (id_vector - table - 4) as u32);
+            self.u32(table + 8, (value_vector - table - 8) as u32);
+            if health {
+                let damage_vector = self.vector(damage, 1);
+                self.u32(table + 12, (damage_vector - table - 12) as u32);
+            }
+            id_vector
+        }
+    }
+}
+
+#[cfg(test)]
 mod tests {
+    use super::test_support::Builder;
     use super::*;
+
+    const MODES: [ProjectionMode; 3] = [
+        ProjectionMode::Summary,
+        ProjectionMode::Full,
+        ProjectionMode::Ownership,
+    ];
+
+    #[test]
+    fn ownership_is_sorted_complete_intersection_and_summaries_are_identical() {
+        let mut fixture = Builder::new();
+        fixture.component(2, &[9, 3, 7], &[2, 1, 8], &[]);
+        fixture.component(3, &[7, 4, 3], &[70, 40, 30], &[]);
+        fixture.component(5, &[1, 3], &[100, 200], &[0, 50]);
+        fixture.component(7, &[2, 3], &[0; 6], &[]);
+        fixture.component(21, &[0], &[0; 8], &[]);
+        let full = decode_snapshot_v2(&fixture.0, 31, ProjectionMode::Full).unwrap();
+        let full_json = serde_json::to_value(&full).unwrap();
+        let compact = decode_snapshot_v2(&fixture.0, 31, ProjectionMode::Ownership).unwrap();
+        assert_eq!(
+            compact.ownership,
+            Some(vec![
+                Ownership {
+                    id: 3,
+                    army: 1,
+                    kind: 30
+                },
+                Ownership {
+                    id: 7,
+                    army: 8,
+                    kind: 70
+                },
+            ])
+        );
+        assert!(compact.entities.is_none());
+        assert_eq!(
+            full.entities
+                .as_ref()
+                .unwrap()
+                .iter()
+                .map(|entity| entity.id)
+                .collect::<Vec<_>>(),
+            [1, 2, 3, 4, 7, 9]
+        );
+        let mut summary_json = full_json.clone();
+        summary_json.as_object_mut().unwrap().remove("entities");
+        assert_eq!(summary_json.as_object().unwrap().len(), 9);
+        for mode in MODES {
+            let mut actual =
+                serde_json::to_value(decode_snapshot_v2(&fixture.0, 31, mode).unwrap()).unwrap();
+            actual.as_object_mut().unwrap().remove("entities");
+            actual.as_object_mut().unwrap().remove("ownership");
+            assert_eq!(actual, summary_json);
+        }
+        for include_entities in [false, true] {
+            let mode = if include_entities {
+                ProjectionMode::Full
+            } else {
+                ProjectionMode::Summary
+            };
+            assert_eq!(
+                serde_json::to_vec(&decode_snapshot(&fixture.0, 31, include_entities).unwrap())
+                    .unwrap(),
+                serde_json::to_vec(&decode_snapshot_v2(&fixture.0, 31, mode).unwrap()).unwrap()
+            );
+        }
+    }
+
+    #[test]
+    fn empty_and_absent_ownership_components_do_not_invent_records() {
+        for field in [2, 3, 5, 7] {
+            let mut fixture = Builder::new();
+            fixture.component(field, &[1], &vec![0; if field == 7 { 3 } else { 1 }], &[0]);
+            let result =
+                decode_snapshot_v2(&fixture.0, u32::MAX, ProjectionMode::Ownership).unwrap();
+            assert_eq!(result.ownership, Some(vec![]));
+        }
+        assert_eq!(
+            decode_snapshot_v2(&[0; 4], 31, ProjectionMode::Ownership)
+                .unwrap()
+                .ownership,
+            Some(vec![])
+        );
+        for value in [3, 255, u32::MAX] {
+            assert!(ProjectionMode::try_from(value).is_err());
+        }
+    }
+
+    #[test]
+    fn every_explicit_mode_validates_omitted_components_and_positions() {
+        for field in [2, 3, 5, 7, 21] {
+            let width = match field {
+                7 => 3,
+                21 => 8,
+                _ => 1,
+            };
+            let mut duplicate = Builder::new();
+            duplicate.component(field, &[1, 1], &vec![0; width * 2], &[0, 0]);
+            let mut mismatch = Builder::new();
+            mismatch.component(field, &[1, 2], &vec![0; width], &[0, 0]);
+            let mut damage_mismatch = Builder::new();
+            damage_mismatch.component(5, &[1, 2], &[100, 100], &[0]);
+            let mut huge = Builder::new();
+            let at = huge.component(field, &[1], &vec![0; width], &[0]);
+            huge.u32(at, 1_000_001);
+            for mode in MODES {
+                for bytes in [&duplicate.0, &mismatch.0, &damage_mismatch.0, &huge.0] {
+                    assert!(decode_snapshot_v2(bytes, 31, mode).is_err());
+                }
+            }
+        }
+        for value in [
+            0x7fc00001, 0xffc12345, 0x7f800001, 0xff800001, 0x7f800000, 0xff800000,
+        ] {
+            for axis in 0..3 {
+                let mut fixture = Builder::new();
+                let mut position = [0; 3];
+                position[axis] = value;
+                fixture.component(7, &[1], &position, &[]);
+                for mode in MODES {
+                    assert!(decode_snapshot_v2(&fixture.0, 31, mode).is_err());
+                }
+                assert!(decode_snapshot(&fixture.0, 31, false).is_ok());
+                assert!(
+                    serde_json::to_vec(&decode_snapshot(&fixture.0, 31, true).unwrap()).is_err()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn ownership_keeps_uint32_extremes_and_hashes_hidden_components() {
+        let mut fixture = Builder::new();
+        fixture.component(2, &[u32::MAX, 0], &[u32::MAX, 0], &[]);
+        fixture.component(3, &[0, u32::MAX], &[u32::MAX, 0], &[]);
+        let positions = [(-0.0f32).to_bits(), f32::MAX.to_bits(), 1];
+        let at = fixture.component(7, &[17], &positions, &[]);
+        let base = decode_snapshot_v2(&fixture.0, u32::MAX, ProjectionMode::Ownership).unwrap();
+        assert_eq!(
+            base.ownership,
+            Some(vec![
+                Ownership {
+                    id: 0,
+                    army: 0,
+                    kind: u32::MAX
+                },
+                Ownership {
+                    id: u32::MAX,
+                    army: u32::MAX,
+                    kind: 0
+                },
+            ])
+        );
+        for mode in MODES {
+            assert!(decode_snapshot_v2(&fixture.0, u32::MAX, mode).is_ok());
+        }
+        // Change only a position ID: ownership is identical but both checksums
+        // still bind the omitted component. Row order is separately canonical.
+        fixture.u32(at + 4, 18);
+        let changed = decode_snapshot_v2(&fixture.0, u32::MAX, ProjectionMode::Ownership).unwrap();
+        assert_eq!(changed.ownership, base.ownership);
+        assert_ne!(changed.canonical_fnv1a64, base.canonical_fnv1a64);
+        assert_ne!(changed.raw_sha256, base.raw_sha256);
+        let mut reordered = Builder::new();
+        reordered.component(2, &[0, u32::MAX], &[0, u32::MAX], &[]);
+        reordered.component(3, &[u32::MAX, 0], &[0, u32::MAX], &[]);
+        reordered.component(7, &[17], &positions, &[]);
+        let reordered =
+            decode_snapshot_v2(&reordered.0, u32::MAX, ProjectionMode::Ownership).unwrap();
+        assert_eq!(reordered.canonical_fnv1a64, base.canonical_fnv1a64);
+        assert_ne!(reordered.raw_sha256, base.raw_sha256);
+    }
 
     #[test]
     fn empty_root_matches_reference_and_entities_are_optional() {
@@ -357,9 +695,15 @@ mod tests {
                 })
                 .collect();
             let _ = decode_snapshot(&bytes, 31, true);
+            for mode in MODES {
+                let _ = decode_snapshot_v2(&bytes, 31, mode);
+            }
         }
         assert!(decode_snapshot(&vec![0; MAX_SNAPSHOT_BYTES + 1], 31, true).is_err());
         assert!(decode_snapshot(&[0; 4], 31, true).is_ok());
+        for mode in MODES {
+            assert!(decode_snapshot_v2(&vec![0; MAX_SNAPSHOT_BYTES + 1], 31, mode).is_err());
+        }
     }
 
     #[test]

@@ -10,7 +10,10 @@
 //! catch_unwind; callers must uphold the documented pointer/ownership contract.
 //! The input and JSON bounds do not bound all intermediate decoder allocations.
 
-use crate::{MAX_SNAPSHOT_BYTES, Snapshot, decode_snapshot};
+use crate::{
+    MAX_SNAPSHOT_BYTES, PROJECTION_VERSION, ProjectionMode, Snapshot, decode_snapshot,
+    decode_snapshot_v2,
+};
 use std::{
     io::{self, Write},
     panic::{UnwindSafe, catch_unwind},
@@ -95,6 +98,17 @@ pub extern "C" fn ba_snapshot_decoder_abi_version() -> u32 {
     ABI_VERSION
 }
 
+/// Return the explicit projection API/schema revision, independent of ABI1.
+#[unsafe(no_mangle)]
+pub extern "C" fn ba_snapshot_decoder_projection_version() -> u32 {
+    PROJECTION_VERSION
+}
+
+enum Selection {
+    Legacy(u8),
+    Projection(u32),
+}
+
 /// Decode a snapshot into one owned JSON buffer.
 ///
 /// `include_entities` must be 0 or 1. `data` may be null only when `len` is zero;
@@ -118,14 +132,52 @@ pub unsafe extern "C" fn ba_decode_snapshot(
     include_entities: u8,
     out: *mut BaBuffer,
 ) -> i32 {
+    // SAFETY: this wrapper forwards the identical pointer/ownership contract.
+    unsafe { decode_api(data, len, viewer, Selection::Legacy(include_entities), out) }
+}
+
+/// Decode with an explicit projection: 0 summary, 1 full, 2 ownership. Every
+/// explicit mode rejects nonfinite positions with STATUS_SNAPSHOT, even when
+/// positions are omitted from output. Unknown modes return STATUS_ARGUMENT.
+/// All allocation, output clearing and size rules match `ba_decode_snapshot`.
+///
+/// # Safety
+/// The exact input/output and free contract of `ba_decode_snapshot` applies.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn ba_decode_snapshot_v2(
+    data: *const u8,
+    len: usize,
+    viewer: u32,
+    mode: u32,
+    out: *mut BaBuffer,
+) -> i32 {
+    // SAFETY: this wrapper forwards the identical pointer/ownership contract.
+    unsafe { decode_api(data, len, viewer, Selection::Projection(mode), out) }
+}
+
+unsafe fn decode_api(
+    data: *const u8,
+    len: usize,
+    viewer: u32,
+    selection: Selection,
+    out: *mut BaBuffer,
+) -> i32 {
     if out.is_null() || !out.is_aligned() {
         return STATUS_ARGUMENT;
     }
     // SAFETY: the caller provides a valid, exclusive, aligned output slot.
     unsafe { out.write(BaBuffer::default()) };
-    if len > MAX_SNAPSHOT_BYTES || include_entities > 1 || data.is_null() && len != 0 {
+    if len > MAX_SNAPSHOT_BYTES || data.is_null() && len != 0 {
         return STATUS_ARGUMENT;
     }
+    let mode = match selection {
+        Selection::Legacy(include_entities) if include_entities <= 1 => None,
+        Selection::Projection(value) => match ProjectionMode::try_from(value) {
+            Ok(mode) => Some(mode),
+            Err(_) => return STATUS_ARGUMENT,
+        },
+        _ => return STATUS_ARGUMENT,
+    };
     let result = protected(|| {
         let bytes = if len == 0 {
             &[]
@@ -133,8 +185,11 @@ pub unsafe extern "C" fn ba_decode_snapshot(
             // SAFETY: null/length checks above and caller-owned readable input.
             unsafe { slice::from_raw_parts(data, len) }
         };
-        let snapshot =
-            decode_snapshot(bytes, viewer, include_entities != 0).map_err(|_| STATUS_SNAPSHOT)?;
+        let snapshot = match mode {
+            Some(mode) => decode_snapshot_v2(bytes, viewer, mode),
+            None => decode_snapshot(bytes, viewer, matches!(selection, Selection::Legacy(1))),
+        }
+        .map_err(|_| STATUS_SNAPSHOT)?;
         serialize(&snapshot, MAX_JSON_BYTES)
     });
     match result {
@@ -154,7 +209,7 @@ pub unsafe extern "C" fn ba_decode_snapshot(
 ///
 /// # Safety
 /// A non-null pointer with a nonzero in-bound length must be an allocation
-/// returned by `ba_decode_snapshot` from this same loaded library, with the exact
+/// returned by either decode entry point from this same loaded library, with the exact
 /// original length. It must not have been freed, and no references/readers may
 /// remain. This function cannot validate allocation provenance or double frees.
 #[unsafe(no_mangle)]
@@ -182,6 +237,14 @@ mod tests {
         // SAFETY: live immutable input and disjoint exclusive output storage.
         let status =
             unsafe { ba_decode_snapshot(bytes.as_ptr(), bytes.len(), viewer, entities, &mut out) };
+        (status, out)
+    }
+
+    fn call_v2(bytes: &[u8], viewer: u32, mode: u32) -> (i32, BaBuffer) {
+        let mut out = BaBuffer::default();
+        // SAFETY: live immutable input and disjoint exclusive output storage.
+        let status =
+            unsafe { ba_decode_snapshot_v2(bytes.as_ptr(), bytes.len(), viewer, mode, &mut out) };
         (status, out)
     }
 
@@ -232,6 +295,7 @@ mod tests {
     #[test]
     fn abi_layout_and_owned_json_match_the_safe_decoder() {
         assert_eq!(ba_snapshot_decoder_abi_version(), 1);
+        assert_eq!(ba_snapshot_decoder_projection_version(), 1);
         assert_eq!(
             std::mem::offset_of!(BaBuffer, len),
             std::mem::size_of::<*mut u8>()
@@ -254,6 +318,106 @@ mod tests {
                 assert_eq!(status, STATUS_OK);
                 assert_eq!(read(&out), expected);
                 free(out);
+            }
+        }
+    }
+
+    #[test]
+    fn v2_preserves_legacy_finite_json_and_frees_every_projection() {
+        let mut fixture = crate::test_support::Builder::new();
+        fixture.component(2, &[9, 1, 3], &[2, 0, 1], &[]);
+        fixture.component(3, &[3, 2, 1], &[30, 20, 10], &[]);
+        fixture.component(5, &[1], &[100], &[25]);
+        fixture.component(7, &[1], &[(-0.0f32).to_bits(), 0, 0], &[]);
+        for viewer in [0, 31, 32, u32::MAX] {
+            for mode in 0..=2 {
+                let (status, out) = call_v2(&fixture.0, viewer, mode);
+                assert_eq!(status, STATUS_OK);
+                let expected = serde_json::to_vec(
+                    &decode_snapshot_v2(
+                        &fixture.0,
+                        viewer,
+                        ProjectionMode::try_from(mode).unwrap(),
+                    )
+                    .unwrap(),
+                )
+                .unwrap();
+                assert_eq!(read(&out), expected);
+                if mode < 2 {
+                    let (legacy_status, legacy) = call(&fixture.0, viewer, mode as u8);
+                    assert_eq!(legacy_status, STATUS_OK);
+                    assert_eq!(read(&out), read(&legacy));
+                    free(legacy);
+                } else {
+                    let value: serde_json::Value = serde_json::from_slice(&read(&out)).unwrap();
+                    assert_eq!(
+                        value["ownership"],
+                        serde_json::json!([
+                            {"id": 1, "army": 0, "type": 10}, {"id": 3, "army": 1, "type": 30}
+                        ])
+                    );
+                    assert!(value.get("entities").is_none());
+                }
+                free(out);
+            }
+        }
+        let (status, a) = call_v2(&Vec::from([0; 4]), 31, 2);
+        let (other_status, b) = call_v2(&[0; 4], 31, 2);
+        assert_eq!((status, other_status), (STATUS_OK, STATUS_OK));
+        assert_ne!(a.data, b.data);
+        let expected_b = read(&b);
+        free(a);
+        assert_eq!(read(&b), expected_b);
+        free(b);
+    }
+
+    #[test]
+    fn v2_refuses_bad_arguments_and_all_malformed_hidden_components() {
+        let mut out = BaBuffer {
+            data: ptr::dangling_mut(),
+            len: usize::MAX,
+        };
+        // SAFETY: the rejected arguments below never access the input pointers.
+        for (data, len, mode, expected) in [
+            (ptr::dangling(), MAX_SNAPSHOT_BYTES + 1, 2, STATUS_ARGUMENT),
+            (ptr::null(), 1, 2, STATUS_ARGUMENT),
+            (ptr::null(), 0, 2, STATUS_SNAPSHOT),
+            (ptr::null(), 0, 3, STATUS_ARGUMENT),
+            (ptr::dangling(), 0, u32::MAX, STATUS_ARGUMENT),
+        ] {
+            assert_eq!(
+                unsafe { ba_decode_snapshot_v2(data, len, 31, mode, &mut out) },
+                expected
+            );
+            assert!(out.data.is_null());
+            assert_eq!(out.len, 0);
+        }
+        // SAFETY: recognized null/unaligned slots are rejected before dereference.
+        assert_eq!(
+            unsafe { ba_decode_snapshot_v2(ptr::null(), 0, 31, 2, ptr::null_mut()) },
+            STATUS_ARGUMENT
+        );
+        let mut storage = [0u8; std::mem::size_of::<BaBuffer>() + 1];
+        let candidate = storage.as_mut_ptr().cast::<BaBuffer>();
+        let unaligned = if candidate.is_aligned() {
+            storage[1..].as_mut_ptr().cast::<BaBuffer>()
+        } else {
+            candidate
+        };
+        assert_eq!(
+            unsafe { ba_decode_snapshot_v2(ptr::null(), 0, 31, 2, unaligned) },
+            STATUS_ARGUMENT
+        );
+        for mode in 0..=2 {
+            let mut duplicate = crate::test_support::Builder::new();
+            duplicate.component(5, &[1, 1], &[100, 100], &[0, 0]);
+            let mut mismatch = crate::test_support::Builder::new();
+            mismatch.component(21, &[1], &[], &[]);
+            for bytes in [&[0; 3][..], &[255; 4], &duplicate.0, &mismatch.0] {
+                let (status, out) = call_v2(bytes, 31, mode);
+                assert_eq!(status, STATUS_SNAPSHOT);
+                assert!(out.data.is_null());
+                assert_eq!(out.len, 0);
             }
         }
     }
@@ -348,6 +512,12 @@ mod tests {
             let (status, summary) = call(&bytes, 31, 0);
             assert_eq!(status, STATUS_OK);
             free(summary);
+            for mode in 0..=2 {
+                let (status, out) = call_v2(&bytes, 31, mode);
+                assert_eq!(status, STATUS_SNAPSHOT);
+                assert!(out.data.is_null());
+                assert_eq!(out.len, 0);
+            }
             let (status, ordinary) = call(&[0; 4], 31, 1);
             assert_eq!(status, STATUS_OK);
             free(ordinary);

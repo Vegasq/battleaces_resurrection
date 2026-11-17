@@ -10,6 +10,7 @@ ABI/static evidence and runtime limitations: investigation/dedicated/native-serv
 from __future__ import annotations
 import ctypes as C
 import hashlib
+import math
 import os
 import pathlib
 import struct
@@ -19,6 +20,7 @@ from collections import deque
 SUPPORTED_DLL_SHA256 = "107bb83dc416a16492277392c50104660e34c48911345ae2e0d5afe3929a07fb"
 from .paths import SIMULATION_DLL
 from .protobuf_wire import get_bytes
+from .state_projection import _UNSET, resolve_mode
 DEFAULT_DLL = SIMULATION_DLL
 MAX_MESSAGE_BYTES = 32 * 1024 * 1024
 MAX_SNAPSHOT_BYTES = 16 * 1024 * 1024
@@ -124,12 +126,17 @@ class _Buffer:
         return self.read(fmt, p) if p else default
 
 
-def decode_snapshot(data: bytes, viewer: int = 31, *, include_entities: bool = False) -> dict:
+def decode_snapshot(data: bytes, viewer: int = 31, *, include_entities=_UNSET, mode=None) -> dict:
     """Decode selected canonical state and GameState from the shipped FlatBuffer.
 
     The canonical hash matches lan_audit.cpp for the same native frame/view. It is
     an observable-state comparison, not a complete hidden-world checksum.
     """
+    selected = resolve_mode(include_entities, mode)
+    if type(data) is not bytes or len(data) > MAX_SNAPSHOT_BYTES:
+        raise SnapshotFormatError("snapshot must be bytes of at most16MiB")
+    if type(viewer) is not int or not 0 <= viewer <= 0xffffffff:
+        raise ValueError("snapshot viewer outside uint32")
     b = _Buffer(data)
     root = b.read("I", 0); b.bounds(root, 4)
     frame = b.scalar(root, 0, "I")
@@ -157,6 +164,10 @@ def decode_snapshot(data: bytes, viewer: int = 31, *, include_entities: bool = F
         for row in rows:
             canonical.extend(struct.pack("<" + "I" * len(row), *row))
         components[name] = rows
+    if mode is not None:
+        for _, *words in components["position"]:
+            if not all(math.isfinite(v) for v in struct.unpack("<fff", struct.pack("<III", *words))):
+                raise SnapshotFormatError("nonfinite position")
     fnv = 14695981039346656037
     for value in canonical:
         fnv = ((fnv ^ value) * 1099511628211) & 0xffffffffffffffff
@@ -178,7 +189,7 @@ def decode_snapshot(data: bytes, viewer: int = 31, *, include_entities: bool = F
         "byte_count": len(data), "counts": {name: len(rows) for name, rows in components.items()},
         "resources": resources, "game_state": game_state,
     }
-    if include_entities:
+    if selected == "full":
         entities = {}
         for name in ("army", "type", "health", "position"):
             for entity, *values in components[name]:
@@ -187,6 +198,11 @@ def decode_snapshot(data: bytes, viewer: int = 31, *, include_entities: bool = F
                 elif name == "health": item.update(max_health=values[0], current_damage=values[1])
                 else: item["position"] = list(struct.unpack("<fff", struct.pack("<III", *values)))
         result["entities"] = [entities[k] for k in sorted(entities)]
+    elif selected == "ownership":
+        armies = {row[0]: row[1] for row in components["army"]}
+        types = {row[0]: row[1] for row in components["type"]}
+        result["ownership"] = [{"id": entity, "army": armies[entity], "type": types[entity]}
+                               for entity in sorted(armies.keys() & types.keys())]
     return result
 
 
@@ -338,7 +354,7 @@ class NativeSimulation:
             return self.game_time_seconds
 
     def snapshot_bytes(self, viewer: int = 31) -> bytes:
-        if not isinstance(viewer, int) or not 0 <= viewer <= 31:
+        if type(viewer) is not int or not 0 <= viewer <= 31:
             raise ValueError("viewer must be in0..31")
         with _runtime_lock:
             runtime = self._require()
@@ -382,8 +398,12 @@ class NativeSimulation:
             runtime.call("SimGetLabelsFrameBuffer", self._world, registry, output)
             return output.raw
 
-    def state(self, viewer: int = 31, *, include_entities: bool = False) -> dict:
-        return decode_snapshot(self.snapshot_bytes(viewer), viewer, include_entities=include_entities)
+    def state(self, viewer: int = 31, *, include_entities=_UNSET, mode=None) -> dict:
+        resolve_mode(include_entities, mode)  # Refuse selection before native acquisition.
+        if mode is not None:
+            return decode_snapshot(self.snapshot_bytes(viewer), viewer, mode=mode)
+        return decode_snapshot(self.snapshot_bytes(viewer), viewer,
+                               include_entities=include_entities is True)
 
     def close(self):
         global _runtime

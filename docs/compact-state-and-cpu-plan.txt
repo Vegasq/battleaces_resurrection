@@ -18,7 +18,7 @@ T2    Rust projection and explicit native API    gpt-6.1-sol        high
 T3    Python adapter/worker/server integration   gpt-6.1-sol        high
 T4    Parity verifier and regression controls    gpt-6.1-sol        medium
 T5    Owned-worker CPU scaling benchmark         gpt-6.1-sol        medium
-T6    Independent interface/validation review    gpt-6.1-astra      high
+T6    Independent interface/validation review    gpt-6-astra      high
 T7    Measurements,CI and evidence reconciliation gpt-6.1-sol       medium
 
 Use the regular available service tier;no ultrafast tier. No blanket maximum
@@ -28,6 +28,9 @@ must not be an implementation author. Routine follow-up stays with Sol;increase
 effort only for a specific unresolved finding. Do not repeat reviews or tests
 without a changed path or concrete concern. These are routing choices,not token
 or dollar price quotations.
+Routing correction2026-11-17:the actual spawn API rejected gpt-6.1-astra as
+unavailable. T6 uses available gpt-6-astra high for the same bounded review;
+implementation/tooling selections and review scope remain unchanged.
 
 EXECUTION AND FILE OWNERSHIP
 The primary agent coordinates integration,Git and public/private status records.

@@ -20,6 +20,9 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
+  compact-state-evidence.txt - N48 native parity,actual Room/fresh AI,paired timings and remaining gates
+  worker-cpu-linux-environment.txt - N49 owned systemd/cpuset environment and runtime preflight requirements
+  compact-state-contract.txt - N48 exact projection/API negotiation,legacy compatibility and consumer audit
   compact-state-and-cpu-plan.txt - N48/N49 tasks,models/efforts,ownership,parity and CPU-scaling gates
   rust-worker-profile.txt - N47 current Rust worker attribution,exact controls and instrumentation overhead
   rust-wine-worker.txt - N46 Linux guardian decoder routing,fresh AI and isolated publication comparison

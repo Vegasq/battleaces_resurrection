@@ -385,7 +385,10 @@ class Room:
             return
         self.sim = sim
         self.event("worker_started", worker_pid=sim.pid)
-        state = await sim.state(31, include_entities=True)
+        state_mode = getattr(sim, "state_mode", None)
+        p.require(state_mode in (None, "full", "ownership"), "Room requires full or ownership STEP state")
+        state = (await sim.state(31, mode=state_mode) if state_mode is not None
+                 else await sim.state(31, include_entities=True))
         if self.state != "preparing":
             return
         self.refresh_native_state(state)
@@ -716,7 +719,17 @@ class Room:
     def refresh_native_state(self, state):
         # Retain last known owners of dead units: ordinary in-flight commands can
         # target a unit that died during input delay. Native simulation ignores it.
-        for entity in state.get("entities", []):
+        mode = getattr(getattr(self, "sim", None), "state_mode", None)
+        p.require(mode in (None, "full", "ownership"), "Room requires full or ownership state")
+        key = "ownership" if mode == "ownership" else "entities"
+        p.require(type(state) is dict and key in state and type(state[key]) is list,
+                  "Room state requires selected ownership records")
+        if mode is not None:
+            from .state_projection import validate_state
+            state = validate_state(state, 31, mode,
+                                   synthetic=getattr(self.sim, "_test_backend", False),
+                                   game_data_sha256=getattr(self.sim, "game_data_sha256", None))
+        for entity in state[key]:
             if "army" in entity and "type" in entity:
                 self.entity_history[entity["id"]] = (entity["army"], entity["type"])
         return state

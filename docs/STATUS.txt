@@ -1,8 +1,26 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-17UTC N48 WINDOWS WASP/ROOM PASS:three full/ownership pairs preserve
+all1562reference frames per arm. Combat means33.9..34.3->25.6..25.7ms and
+movement22.5..22.9->13.6..13.8ms;all p95 gates pass. Scope is the current explicit
+mode protocol on this PC. Actual compact Room solo2vAI searches30s,delivers401
+exact journal frames,executes original bot commands and passes ordinary release,
+history restart and identity recovery. Independent review/profiler fixes pass.
+Crab fresh-AI3pairs also pass1823frames per arm and463post-join actions,with
+combat12.2..12.4->9.76ms. CI,profile attribution,CPU scaling and Linux
+qualification remain open. Source/evidence:compact-state-evidence.txt.
+2026-11-17UTC N48 CONTRACT FROZEN/RUST WINDOWS CONTROLS PASS:explicit version1
+summary/full/ownership modes retain ABI1 legacy calls and decoder identity.
+Ownership emits sorted complete ID/army/type intersections;full selected hashes,
+position validation and cumulative command ownership remain required. Private
+candidate DLL2391253a02c7d522a392afcdd08d32f0c55d20439fc3c23802bfabade04dd760
+passes14Rust tests/strict Clippy. Original N47 DLL is unchanged. Python worker
+negotiation,verifier/profiler and CPU tools are in development;no native replay,
+performance acceptance,Linux qualification or deployment is claimed yet.
+Contract:compact-state-contract.txt;task/model plan:compact-state-and-cpu-plan.txt.
 2026-11-17UTC N48/N49 PLANNED:Nick authorized compact server state followed by
 controlled simulation CPU scaling and requested per-task model/effort routing.
 Plan:compact-state-and-cpu-plan.txt. Sol6.1 handles implementation/tooling at
-high/medium effort;one bounded Astra6.1 high independent review covers the native
+high/medium effort;one bounded Astra6 high independent review covers the native
 interface and command validation. Contract,parity,owned-affinity and repeated
 measurement gates precede acceptance. Implementation/performance remain open;
 this planning update changes no runtime,live server or release artifact.

@@ -235,9 +235,18 @@ class Verification:
         self.workers.append(worker)
         return worker
 
+    def make_backend(self):
+        return WineWorkerBackend(self.args.wine, self.args.windows_python, self.args.prefix_template,
+                                 self.args.cgroup_parent)
+
+    def worker_evidence(self, worker):
+        return worker_record(worker)
+
+    def require_worker_cleanup(self, worker):
+        require_cleanup(self.worker_evidence(worker), natural=True)
+
     async def start(self):
-        self.backend = WineWorkerBackend(self.args.wine, self.args.windows_python, self.args.prefix_template,
-                                         self.args.cgroup_parent)
+        self.backend = self.make_backend()
         self.templates = {mode: GameTemplate.load(self.args.assets/name, catalog_path=self.args.assets/'unit-catalog.json',
             descriptors_path=self.args.assets/'descriptors') for mode, name in ((1, 'map-1v1.pb.gz'),
                 (2, 'map-2v2.pb.gz'), (5, 'map-2vai.pb.gz'))}
@@ -384,7 +393,7 @@ class Verification:
         require(all(row == results[0] for row in results), 'participants received different results')
         validate_result(results[0], worker.last_state['game_state'], losing, match=room.match_id)
         await until(lambda: any(e['event'] == 'worker_released' and e.get('match') == room.match_id for e in self.events))
-        require_cleanup(worker_record(worker), natural=True)
+        self.require_worker_cleanup(worker)
         journal = (self.args.output/'matches'/room.match_id/'frames.bin').read_bytes()
         for peer in peers:
             delivered = b''.join(struct.pack('<I', len(body))+body for body in peer.frames)
@@ -408,7 +417,7 @@ class Verification:
             delivered_journal_sha256=hashlib.sha256(journal).hexdigest(),
             ai=worker.ai_info, bots={slot: dict(profile=bot.profile_id, deck=list(bot.deck)) for slot, bot in room.bots.items()},
             ordinary_bot_commands={slot: peers[0].execute_counts[slot] for slot in room.bots},
-            worker=worker_record(worker), passed=True)
+            worker=self.worker_evidence(worker), passed=True)
         self.cases.append(row)
         return room
 
@@ -423,12 +432,12 @@ class Verification:
         notice.end()
         await until(lambda: first.profile not in self.server.community.sessions and worker.process.poll() is not None)
         await until(lambda: any(e['event'] == 'worker_released' and e.get('match') == room.match_id for e in self.events))
-        require_cleanup(worker_record(worker), natural=True)
+        self.require_worker_cleanup(worker)
         history = await self.history(room, False)
         await second.command(q.RETURN, match=room.match_id)
         again = await self.connect(first.identity)
         require(again.profile == first.profile and tuple(again.deck) == state.deck, 'reconnect changed persistent identity/deck')
-        self.cases.append(dict(case='running-disconnect', match=room.match_id, history=history, worker=worker_record(worker),
+        self.cases.append(dict(case='running-disconnect', match=room.match_id, history=history, worker=self.worker_evidence(worker),
             identity_preserved=True, deck_preserved=True, same_match_resumed=False, passed=True))
         return again
 
@@ -447,7 +456,7 @@ class Verification:
         await peer.close()
         await until(lambda: peer.profile not in self.server.community.sessions and
             any(e['event'] == 'worker_released' and e.get('match') == room.match_id for e in self.events))
-        require_cleanup(worker_record(worker), natural=True)
+        self.require_worker_cleanup(worker)
         terminal = [e for e in self.events if e.get('match') == room.match_id and e['event'] in ('match_aborted', 'match_completed')]
         require(len(terminal) == 1 and terminal[0]['event'] == 'match_aborted' and
                 terminal[0]['reason'] == 'public player disconnected', 'solo2vAI disconnect was misclassified as completion')
@@ -466,7 +475,7 @@ class Verification:
                             role='ally' if slot == 2 else 'opponent', deck=list(bot.deck)) for slot, bot in room.bots.items()},
             ordinary_bot_commands={slot: peer.execute_counts[slot] for slot in room.bots},
             identity_preserved=True, deck_preserved=True, same_match_resumed=False, match_completed=False,
-            termination='ordinary human disconnect; aborted match, normal worker CLOSE', worker=worker_record(worker), passed=True))
+            termination='ordinary human disconnect; aborted match, normal worker CLOSE', worker=self.worker_evidence(worker), passed=True))
 
     async def exercise(self):
         if self.args.solo_team_only:

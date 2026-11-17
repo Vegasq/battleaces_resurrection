@@ -1,0 +1,79 @@
+N49 LINUX CPU ENVIRONMENT - PREPARED, NOT EXECUTED
+2026-11-17. No resource creation, remote login or native measurement is authorized
+by this document. N47's temporary VM was deleted; its approval was consumed.
+
+ENVIRONMENT
+Use a fresh isolated Linux x64 test machine with at least two ONLINE/ALLOWED
+OS-reported physical cores. A one-vCPU host cannot perform this experiment.
+Require unified cgroup-v2, cpuset controller, cgroup.kill, pidfd support and
+systemd >=254 (DelegateSubgroup); Ubuntu24.04/systemd255 is a suitable candidate
+subject to actual host verification. Virtual CPU topology does not establish
+dedicated physical hardware. Quote exact resource capacity/price separately.
+No existing live host, user server, user Wine prefix or shared wineserver.
+
+The task service is created by the system systemd manager; the invoking account
+must be authorized to create its own transient services. The tool sets User/Group
+to the caller's numeric identity. Do not grant global cgroup/affinity permissions,
+edit ancestor cgroup files or disable other workloads to make preflight pass.
+systemd applies AllowedCPUs before source-pinned coordinator Python starts.
+Delegate=yes and DelegateSubgroup=coordinator retain a separate unit delegation
+root. Existing Wine ownership creates and cleans nested private worker cgroups.
+No controller files are changed by the benchmark itself.
+
+STAGED PRIVATE INPUTS
+Deploy one frozen source tree to /srv/ba-bench/app, native Linux Python, Wine,
+the retained Windows x64 Python runtime, a prepared private prefix template and
+the N47 Wasp/Crab inputs. Preserve original journals; do not recapture. Assets,
+DLLs, runtime, raw timings and prefix files remain private. Keep the exact source
+and hash-bound Windows PE decoder build receipt; never supply host ELF to Wine.
+Example input paths (replace only with the actual staged private artifacts):
+/srv/ba-bench/assets-team01 and /srv/ba-bench/journals01/wasp-team4-01
+/srv/ba-bench/assets and /srv/ba-bench/journals-crab-ai
+/srv/ba-bench/runtime/python.exe and /srv/ba-bench/prefix-template01
+/srv/ba-bench/app/lib/ba_snapshot_decoder.dll
+
+EXECUTION AFTER SOURCE FREEZE, REVIEW AND RESOURCE AUTHORIZATION
+From /srv/ba-bench/app, substitute the exact retained DLL SHA256 for HASH64:
+python3 -B -m tools.benchmark_wine_cpu \
+  --workload wasp /srv/ba-bench/assets-team01 /srv/ba-bench/journals01/wasp-team4-01 \
+  --workload crab /srv/ba-bench/assets /srv/ba-bench/journals-crab-ai \
+  --library /srv/ba-bench/app/lib/ba_snapshot_decoder.dll \
+  --library-sha256 HASH64 \
+  --wine-executable /usr/bin/wine \
+  --windows-python /srv/ba-bench/runtime/python.exe \
+  --wine-prefix-template /srv/ba-bench/prefix-template01 \
+  --output /srv/ba-bench/app/local/linux-cpu01 \
+  --timeout-seconds 600 \
+  --environment-notes 'Record actual VM SKU, host quotas, observed contention and clock/power limitations here.'
+
+The command creates sixteen bounded task units sequentially:three alternating
+unprofiled one/two-core pairs and one separate instrumented pair per workload.
+Each uses a random ba-cpu-bench-UUID.service identity, nonce-bearing Description,
+AllowedCPUs, KillMode=control-group, Restart=no, UMask0077 and finite RuntimeMaxSec.
+Preexisting units refuse. The inner coordinator verifies actual InvocationID,
+ControlGroup, cgroup inode, effective hard cpuset and its actual CPU mask before
+constructing any Wine backend. After CREATE and before close, retained owned
+cgroup descriptors bind descendant/thread CPU-mask observations. Missing nested
+cpuset interfaces are recorded as inheritance from the verified unit hard cap.
+This scopes coordinator+guardian+Wine together; Windows worker-only affinity and
+host-wide vCPU provisioning remain different experiments.
+
+RECEIPTS AND CLEANUP
+Fresh ignored local output retains every unit argv/log/request, initial and
+complete cpuset receipt, launch/cleanup receipt, exact-input state comparisons,
+benchmark/profile reports, source/input/runtime/library hashes, template
+inventory, unit cpu.stat/cpu.pressure/cpu.max and topology/SMT records. Failed
+reports remain. Whole STEP uses only unprofiled arms. Native attribution uses
+the separately validated profiled arms with explicitly bound matched controls.
+Per-arm coordinator cgroup_parent differs by design; no other backend identity
+or input/state/source mismatch is accepted. No full-state hashes are relaxed.
+
+The outer process awaits systemd-run --wait --pipe and verifies normal worker,
+guardian, prefix and nested cgroup cleanup. Timeout/cancellation invokes stop
+only for its exact nonce-verified task unit and retained InvocationID where
+available; no shared wineserver or PID-based native termination is used. It
+checks task cgroup removal. RuntimeMaxSec bounds orphaned unit lifetime.
+Download/hash-verify all diagnostics before deleting only the new task machine
+and associated firewall/tag/deadline task. Prepare exact provider IDs and
+cleanup commands in the later private resource request. Nothing here authorizes
+new spending, live deployment, host resizing, release replacement or a20Hz claim.

@@ -14,6 +14,9 @@ import struct
 import sys
 import threading
 
+from .state_projection import (_UNSET, resolve_mode, projection_request, validate_state,
+                               PROJECTION_VERSION, STATE_MODES)
+
 MAGIC = b"BAWK"
 VERSION = 2
 HEADER = struct.Struct("<4sBBHIIiI")
@@ -54,9 +57,17 @@ def decode_header(data):
     return operation, flags, request_id, frame, metadata_size, payload_size
 
 
+def _unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        require(key not in result, "duplicate worker JSON key")
+        result[key] = value
+    return result
+
+
 def decode_metadata(data):
     try:
-        value = json.loads(data, parse_constant=lambda value: (_ for _ in ()).throw(ValueError("nonfinite JSON")))
+        value = json.loads(data, object_pairs_hook=_unique_object, parse_constant=lambda value: (_ for _ in ()).throw(ValueError("nonfinite JSON")))
     except (ValueError, RecursionError, UnicodeError) as error:
         raise ProtocolError("invalid worker JSON") from error
     require(isinstance(value, dict), "worker metadata must be an object")
@@ -140,7 +151,9 @@ class SyntheticSimulation:
             self.complete_frame = frame
         return self.game_time_seconds
 
-    def state(self, viewer=31, *, include_entities=False):
+    def state(self, viewer=31, *, include_entities=_UNSET, mode=None):
+        selected = resolve_mode(include_entities, mode)
+        require(type(viewer) is int and 0 <= viewer <= 31, "viewer out of range")
         result = {"frame": self.frame, "viewer": viewer, "synthetic_test_backend": True,
                   "game_data_sha256": self.game_data_sha256,
                   "resources": {0: {"primary": self.frame + 1}},
@@ -148,8 +161,10 @@ class SyntheticSimulation:
                                  "game_over_frame": self.complete_frame if self.complete_frame is not None else -1,
                                  "winning_alliance": 1 if self.complete_frame is not None else 31,
                                  "army_conceded_flag": 0, "game_over_checksum": 0}}
-        if include_entities:
+        if selected == "full":
             result["entities"] = [{"id": 0, "army": 0, "type": 1}]
+        elif selected == "ownership":
+            result["ownership"] = [{"id": 0, "army": 0, "type": 1}]
         return result
 
     def snapshot(self, viewer=31):
@@ -162,11 +177,23 @@ class SyntheticSimulation:
 
 def serve(source, sink, *, test_backend=False, snapshot_decoder_library=None, snapshot_decoder_sha256=None):
     simulation, ai, last_request, decoder = None, None, 0, None
+    state_mode = None
 
-    def state(viewer=31, *, include_entities=False):
+    def state(viewer=31, *, include_entities=_UNSET, mode=None):
+        selected = resolve_mode(include_entities, mode)
+        if mode is None:
+            if decoder is None:
+                return simulation.state(viewer, include_entities=selected == "full")
+            return decoder.decode(simulation.snapshot_bytes(viewer), viewer, include_entities=selected == "full")
         if decoder is None:
-            return simulation.state(viewer, include_entities=include_entities)
-        return decoder.decode(simulation.snapshot_bytes(viewer), viewer, include_entities=include_entities)
+            result = simulation.state(viewer, mode=mode)
+        else:
+            result = decoder.decode(simulation.snapshot_bytes(viewer), viewer, mode=mode)
+        result = validate_state(result, viewer, selected, synthetic=test_backend,
+                                game_data_sha256=simulation.game_data_sha256)
+        expected_frame = simulation.frame if test_backend else simulation.frame & 0xffffffff
+        require(result["frame"] == expected_frame, "native snapshot frame differs from worker sequence")
+        return result
 
     try:
         while True:
@@ -183,6 +210,7 @@ def serve(source, sink, *, test_backend=False, snapshot_decoder_library=None, sn
                     require(simulation is None and request_id == 1 and frame == -1, "exactly one CREATE is permitted")
                     require(bool(payload), "CREATE requires GameData")
                     require(not test_backend or 'ai' not in metadata, 'synthetic workers cannot enable native AI')
+                    state_mode = projection_request(metadata["state_projection"]) if "state_projection" in metadata else None
                     nonce = metadata.get('worker_nonce')
                     if nonce is not None:
                         require(not test_backend and isinstance(nonce, str) and len(nonce) == 64
@@ -192,6 +220,9 @@ def serve(source, sink, *, test_backend=False, snapshot_decoder_library=None, sn
                                 'Rust snapshot decoder requires a native Windows x64 worker')
                         from .rust_snapshot_decoder import RustSnapshotDecoder
                         decoder = RustSnapshotDecoder(snapshot_decoder_library, snapshot_decoder_sha256)
+                    require(state_mode is None or decoder is None or
+                            decoder.projection_version == PROJECTION_VERSION,
+                            "decoder lacks requested state projection capability")
                     if test_backend:
                         simulation = SyntheticSimulation(payload)
                     else:
@@ -207,23 +238,32 @@ def serve(source, sink, *, test_backend=False, snapshot_decoder_library=None, sn
                                 "runtime": {"python_version": sys.version, "implementation": sys.implementation.name,
                                             "executable": sys.executable, "platform": sys.platform,
                                             "os_name": os.name, "pointer_bits": struct.calcsize('P')*8}}
+                    if state_mode is not None:
+                        response["state_projection"] = metadata["state_projection"]
+                        response["state_projection_modes"] = list(STATE_MODES)
                     if nonce is not None:
                         response['worker_nonce'] = nonce
                 else:
                     require(simulation is not None, "CREATE is required first")
                     if operation == STEP:
                         require(frame == simulation.frame + 1, "STEP frame must be consecutive")
+                        if state_mode is not None:
+                            require(metadata.keys() == {"dt_ms"} and type(metadata["dt_ms"]) is int,
+                                    "explicit STEP requires exact timing metadata")
                         from .native_simulation import _protobuf_header
                         input_frame, input_dt = _protobuf_header(payload)
                         require(input_frame == frame and metadata.get("dt_ms") == input_dt, "STEP header/wire timing differs")
                         if ai is not None: ai.before_step(frame, payload)
                         seconds = simulation.process_frame(payload, dt_ms=input_dt)
                         # No ACK is emitted until step AND authoritative state retrieval succeed.
-                        snapshot_state = state(31, include_entities=True)
+                        snapshot_state = (state(31, mode=state_mode) if state_mode is not None
+                                          else state(31, include_entities=True))
                         require(snapshot_state["frame"] == frame, "native snapshot frame differs from completed step")
                         if ai is not None: ai.after_step()
                         response = {"game_time_seconds": seconds, "state": snapshot_state,
                                     "input_sha256": hashlib.sha256(payload).hexdigest()}
+                        if state_mode is not None:
+                            response.update(state_mode=state_mode, state_projection_version=PROJECTION_VERSION)
                     elif operation == BOT_INPUT:
                         require(ai is not None and frame == simulation.frame + 1 and not payload and not metadata,
                                 'invalid bot input request')
@@ -235,9 +275,18 @@ def serve(source, sink, *, test_backend=False, snapshot_decoder_library=None, sn
                         viewer = metadata.get("viewer", 31)
                         require(type(viewer) is int and 0 <= viewer <= 31, "viewer out of range")
                         if operation == STATE:
-                            include_entities = metadata.get("include_entities", False)
-                            require(type(include_entities) is bool, "include_entities must be boolean")
-                            response = {"state": state(viewer, include_entities=include_entities)}
+                            if "mode" in metadata:
+                                require(state_mode is not None and metadata.keys() <= {"viewer", "mode"},
+                                        "explicit STATE requires negotiated projection and exact metadata")
+                                mode = metadata["mode"]
+                                require(type(mode) is str and mode in STATE_MODES, "invalid state mode")
+                                response = {"state": state(viewer, mode=mode), "state_mode": mode,
+                                            "state_projection_version": PROJECTION_VERSION}
+                            else:
+                                require(metadata.keys() <= {"viewer", "include_entities"}, "unknown STATE metadata")
+                                include_entities = metadata.get("include_entities", False)
+                                require(type(include_entities) is bool, "include_entities must be boolean")
+                                response = {"state": state(viewer, include_entities=include_entities)}
                         elif operation == SNAPSHOT:
                             response_payload = simulation.snapshot(viewer)
                             require(len(response_payload) <= 16 * 1024 * 1024, "snapshot exceeds limit")

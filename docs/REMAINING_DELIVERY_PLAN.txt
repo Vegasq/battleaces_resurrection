@@ -6,13 +6,17 @@ Prior baseline queue preserved at history/2026-11-15/scheduling-ai-base-plan.txt
 
 N48 - COMPACT SERVER STATE
 [x] Record the task plan,model/effort routing,dependencies and acceptance gates.
-[ ] T1:freeze ownership/full/summary contract and audit every state consumer.
-[ ] T2/T3:implement explicit Rust projection and Python/worker/server integration.
+[x] T1:freeze ownership/full/summary contract and audit every state consumer.
+[x] T2/T3:implement explicit Rust projection and Python/worker/server integration.
 [ ] T4:qualify every replay frame,ownership/command checks and fresh AI.
-[ ] T6:complete independent native-interface and command-validation review.
+[x] T6:complete independent native-interface and command-validation review.
 [ ] T7:measure three alternating pairs,complete compatibility CI and record results.
 Model routing:Sol6.1 high for contract/integration,medium for tooling/tests;
-one bounded Astra6.1 high review. Scope:compact-state-and-cpu-plan.txt.
+one bounded Astra6 high review. Scope:compact-state-and-cpu-plan.txt.
+Frozen contract:compact-state-contract.txt. Windows Rust14controls/Clippy pass;
+Cross-platform performance and Linux qualification remain open.
+Windows Wasp/Crab3pairs and actual compact Room/fresh-AI pass;profiled
+attribution,CPU runs and CI remain. Evidence:compact-state-evidence.txt.
 
 N49 - CONTROLLED SIMULATION CPU SCALING
 [ ] T5:build owned-worker one/two-core harness with topology and cleanup checks.

@@ -156,6 +156,11 @@ def validate_profile_identity(profile, report):
     expected_decoder = decoder_identity(report.get('snapshot_decoder'))
     require(decoder_identity(profile.get('snapshot_decoder')) == expected_decoder, 'profile decoder identity differs')
     rust = expected_decoder['implementation'] == 'rust'
+    projection = validate_projection_identity(profile, report, rust=rust)
+    if 'server/state_projection.py' in report.get('source_at_start', {}):
+        required_sources += ('server/state_projection.py',)
+    require(projection is None or 'server/state_projection.py' in required_sources,
+            'explicit projection source binding missing')
     if 'source_unchanged' in profile:
         require(profile['source_unchanged'] is True, 'profile source changed')
     if rust:
@@ -206,6 +211,37 @@ def validate_profile_identity(profile, report):
     return expected_decoder
 
 
+def validate_projection_identity(profile, report, *, rust):
+    """Bind opt-in CREATE negotiation without changing historical ABI1 identity."""
+    selected = report.get('state_projection')
+    requested = profile.get('state_projection_requested')
+    echoed = profile.get('state_projection')
+    modes = profile.get('state_projection_modes')
+    if selected is None:
+        require(requested is None and echoed is None and modes is None
+                and report.get('state_projection_modes') is None,
+                'unexpected profile projection negotiation')
+        return None
+    require(type(selected) is dict and selected.keys() == {'version', 'step_mode'}
+            and type(selected['version']) is int and selected['version'] == 1
+            and type(selected['step_mode']) is str and selected['step_mode'] in ('summary', 'full', 'ownership'),
+            'invalid benchmark projection identity')
+    # Exact type/schema validation also prevents bool True from masquerading as1.
+    for value in (requested, echoed):
+        require(type(value) is dict and value.keys() == selected.keys()
+                and type(value.get('version')) is int and value == selected,
+                'profile projection requested/echo identity differs')
+    require(type(modes) is list and modes == ['summary', 'full', 'ownership']
+            and report.get('state_projection_modes') == modes,
+            'profile projection capability differs')
+    if rust:
+        require(type(profile.get('snapshot_decoder_projection_version')) is int
+                and profile['snapshot_decoder_projection_version'] == 1
+                and profile.get('rust_ffi_decode_exports') == ['_decode', '_decode_v2'],
+                'explicit Rust projection FFI instrumentation/capability missing')
+    return selected
+
+
 def rpc_residual(row, frame, *, include_observer=True):
     """Signed difference, not a subtraction of causally nested intervals.
 
@@ -240,15 +276,40 @@ def validate_profile(profile, benchmark, profile_sha):
     require(records[0].get('operation') == 'CREATE' and records[0].get('frame') == -1
             and records[-1].get('operation') == 'CLOSE' and records[-1].get('frame') == len(frames)-1,
             'profile lacks exact CREATE/CLOSE boundaries')
-    seen_steps, seen_bots = [], []
+    projection = report.get('state_projection')
+    seen_steps, seen_bots, seen_queries = [], [], []
     for request_id, row in enumerate(records, 1):
         require(type(row.get('request_id')) is int and row['request_id'] == request_id
                 and row.get('replied') is True and row.get('response_error') is False,
                 'profile request coverage is discontinuous or failed')
         operation = row.get('operation')
-        require(operation in ('CREATE', 'STEP', 'BOT_INPUT', 'CLOSE'), 'unexpected benchmark operation')
+        require(operation in ('CREATE', 'STEP', 'BOT_INPUT', 'CLOSE', 'STATE'), 'unexpected benchmark operation')
         if operation in ('CREATE', 'CLOSE'):
             require(request_id == (1 if operation == 'CREATE' else len(records)), 'duplicate profile lifecycle operation')
+        elif operation == 'STATE':
+            require(projection is not None and not seen_steps and not seen_bots and len(seen_queries) < 2
+                    and request_id == 2 + len(seen_queries)
+                    and type(row.get('frame')) is int and row['frame'] == -1
+                    and type(row.get('request_payload_bytes')) is int and row['request_payload_bytes'] == 0
+                    and type(row.get('response_payload_bytes')) is int and row['response_payload_bytes'] == 0,
+                    'STATE diagnostics must be exactly before first STEP in an explicit session')
+            mode = projection['step_mode'] if not seen_queries else 'full'
+            query, reply = row.get('state_query'), row.get('state_reply')
+            require(type(query) is dict and query.keys() == {'viewer', 'mode'}
+                    and type(query['viewer']) is int and query['viewer'] == 31 and query['mode'] == mode,
+                    'initial STATE request mode/viewer differs')
+            common = {'frame', 'viewer', 'local_alliance', 'canonical_fnv1a64', 'raw_sha256',
+                      'byte_count', 'counts', 'resources', 'game_state'}
+            keys = common | ({'entities'} if mode == 'full' else {'ownership'} if mode == 'ownership' else set())
+            require(type(reply) is dict and reply.keys() == {'keys', 'state_mode', 'state_projection_version',
+                    'state_frame', 'state_viewer', 'state_keys'}
+                    and reply['keys'] == ['state', 'state_mode', 'state_projection_version']
+                    and reply['state_mode'] == mode and type(reply['state_projection_version']) is int
+                    and reply['state_projection_version'] == 1 and type(reply['state_frame']) is int
+                    and reply['state_frame'] == 0xffffffff and type(reply['state_viewer']) is int
+                    and reply['state_viewer'] == 31 and reply['state_keys'] == sorted(keys),
+                    'initial STATE response projection identity/schema differs')
+            seen_queries.append(mode)
         else:
             number = row.get('frame')
             require(type(number) is int and 0 <= number < len(frames), 'profile frame outside benchmark')
@@ -275,22 +336,30 @@ def validate_profile(profile, benchmark, profile_sha):
             require(value['wall_ns'] <= limit, 'metric exceeds its containing request interval')
         require(rust or not any(name.startswith('rust.') for name in metrics), 'Python profile has Rust decoder metrics')
         require({'ipc.encode', 'ipc.write', 'ipc.decode_metadata'} <= metrics.keys(), 'IPC instrumentation incomplete')
-        if operation == 'STEP':
-            required = {'sim.SimProcessMsg', 'sim.SimStep', 'sim.SimMakeSimFrame', 'sim.SimGetSimFrameBuffer',
-                        'simulation.process_frame'}
+        if operation in ('STEP', 'STATE'):
+            required = {'sim.SimMakeSimFrame', 'sim.SimGetSimFrameBuffer'}
+            if operation == 'STEP':
+                required |= {'sim.SimProcessMsg', 'sim.SimStep', 'simulation.process_frame'}
+            else:
+                require(not {'sim.SimProcessMsg', 'sim.SimStep', 'simulation.process_frame'}.intersection(metrics),
+                        'initial STATE unexpectedly stepped native simulation')
             required |= ({'simulation.snapshot_bytes', *RUST_METRIC_PARENTS} if rust else {'decode_snapshot', 'simulation.state'})
+            if projection is not None:
+                required.add('worker.validate_state')
             require(required <= metrics.keys(),
                     'native STEP instrumentation incomplete')
             require(all(metrics[name]['calls'] == 1 for name in required),
                     'native frame has unexpected step/message count')
             require(not rust or not {'decode_snapshot', 'simulation.state'}.intersection(metrics),
-                    'Rust STEP includes a Python decoder/state path')
+                    'Rust request includes a Python decoder/state path')
         if operation in ('STEP', 'BOT_INPUT'):
             rpc_residual(row, frames[row['frame']])
         # Validate disjoint accounting even when a caller only asks for validation.
         require(sum(leaf_categories(metrics).values()) <= row['active_wall_ns'],
                 'leaf timings exceed active request time; overlapping metrics')
     require(seen_steps == list(range(len(frames))), 'profile STEP frames truncated/duplicated/reordered')
+    require(not seen_queries or seen_queries == [projection['step_mode'], 'full'],
+            'initial STATE diagnostic pair incomplete')
     if report.get('ai') is not None:
         require(seen_bots == list(range(len(frames))), 'profile AI request coverage incomplete')
     else:
@@ -303,13 +372,14 @@ def leaf_categories(metrics):
                       native_other=0, ai_action_decode=0, response_json=0, response_pipe_write=0,
                       native_process_wrapper=0, snapshot_export_wrapper=0, python_state_wrapper=0,
                       rust_ffi_decode=0, rust_output_copy=0, rust_json_parse=0, rust_validation=0,
-                      rust_ffi_free=0, rust_adapter_overhead=0)
+                      rust_ffi_free=0, rust_adapter_overhead=0, worker_state_validation=0)
     exact = {'sim.SimProcessMsg': 'native_simulation', 'sim.SimStep': 'native_simulation',
              'sim.SimMakeSimFrame': 'native_snapshot', 'sim.SimGetSimFrameBuffer': 'native_snapshot',
              'decode_snapshot': 'snapshot_decode', 'decode_ai_actions': 'ai_action_decode',
              'ipc.encode': 'response_json', 'ipc.write': 'response_pipe_write',
              'rust.ffi.decode': 'rust_ffi_decode', 'rust.copy_output': 'rust_output_copy',
              'rust.json.loads': 'rust_json_parse', 'rust.validate': 'rust_validation', 'rust.ffi.free': 'rust_ffi_free'}
+    exact['worker.validate_state'] = 'worker_state_validation'
     for name, metric in metrics.items():
         category = exact.get(name)
         if category is None and name.startswith('sim.'):
@@ -468,7 +538,8 @@ def summarize(directory, control=None):
             require(benchmark['report'][field] == baseline['report'][field], f'control {field} differs')
         require(decoder_identity(benchmark['report'].get('snapshot_decoder'))
                 == decoder_identity(baseline['report'].get('snapshot_decoder')), 'control decoder identity differs')
-        for field in ('source_at_start', 'worker_runtime', 'ai', 'workload', 'paced', 'timestep_ms'):
+        for field in ('source_at_start', 'worker_runtime', 'ai', 'workload', 'paced', 'timestep_ms',
+                      'state_projection', 'state_projection_modes'):
             require(benchmark['report'].get(field) == baseline['report'].get(field), f'control {field} differs')
         actual_backend = dict(benchmark['report'].get('backend') or {})
         control_backend = dict(baseline['report'].get('backend') or {})

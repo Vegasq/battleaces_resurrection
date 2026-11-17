@@ -1,0 +1,112 @@
+BATTLE ACES - N48 COMPACT STATE EVIDENCE
+Updated:2026-11-17UTC. Windows Wasp/Crab/Room qualified;remaining gates open.
+Contract:compact-state-contract.txt. Tasks/models:compact-state-and-cpu-plan.txt.
+
+IMPLEMENTATION AND REVIEW
+Additive version1 projection uses a new Rust v2 export;ABI1 calls and decoder
+identity retain their meanings. Explicit modes validate omitted positions and
+all selected checksum inputs. Ownership is the sorted complete ID/army/type
+intersection. Worker CREATE/STATE/STEP negotiation and mode schemas are strict.
+Room retains cumulative owners for delayed commands and updates complete pairs
+after authoritative steps. Full diagnostics and the legacy defaults remain.
+
+Windows Rust14tests and strict Clippy pass. Python authored checks58pass with
+one expected skip;the actual candidate DLL also passes93authored adapter cases
+and9nonfinite refusals. Windows CPU controls14pass;Linux orchestration controls
+16pass. Room/verifier hooks28authored checks pass. Focused profiler64checks pass.
+These controls have distinct scopes and are not a combined native-test count.
+Linux CI now requires actual native ELF v2 parity/refusal checks;CI is pending.
+
+Independent review found two profiling defects before native measurements:
+worker shape validation shared the adapter's metric,and initial diagnostic
+STATE requests were outside accepted coverage. A stable underlying validator
+alias,separate worker-validation leaf category and strict initial STATE-pair
+coverage resolve both. Integrated native-stub tests and a targeted independent
+recheck pass. No metric-call/count or nested-conservation rule was relaxed.
+The actual compact Room tool and Windows/Linux CPU ownership paths were also
+reviewed. Linux runtime delegation/cpuset/cleanup still requires real preflight.
+
+CANDIDATE IDENTITY
+Private Windows DLL SHA256:
+2391253a02c7d522a392afcdd08d32f0c55d20439fc3c23802bfabade04dd760
+Private receipt:local/compact-state-20261117/rust-build01/receipt.json
+SHA256:08aea6d65a3f976c627573b10aa8c9db83b9b207b7869c800ff9b273b5f99f6a
+The original N47 DLL remains unchanged. Original captures,assets,libraries and
+raw reports stay private. No normal launcher,installed game,live server or
+release artifact was replaced.
+
+WINDOWS WASP - THREE ALTERNATING EXPLICIT FULL/OWNERSHIP PAIRS
+All1562frames match the retained full observable digest in each full arm.
+Each compact frame matches the independent ownership projection and unchanged
+semantic summary. Fifteen retained raw captures also match all nine common
+fields in full/summary/ownership on identical raw bytes. Separate acquisitions'
+raw hashes are retained as storage diagnostics under the original N47 scope.
+Every worker exits0 with closed threads;source/library/input/evidence guards pass.
+
+Mean STEP milliseconds/frame,three pairs:
+Phase     Full1    Compact1   Full2    Compact2   Full3    Compact3
+movement  22.540   13.772     22.884   13.772     22.827   13.595
+combat    34.064   25.722     33.918   25.743     34.264   25.566
+
+Combat p95:49.973/49.783/50.908ms full,40.385/40.750/40.333ms compact.
+Movement p95:31.931/32.309/32.510ms full,23.274/23.115/23.148ms compact.
+All three pairs improve mean STEP in both phases and pass the defined p95 gate.
+Median-of-pair means improve about40percent movement and24.5percent combat.
+Median mean reply bytes fall114669->28949movement and102862->25912combat.
+Median peak worker working set64.50->63.69MB;these process-handle peaks include
+startup and are not total host/parent/child memory or a capacity qualification.
+
+Comparison scope:both arms use the current explicit versioned protocol and
+strict validation,with full versus ownership output on this Windows PC.
+This is unpaced worker STEP evidence. Released-runtime speed,Internet play,
+Linux performance and20Hz publication are separate claims. Historical N47
+timings are not a contemporaneous control for this comparison.
+Evidence:local/compact-state-20261117/windows-wasp02/verification.json
+SHA256:dee0e5ceac0d07c78bffa0f3dde3b2d17247d2c8280c1e4e906200b88278a494
+The earlier windows-wasp01 preflight refused a mismatched Crab corpus/asset
+manifest before any pair;its failed report remains unchanged. Each workload
+now uses its matching retained capture collection.
+
+ACTUAL COMPACT ROOM / FRESH ORIGINAL AI
+An owned loopback TLS solo2vAI match searches for30seconds,then runs three
+original bots through40050ms ticks. All401delivered frames equal the persisted
+authoritative journal. Original bots issue7/55/5ordinary commands. Compact
+initial/STEP states,cumulative Room history and actual command-validator probes
+are checked. Ordinary human disconnect aborts the match,normal worker CLOSE
+releases it,and history survives dashboard restart. Identity/deck recovery pass.
+Elapsed53.875seconds;source/assets/library/build and cleanup checks pass.
+This qualifies the actual Room/AI path with scripted endpoints. Player/UI
+acceptance,completed-game results and large-army publication are separate scopes.
+Evidence:local/compact-state-20261117/windows-room01/verification.json
+SHA256:c5503f2563152907ee2446c1255d4f5edbc803de3e6926e24cdf0569b3a18d14
+
+WINDOWS CRAB - THREE PAIRS WITH FRESH ORIGINAL AI
+Every1823frames per arm preserves the retained full observable state or its
+independent compact projection. Fresh bot bytes match the original recording
+on every frame,with463post-join actions;all full/compact bot-journal digests
+agree. The other15original raw captures pass all-nine-field mode parity,
+bringing the two retained collections to30captures. Source/input/library and
+normal cleanup checks pass. Every pair improves mean STEP and passes p95 gates.
+Mean full->compact milliseconds/frame:
+movement7.419->4.844,7.462->4.859,7.487->4.862
+combat12.367->9.755,12.324->9.767,12.249->9.766
+Original AI generation is active;these are still unpaced worker measurements.
+Evidence:local/compact-state-20261117/windows-crab-ai01/verification.json
+SHA256:b5f2a804b40dd9aeb96f6995d41455b1cfffc0c0c0220ca6acc0a84975bc7095
+
+ACTUAL WINDOWS FFI PROJECTION CHECK
+tools.verify_rust_ffi --require-projection on the built candidate passes
+93explicit-mode authored parity cases,9native nonfinite refusals,32legacy valid
+cases,290legacy refusals and1000allocation/free cycles. Source/library stability
+guards pass. This checks the actual DLL through ctypes;authored fixtures remain
+distinct from the original-capture and simulation replay evidence above.
+Receipt:local/compact-state-20261117/ffi-windows01.json. Nine verifier controls pass.
+
+REMAINING
+Finish the separate profiled JSON-cost pair and controlled Windows one/two-core
+runs. Complete compatibility CI.
+Prepare and obtain authorization for a new isolated Linux environment before
+Linux/Wine measurements. Old N47 resource approval was consumed and VM deleted.
+N48 state processing alone cannot close the measured66.3ms native Linux combat
+cost against a50ms complete-update budget. N49 scaling and existing end-to-end
+Linux acceptance gates remain open.

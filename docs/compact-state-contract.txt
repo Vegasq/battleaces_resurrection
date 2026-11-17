@@ -1,0 +1,406 @@
+BATTLE ACES - N48 STATE PROJECTION CONTRACT
+Frozen:2026-11-17. Baseline audit:fc796e0;implementation/qualification separate.
+Scope:T1 of compact-state-and-cpu-plan.txt. Normative requirements below use
+must. No native runtime,original input capture or performance run was performed
+for this audit. Original binaries,inputs and generated reports remain private.
+
+1. MODES AND EXACT DATA SHAPE
+
+Public mode strings are exactly "summary","full","ownership". A projection
+version identifies this contract independently of decoder ABI and IPC version.
+Version1 has the following common state keys; no projection identity is added
+inside state,so existing full/summary dictionaries retain their shape:
+
+  frame:uint32                       native frame,including initial0xffffffff
+  viewer:uint32                      requested viewer;worker acquisition0..31
+  local_alliance:uint32              unchanged native root field1
+  canonical_fnv1a64:string            exactly16 lowercase hexadecimal digits
+  raw_sha256:string                  exactly64 lowercase hexadecimal digits
+  byte_count:integer                 exact input length,at most16MiB
+  counts:object                      exactly army,type,health,position,resources
+  resources:object                   all native resource records,described below
+  game_state:object                  all five existing result fields below
+
+summary has exactly these nine keys. full additionally has entities and no
+ownership. ownership additionally has ownership and no entities. The mode is
+never inferred from an empty/missing list and missing projection is an error.
+
+counts values are integers0..1,000,000 and count the corresponding complete
+component vectors,not the number of output entities or ownership records.
+resources keys are canonical unsigned uint32 decimal strings on JSON wire and
+integers in returned Python state. Each value has exactly the eight signed
+int32 fields primary,secondary,current_supply,max_supply,primary_gathered,
+secondary_gathered,primary_lost,secondary_lost. Do not omit zero fields or
+resource records. Number of resource records equals counts.resources.
+game_state has exactly complete:boolean,game_over_frame:int32,
+winning_alliance:uint32,army_conceded_flag:uint32,game_over_checksum:uint64.
+No integer accepts a Python/JSON boolean. No floating point numbers substitute
+for integer fields. No duplicate JSON keys or noncanonical resource-ID aliases.
+
+full entities retain the current sorted union of IDs from army/type/health/
+position. Each item has id:uint32 and whichever components actually exist:
+army:uint32,type:uint32,max_health:uint32,current_damage:uint32,position:[f64;3].
+Health fields occur together. At least one component is present. Position
+numbers are finite floats converted from the original float32 bit patterns;
+signed zero is preserved. Full records may legitimately lack army or type.
+List IDs are strictly increasing. Counts of fields observed across full
+entities exactly reproduce the four non-resource component counts.
+
+ownership is a list of EXACTLY {"id":uint32,"army":uint32,"type":uint32}
+objects with strictly increasing IDs. Its reference definition is:
+
+  [{"id":e["id"],"army":e["army"],"type":e["type"]}
+   for e in full["entities"] if "army" in e and "type" in e]
+
+Only the intersection of army and type IDs in THIS snapshot is emitted.
+An army-only,type-only,health-only or position-only record contributes no
+ownership entry. Never default a missing owner/type to0,join against prior
+frames,copy ownership from resources,or require health/position for membership.
+Empty intersection is an explicit empty list. len(ownership) is at most
+min(counts.army,counts.type),not necessarily equal to either count. The decoder
+is stateless;only Room retains history. The adapter validates this bound and
+schema;it does not recompute the complete intersection from raw input on every
+call. Exhaustive completeness/equality is a verifier responsibility,as with
+the existing adapter's canonical-hash content and full component values.
+
+2. SCANNING,HASHES AND FAILURE SEMANTICS
+
+All explicit modes must read/validate the SAME complete selected components:
+root fields2 army,3 type,5 health with damage,7 position,21 resources,and field23
+GameState. Preserve bounds,checked offset arithmetic,stride/count validation,
+one-million vector limit,equal ID/value/damage vector lengths and duplicate-ID
+refusal within EACH component. Unsorted input is valid and canonicalized by
+ID. An ID repeated across different components is expected and is joined.
+Do not skip malformed health/position/resource records because output is small.
+This is the existing selected observable-state scan,not validation of every
+otherwise unselected native FlatBuffer field or a hidden-world checksum.
+
+Canonical bytes/hash remain exactly the existing schema1 sequence:little-
+endian uint32 words(1,viewer,frame),then selected field numbers in2,3,5,7,21
+order,each field/count and its sorted complete ID/value rows,including health
+damage. Position's ORIGINAL THREE UINT32 WORDS enter the hash before float
+conversion. FNV-1a64 offset14695981039346656037,prime1099511628211,modulo2^64.
+Raw SHA256 covers EVERY original input byte;byte_count is its exact length.
+GameState/root alliance remain unchanged summary values and do not become new
+canonical-hash inputs. No hash is taken over the compact projection instead.
+
+Every explicit version1 mode must reject NaN,+Infinity,-Infinity in ANY
+position coordinate,including when entities/positions are omitted or owner/
+type are incomplete. Scan positions for finiteness before producing success.
+Use STATUS_SNAPSHOT for this explicit-mode refusal;no partial JSON result.
+Finite subnormal,negative zero and finite float32 extremes remain valid.
+
+Compatibility exception is deliberate:legacy ABI1 full currently refuses
+nonfinite position at JSON serialization(STATUS_JSON);legacy summary does not
+materialize positions and accepts their raw bits. Standalone legacy Python
+decode can materialize nonfinite floats until its caller serializes/validates.
+Retain these legacy paths/controls;do not claim their old behavior qualifies
+the stronger explicit-mode contract. v2 full preserves valid full output while
+adding explicit scan-time refusal. No invalid input may produce a compact
+success merely because the omitted fields formerly triggered the full refusal.
+
+3. ADDITIVE RUST C API;OLD LIBRARIES REMAIN USABLE
+
+Keep all existing exports and their ABI1 meanings exactly:
+
+  ba_snapshot_decoder_abi_version() -> uint32                    returns1
+  ba_decode_snapshot(data:*const uint8,len:size_t,viewer:uint32,
+                     include_entities:uint8,out:*BaBuffer) -> int32
+  ba_free_buffer(data:*mut uint8,len:size_t) -> int32
+
+include_entities remains only0(summary) or1(full);2 is still ARGUMENT,never
+ownership. Do not raise the old ABI version or change BaBuffer layout.
+Add exactly:
+
+  ba_snapshot_decoder_projection_version() -> uint32             returns1
+  ba_decode_snapshot_v2(data:*const uint8,len:size_t,viewer:uint32,
+                        mode:uint32,out:*BaBuffer) -> int32
+
+v2 mode0=summary,1=full,2=ownership. Any other integer is ARGUMENT. The v2 name
+versions the new entry point;projection_version versions its mode/output
+contract. New safe Rust API may use ProjectionMode and decode_snapshot_v2;
+the existing safe decode_snapshot(...include_entities:bool) remains available.
+
+BaBuffer remains {uint8_t *data;size_t len}. Both exports borrow immutable input
+only during the call and transfer one UTF8 JSON allocation without trailing
+NUL on success. Free the exact pointer/length once with the SAME loaded library
+before unloading,including after Python parsing/validation failure. Existing
+16MiB input/64MiB output bounds apply. Null/misaligned out is not dereferenced;
+a valid out is cleared before checking other arguments. Errors leave null/0.
+Statuses remain0 OK,1 ARGUMENT,2 SNAPSHOT,3 JSON,4 PANIC. Preserve containment
+and documented limits of catch_unwind;no claims of recovering invalid foreign
+memory,double free,allocator abort or panic=abort. ba_free_buffer accepts live
+buffers from either export with unchanged null/length/error behavior.
+
+RustSnapshotDecoder initialization still requires hash-bound absolute explicit
+library path and ABI1 exactly1. Missing optional projection exports means
+legacy-only capability;both present with projection_version1 enables explicit
+modes. A requested explicit mode with missing exports,unsupported projection
+version or incompatible ABI must fail without calling ABI1/Python instead.
+Never ignore a present but wrong version. The adapter's .info dictionary stays
+exactly its current {implementation:"rust",abi_version:1,library_sha256,
+library_path};do not add optional fields that break existing exact equality.
+Expose projection_version separately(None legacy-only,1 supported). Python's
+existing identity remains exactly {implementation:"python"}.
+
+4. PYTHON API AND WORKER NEGOTIATION
+
+An internal sentinel _UNSET distinguishes an omitted legacy keyword from an
+explicit argument. Public signatures are:
+
+  decode_snapshot(data,viewer=31,*,include_entities=_UNSET,mode=None)
+  NativeSimulation.state(viewer=31,*,include_entities=_UNSET,mode=None)
+  RustSnapshotDecoder.decode(raw,viewer=31,*,include_entities=_UNSET,mode=None)
+  SimulationWorker.create(...,state_mode=None,...)
+  SimulationWorker.state(viewer=31,*,include_entities=_UNSET,mode=None)
+
+mode=None chooses the legacy route:omitted include_entities means False;an
+explicit include_entities must have type bool. mode must otherwise be one of
+the three exact strings,and include_entities MUST be omitted in that call.
+Explicit False together with mode is an error,not a precedence rule. Reject
+unknown mode values/types locally before native calls or process creation.
+Native acquisition viewer remains integer0..31;standalone decode/FFI retains
+uint32 viewer support. NativeSimulation and pure-Python decoder must implement
+all explicit modes with the same schema,complete scanning and finite checks.
+Python support is an explicit selected decoder,never fallback from Rust.
+
+create(state_mode=None) retains a legacy session:STEP returns full;STATE uses
+its legacy boolean behavior. No new identity or mode envelope is required on
+this old wire path. Existing diagnostics/old hash-bound ABI1 libraries work.
+An explicit state_mode may be summary/full/ownership and requests an immutable
+STEP selection. Keep current BAWK IPC VERSION2/header and operations. CREATE
+metadata additionally contains exactly:
+
+  "state_projection":{"version":1,"step_mode":"ownership"}
+
+The example step_mode is replaced with the selected mode. Worker must check
+exact keys/types/version/mode and capability BEFORE constructing a native world
+(and therefore before any STEP). An explicit Rust session requires the new
+exports even for full/summary;do not silently negotiate a legacy substitute.
+CREATE reply must echo the EXACT requested state_projection object and include
+exact ordered capability list:
+
+  "state_projection_modes":["summary","full","ownership"]
+
+The client verifies both,alongside existing PID/GameData/DLL/backend/decoder/
+AI/runtime/nonce identity checks. Missing/different version,selection or modes
+is terminal. Client stores state_mode=None for legacy,or selected mode for
+explicit sessions,and projection_version=None/1 separately from decoder_info.
+Legacy CREATE must not falsely claim an explicit state_projection selection.
+
+STEP request remains {dt_ms:<matching input step>};the session selection cannot
+be changed per STEP. Every explicit STEP reply includes the existing state,
+game_time_seconds,input_sha256 plus:
+
+  "state_mode":"ownership","state_projection_version":1
+
+The client compares these EXACTLY with CREATE before accepting result or
+advancing frame,last_state or prepared-bot bookkeeping. Worker sends no ACK
+until native processing AND selected state validation succeed. Any STEP failure
+is terminal because native input may already be applied. Viewer is always31.
+
+STATE override is explicit metadata {viewer:<0..31>,mode:<selected string>}.
+It is permitted only in an explicitly negotiated session,does not change STEP
+mode,and replies {state,state_mode,state_projection_version} with the requested
+mode/version. Reject mixed mode/include_entities,unknown keys in the projection
+request,unsupported versions/modes and explicit STATE in a legacy session.
+A boolean STATE remains available in any session for existing diagnostics:
+{viewer,include_entities:<bool>} replies legacy {state} without projection
+envelope and uses legacy decoder behavior. An omitted include_entities remains
+legacy summary;opting into compact STEP does not change state() default meaning.
+Do not infer a full query from negotiated STEP mode;call mode explicitly.
+
+Initial native STATE expects native state.frame0xffffffff while worker/client
+sequence frame is-1;STEP frames remain nonnegative/consecutive and match input.
+Retain this existing distinction;do not rewrite the checksum frame or require
+an initial native0. STATE query never updates last_state/STEP mode by itself.
+Validate viewer,requested schema,frame,response envelope and no binary payload.
+Reject malformed responses through the existing terminal abort/cleanup path.
+
+5. TRUST BOUNDARIES,SYNTHETIC AND NORMAL ROOM BEHAVIOR
+
+Rust adapter keeps strict UTF8,duplicate-key/nonfinite JSON refusal,exact key
+sets,uint ranges,canonical resource normalization,output bound,input SHA256
+recalculation and byte-count match. Explicit ownership validation requires
+the exact ownership item keys,strict ID order and count upper bound. Full
+validation retains component counts/health-pair/finite-position checks. Worker
+client must validate the corresponding whole mode schema before publishing a
+result;normalize_state's current frame/resources-only checks are insufficient.
+Apply strict duplicate-key parsing at worker IPC JSON receipt,not after json
+has already discarded duplicates. The coordinator lacks raw snapshot bytes in
+STEP and cannot independently recalculate raw SHA256;validate shape there and
+retain actual raw verification at the decoder boundary. Do not claim stronger
+cryptographic trust in an untrusted worker than these boundaries provide.
+
+SyntheticSimulation supports all modes explicitly for authored protocol/Room
+controls. It retains its existing distinct schema,synthetic_test_backend=True,
+game_data_sha256,frame-1 before STEP,partial primary-only resources and game_state.
+Its full entities=[{id:0,army:0,type:1}],ownership ownership=[same record],and
+summary has neither list. It must negotiate/echo explicit projection identity
+and validate modes just like a native worker,but must NEVER fabricate native
+canonical/raw hashes,counts,byte_count or decoder/DLL identity. Client uses a
+separate strictly validated synthetic schema only when _test_backend was
+explicitly requested/confirmed. Existing environment+CLI test gates remain;
+Rust/native AI requests with synthetic remain refused. Synthetic success is
+not native snapshot/parity evidence.
+
+Room.prepare's current initial full STATE establishes entity_history BEFORE
+InputValidation is constructed. Preserve that ordering. The opt-in worker
+factory selects create(state_mode="ownership");normal defaults stay legacy
+until qualification. Room reads sim.state_mode:for explicit ownership/full,
+initial state is state(31,mode=sim.state_mode);for legacy/old authored doubles,
+retain state(31,include_entities=True). Room refuses summary as its STEP mode:
+it cannot establish command ownership. Each subsequent STEP uses the SAME
+negotiated full/ownership mode and is checked before refresh_native_state.
+
+refresh_native_state must select the mode's validated record list explicitly;
+missing entities/ownership must not silently become an empty list. Full mode
+only updates history for records containing BOTH army and type;ownership
+updates all records. Set history[id]=(army,type) for complete current records.
+Never clear/replace history on an empty list/death,or combine a partial current
+record with a previous record to manufacture a new pair. Complete ownership/
+type change replaces the prior pair at that frame. Partial update leaves the
+previous pair unchanged,matching full-mode baseline. This intentionally retains
+dead IDs so ordinary delayed commands remain native no-ops. A reappearing ID
+with a complete new pair updates it;unknown IDs remain unknown.
+
+InputValidation._execute must continue requiring the lookup pair to equal
+(assigned army,submitted entity type) for EVERY supplied ID/group,alongside
+unchanged identity,deck,ability,bounded IDs,duplicate ID,JoinArmy and forbidden
+CreateEntity/debug/config rules. Empty groups are validated before being
+removed;one empty group cannot hide a later ownership failure. Do not use
+presence in ownership as a replacement for the cumulative lookup. Preserve
+ArrivalScheduler validation/admission/commit ordering;refresh only after the
+completed authoritative frame,never optimistically on submission/cancellation.
+
+SNAPSHOT/raw exports and NativeAI's alliance-specific snapshot_bytes remain
+unchanged. NativeAI.commands sends complete raw frames/labels to the original
+AI runtime every five simulation frames;it does not consume Python entities.
+Compacting server state must never compact or reuse a viewer31 JSON projection
+as AI input. Fresh original AI generation is separately qualified through the
+compact Room path;recorded AI commands alone cannot establish this.
+
+Wine uses the same CREATE/STATE/STEP metadata protocol through its guardian;
+state_mode requires no second path translation or discovery. Keep current
+explicit Windows x64 PE DLL/hash validation,translated worker library path,
+source root pinning,nonce/runtime identity,isolated prefix,cgroup,pidfd/owner
+and cleanup checks. Never load host ELF into the Windows worker. Windows native
+and Wine candidates must prove the same projection handshake and refusals.
+N49's separate owned_cpu_affinity hook does not change state mode. Its initial
+Wine refusal is intentional until a safe pre-CREATE cpuset path exists;no
+Linux CPU-scaling qualification follows from this state contract.
+
+6. CONSUMER AUDIT AND COMPATIBILITY REQUIREMENTS
+
+References below identify baseline functions/nearby lines;line numbers will
+move during integration. All production state readers were traced via state,
+last_state,entities,include_entities,canonical_snapshot and decoder identity.
+
+Producer/consumer                       Fields and required behavior
+server/native_simulation.py:127,385     All summary/components/hashes;add mode
+                                       without changing legacy decoder alias.
+server/rust_snapshot_decoder.py:71,130  Entire native output/ABI1 exact identity;
+                                       add strict v2 validation and capability.
+server/simulation_worker.py:163,222     STEP full today;explicit selection must
+                                       cover first STATE and every STEP.
+server/worker_client.py:84,127,355,383   CREATE identity,frame,resources,last_state;
+                                       validate complete selected schema/echo.
+server/dedicated_server.py:388,625,719   Initial+STEP ownership pairs;game_state
+                                       complete/result;no health/position need.
+server/dedicated_server.py:696           Raw alliance audit then summary hashes,
+                                       counts,resources,result;preserve raw path.
+server/game_data.py:523,593             Cumulative lookup id->(army,type),every
+                                       group/ID;all other authorization intact.
+server/native_ai.py:160                 Raw alliance frames/labels,no JSON need.
+server/worker_ai.py                     AI roster/actions/input digest/cadence;
+                                       raw native AI independent of projection.
+server/wine_worker.py:53,132             Explicit PE/hash/path/owner forwarding.
+server/wine_worker_guardian.py:24        Hash recheck/translated library argv;
+                                       protocol transparent,ownership retained.
+server/verify_dedicated_run.py:173,200   Full entities for new units/builds;raw
+                                       snapshots/full decode remain diagnostic.
+
+Diagnostic groups below MUST stay full/legacy unless separately migrated by
+an explicit tool-specific change. Do not blanket-set create's default to
+ownership or change full-state digest helpers to omit fields:
+
+* tools/benchmark_large_armies.py:state_digest,Workload.update/input generation,
+  frame_metrics,check_replay_state use full entities,position,health/damage,
+  resources and full observable hash. It is the retained Wasp/Crab source.
+* tools/benchmark_hybrid_coordinator.py:worker wrapper/process_frame and live
+  driver population use last_state.entities/HQ positions and full state_digest.
+  tools/benchmark_buffered_coordinator.py also hashes full STEP and compares
+  frame_metrics with prior full last_state. These cannot consume ownership as
+  a drop-in full dictionary or drive position-dependent workloads from it.
+* tools/verify_rust_worker.py and tools/verify_rust_fresh_ai.py compare retained
+  full-frame state digests. tools/capture_snapshot_corpus.py captures raw/full/
+  summary views. tools/verify_rust_snapshot_decoder.py and verify_rust_ffi.py
+  preserve legacy full/summary fixtures,ABI controls and expected signatures.
+* tools/profile_worker_timing.py:instrumentation wraps decoder._decode,_free,
+  _validate_state,json.loads and .info. Its existing _decode hook measures ABI1
+  only;compact instrumentation must ALSO time v2 FFI and retain disjoint
+  accounting/source bindings. Do not label an unwrapped v2 call Rust FFI time.
+* tools/soak_server.py,verify_custom_ownership.py,verify_empty_entity_groups.py,
+  verify_hybrid_flows.py,verify_worker_ai.py and verify_worker_rooms.py build
+  commands from full last_state/entities;legacy default keeps them functional.
+* tools/verify_native_ai.py and verify_bot_strength.py consume full native state
+  for unit selection,health/damage/position;direct legacy API must still work.
+* tools/verify_original_command_scheduling.py,verify_high_latency_clients.py,
+  verify_scheduling_server_ai.py and verify_public_queue.py retain their parsed
+  state/hash comparison scopes. verify_public_queue.py also checks full replica
+  entity health/position and bot production. tools/verify_cosmetic_match.py full
+  STATE remains available before/after stepping. verify_community_native.py
+  checks game_state/result. verify_recovered_game.py selects surrender commands
+  from full entities and records full native-state hashes/results.
+
+Existing full digest intentionally excludes raw_sha256 because separate native
+view acquisitions may change nonsemantic storage. Preserve that exact prior
+scope;do not exclude entities,positions,health,counts or canonical hash to make
+compact match it. New verifier projects a FULL REFERENCE to ownership and
+compares all common fields+ownership,while retaining the full reference digest
+and raw input bindings. For decode of the SAME raw bytes all nine common
+fields,including raw_sha256/byte_count,must match exactly. Across separately
+acquired raw frames,each digest must bind its actual input;do not conceal any
+raw mismatch as schema difference or invent a universal ignored-field list.
+Workload generation requiring positions must retain a full reference/captured
+input journal,not issue extra full queries inside timed compact STEP arms.
+
+7. REQUIRED CONTROLS BEFORE QUALIFICATION
+
+Authored decoder/FFI controls:every mode for empty/sorted/unsorted inputs;
+ID0/uint32max;cross-component union/intersection;disjoint and partial records;
+missing tables;zero-root legacy compatibility;duplicate IDs in EACH selected
+component;bad offsets/strides/vector lengths/overlarge inputs;malformed omitted
+health/position/resources;all NaN signs/payloads and +/-Infinity in explicit
+summary/full/ownership;finite extremes/subnormal/-0. Compare every summary
+field and independent projected ownership for the SAME raw input. Preserve
+legacy ABI1 fixtures,invalid boolean2 refusal,full JSON nonfinite refusal and
+summary nonfinite acceptance. Cover invalid v2 modes,null/misaligned out,
+null/length pairs,error null/0,exact allocation/free,independent outputs,input
+lifetime,output ceiling and panic containment on Windows/native Linux.
+
+Adapter/protocol controls:old library bool full/summary success;explicit mode
+on old library fails;wrong ABI/projection version/missing exports fail;unknown
+mode/mixed boolean refuse;wrong shape/extra/missing keys,duplicate JSON keys,
+bool integers/nonfinite JSON,resource aliases,unsorted/duplicate/incomplete
+ownership,excess count,wrong full counts/health pair/position fail. Cover CREATE
+mode/capability/version omission or spoof,STATE mode/viewer override,initial
+native0xffffffff versus synthetic-1,STEP mismatched mode/frame/input digest,
+no ACK until state succeeds,terminal cleanup/cancellation and legacy callers.
+No synthetic schema is accepted as native or vice versa.
+
+Room/authorization controls:initial history before first command;creation,
+death/delayed command,empty projection,partial owner/type across frames without
+invented pair,complete ownership/type change and reused-ID update;forged army,
+type and unknown ID refusal;valid/empty mixed groups,duplicate IDs,deck/ability/
+identity tampering;all human/bot and cancellation/arrival paths unchanged.
+Show identical acceptance/rejection full versus compact at each boundary.
+
+Retained native parity:reuse N47 Wasp/Crab inputs,no recapture. Compare EVERY
+frame plus initial state,all unchanged fields/checksum semantics,independent
+full ownership projection and full diagnostic availability. Include fresh
+original AI through compact server mode with original input/cadence/identity
+checks. Hash-bind source,input,library,mode/runtime,keep failed evidence and
+prove ordinary process/thread/prefix/cgroup cleanup. Timing/performance gates,
+Linux-specific qualification and rollout remain those of the parent plan;
+the document/API design alone closes none of them.

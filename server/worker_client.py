@@ -14,6 +14,8 @@ import threading
 import time
 
 from . import simulation_worker as ipc
+from .state_projection import (_UNSET, resolve_mode, projection_request, validate_state,
+                               PROJECTION_VERSION, STATE_MODES)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -108,9 +110,17 @@ class SimulationWorker:
         self.native_pid = None
         self.runtime_info = None
         self.decoder_info = None
+        self.state_mode = None
+        self.state_projection_info = None
+        self.state_projection_modes = None
+        self.projection_version = None
+        self.affinity_info = None
         self.frame = -1
         self.game_time_seconds = 0
         self.last_state = None
+        self.last_response_bytes = None
+        self.last_response_metadata_bytes = None
+        self.last_response_payload_bytes = None
         self.failure = None
         self.game_data_sha256 = None
         self.dll_sha256 = None
@@ -124,7 +134,18 @@ class SimulationWorker:
     @classmethod
     async def create(cls, game_data, dll_path=None, *, startup_timeout=120.0, request_timeout=3.0,
                      close_timeout=2.0, working_directory=None, ai=None, _test_backend=False, backend=None,
-                     snapshot_decoder_library=None, snapshot_decoder_sha256=None):
+                     snapshot_decoder_library=None, snapshot_decoder_sha256=None, state_mode=None,
+                     owned_cpu_affinity=None):
+        if state_mode is not None:
+            resolve_mode(mode=state_mode)
+        if owned_cpu_affinity is not None:
+            from .worker_affinity import WindowsWorkerAffinity
+            if type(owned_cpu_affinity) is not WindowsWorkerAffinity:
+                raise ValueError("owned_cpu_affinity requires exact WindowsWorkerAffinity policy")
+            if backend is not None:
+                raise ValueError("Wine owned affinity requires a safe pre-CREATE Linux cpuset; unsupported")
+            if os.name != "nt" or _test_backend:
+                raise ValueError("owned affinity requires native Windows workers")
         if not isinstance(game_data, bytes) or not 1 <= len(game_data) <= ipc.MAX_PAYLOAD:
             raise ValueError("GameData must contain 1..32 MiB of raw bytes")
         if any(not isinstance(value, (int, float)) or not 0 < value <= 600
@@ -171,6 +192,8 @@ class SimulationWorker:
         # private I/O threads block on them; the coordinator event loop does not.
         metadata = {"dll_path": str(Path(dll_path).resolve())} if dll_path is not None else {}
         if ai is not None: metadata['ai'] = ai.wire()
+        if state_mode is not None:
+            metadata["state_projection"] = {"version": PROJECTION_VERSION, "step_mode": state_mode}
         nonce = owner = None
         if backend is None:
             process = subprocess.Popen(args, cwd=working_directory, env=environment,
@@ -198,6 +221,8 @@ class SimulationWorker:
                     except RuntimeError: pass  # Owner still cleans if the event loop has already ended.
                 owner.on_exit(exited)
             if backend is None: worker._job = _WindowsJob(process.pid)
+            if owned_cpu_affinity is not None:
+                worker.affinity_info = owned_cpu_affinity.apply(process)
             async with worker._lock:
                 response, payload = await worker._exchange(ipc.CREATE, -1, metadata, game_data, timeout=startup_timeout)
                 expected = hashlib.sha256(game_data).hexdigest()
@@ -219,6 +244,17 @@ class SimulationWorker:
                 if (decoder_info != expected_decoder or
                         (decoder_path is not None and type(decoder_info.get('abi_version')) is not int)):
                     raise WorkerError('worker snapshot decoder identity mismatch')
+                if state_mode is None:
+                    if "state_projection" in response:
+                        raise WorkerError("unexpected worker state projection selection")
+                else:
+                    try:
+                        selected = projection_request(response.get("state_projection"))
+                    except ValueError as error:
+                        raise WorkerError("worker state projection identity mismatch") from error
+                    if (selected != state_mode or response.get("state_projection_modes") != list(STATE_MODES)
+                            or type(response.get("state_projection_modes")) is not list):
+                        raise WorkerError("worker state projection capability/selection mismatch")
                 runtime_info = response.get('runtime')
                 if backend is not None:
                     if not (isinstance(runtime_info, dict) and runtime_info.get('os_name') == 'nt'
@@ -241,6 +277,10 @@ class SimulationWorker:
                 worker.native_pid = response['pid']
                 worker.runtime_info = runtime_info
                 worker.decoder_info = decoder_info
+                worker.state_projection_info = (dict(response["state_projection"]) if state_mode is not None else None)
+                worker.state_projection_modes = (list(response["state_projection_modes"]) if state_mode is not None else None)
+                worker.state_mode = state_mode
+                worker.projection_version = PROJECTION_VERSION if state_mode is not None else None
                 worker.game_data_sha256 = expected
                 worker.dll_sha256 = response.get("dll_sha256")
             return worker
@@ -314,6 +354,9 @@ class SimulationWorker:
         payload = ipc.read_exact(self.process.stdout, payload_size)
         if flags:
             raise WorkerError(f"worker rejected request: {metadata.get('error')}: {metadata.get('message')}")
+        self.last_response_metadata_bytes = metadata_size
+        self.last_response_payload_bytes = payload_size
+        self.last_response_bytes = ipc.HEADER.size + metadata_size + payload_size
         return metadata, payload
 
     async def _exchange(self, operation, frame, metadata=None, payload=b"", *, timeout=None):
@@ -368,7 +411,15 @@ class SimulationWorker:
                 self._bot_roster.check_frame(actions, self._prepared_bots)
             response, payload = await self._exchange(ipc.STEP, frame, {"dt_ms": step}, actions)
             try:
-                state = normalize_state(response["state"])
+                selected = self.state_mode or "full"
+                expected_keys = {"state", "game_time_seconds", "input_sha256"}
+                if self.state_mode is not None:
+                    expected_keys.update(("state_mode", "state_projection_version"))
+                    self._check_projection_envelope(response, self.state_mode)
+                if response.keys() != expected_keys:
+                    raise WorkerError("worker STEP response keys differ")
+                state = validate_state(response["state"], 31, selected, synthetic=self._test_backend,
+                                       game_data_sha256=self.game_data_sha256, wire=True)
                 seconds = response["game_time_seconds"]
                 if payload or response.get("input_sha256") != hashlib.sha256(actions).hexdigest() or state["frame"] != frame or type(seconds) is not int:
                     raise WorkerError("worker step state/digest mismatch")
@@ -380,11 +431,31 @@ class SimulationWorker:
             self._prepared_bots = None
             return FrameResult(frame, seconds, state)
 
-    async def state(self, viewer=31, *, include_entities=False):
+    def _check_projection_envelope(self, response, mode):
+        if (response.get("state_mode") != mode
+                or type(response.get("state_projection_version")) is not int
+                or response["state_projection_version"] != self.projection_version):
+            raise WorkerError("worker state projection envelope mismatch")
+
+    async def state(self, viewer=31, *, include_entities=_UNSET, mode=None):
+        selected = resolve_mode(include_entities, mode)
+        if type(viewer) is not int or not 0 <= viewer <= 31:
+            raise ValueError("viewer must be in0..31")
+        if mode is not None and self.state_mode is None:
+            raise ValueError("explicit STATE requires negotiated projection")
+        metadata = {"viewer": viewer, "mode": mode} if mode is not None else {
+            "viewer": viewer, "include_entities": selected == "full"}
         async with self._lock:
-            response, payload = await self._exchange(ipc.STATE, self.frame, {"viewer": viewer, "include_entities": include_entities})
+            response, payload = await self._exchange(ipc.STATE, self.frame, metadata)
             try:
-                state = normalize_state(response["state"])
+                if mode is not None:
+                    self._check_projection_envelope(response, mode)
+                expected_keys = ({"state", "state_mode", "state_projection_version"}
+                                 if mode is not None else {"state"})
+                if response.keys() != expected_keys:
+                    raise WorkerError("worker STATE response keys differ")
+                state = validate_state(response["state"], viewer, selected, synthetic=self._test_backend,
+                                       game_data_sha256=self.game_data_sha256, wire=True)
                 expected = 0xFFFFFFFF if self.frame == -1 and not self._test_backend else self.frame
                 if payload or state["frame"] != expected: raise WorkerError("state frame differs")
                 return state

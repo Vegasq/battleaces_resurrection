@@ -13,6 +13,7 @@ from pathlib import Path
 import re
 
 from .native_simulation import RESOURCE_NAMES
+from .state_projection import _UNSET, resolve_mode, PROJECTION_VERSION, STATE_MODES
 
 ABI_VERSION = 1
 MAX_INPUT = 16 * 1024 * 1024
@@ -68,16 +69,20 @@ def _refuse_constant(value):
     raise RustDecoderError("invalid Rust decoder output: nonfinite JSON")
 
 
-def _validate_state(state, raw, viewer, include_entities):
+def _validate_state(state, raw, viewer, include_entities=_UNSET, *, mode=None):
+    selected = resolve_mode(include_entities, mode)
     keys = {"frame", "viewer", "local_alliance", "canonical_fnv1a64", "raw_sha256",
             "byte_count", "counts", "resources", "game_state"}
-    if include_entities:
-        keys.add("entities")
+    if selected != "summary":
+        keys.add("entities" if selected == "full" else "ownership")
     _require(type(state) is dict and state.keys() == keys, "state keys")
     _require(all(_integer(state[k]) for k in ("frame", "viewer", "local_alliance")), "state integers")
     _require(state["viewer"] == viewer, "viewer differs")
-    _require(type(state["byte_count"]) is int and state["byte_count"] == len(raw), "byte count differs")
-    _require(state["raw_sha256"] == hashlib.sha256(raw).hexdigest(), "snapshot digest differs")
+    _require(_integer(state["byte_count"], 0, MAX_INPUT), "byte count")
+    _require(type(state["raw_sha256"]) is str and _HEX64.fullmatch(state["raw_sha256"]), "snapshot digest")
+    if raw is not None:
+        _require(state["byte_count"] == len(raw), "byte count differs")
+        _require(state["raw_sha256"] == hashlib.sha256(raw).hexdigest(), "snapshot digest differs")
     _require(type(state["canonical_fnv1a64"]) is str and
              _HEX16.fullmatch(state["canonical_fnv1a64"]), "canonical digest")
     counts = state["counts"]
@@ -101,7 +106,7 @@ def _validate_state(state, raw, viewer, include_entities):
                  all(_integer(v, -(1 << 31), (1 << 31)-1) for v in values.values()), "resource values")
         normalized[entity] = values
     state["resources"] = normalized
-    if include_entities:
+    if selected == "full":
         entities = state["entities"]
         _require(type(entities) is list and len(entities) <= sum(counts[k] for k in ("army", "type", "health", "position")),
                  "entity list")
@@ -124,7 +129,22 @@ def _validate_state(state, raw, viewer, include_entities):
             for key, exists in zip(observed, present):
                 observed[key] += exists
         _require(all(counts[k] == v for k, v in observed.items()), "entity component counts")
+    elif selected == "ownership":
+        records = state["ownership"]
+        _require(type(records) is list and len(records) <= min(counts["army"], counts["type"]),
+                 "ownership count")
+        previous = -1
+        for item in records:
+            _require(type(item) is dict and item.keys() == {"id", "army", "type"}
+                     and all(_integer(v) for v in item.values()), "ownership record")
+            _require(item["id"] > previous, "ownership order/ID")
+            previous = item["id"]
     return state
+
+
+# The worker checks the same schema at a separate boundary. Keep this stable
+# alias distinct from the Rust adapter's instrumented validation call site.
+validate_state_shape = _validate_state
 
 
 class RustSnapshotDecoder:
@@ -144,19 +164,41 @@ class RustSnapshotDecoder:
                 raise RustDecoderError("snapshot decoder ABI version mismatch")
         except (OSError, AttributeError) as error:
             raise RustDecoderError("cannot load snapshot decoder library/exports") from error
+        # Optional exports are additive; a present unsupported version is never ignored.
+        self._decode_v2 = getattr(self._library, "ba_decode_snapshot_v2", None)
+        projection = getattr(self._library, "ba_snapshot_decoder_projection_version", None)
+        self.projection_version = None
+        if projection is not None:
+            projection.argtypes, projection.restype = [], C.c_uint32
+            if projection() != PROJECTION_VERSION:
+                raise RustDecoderError("snapshot decoder projection version mismatch")
+        if self._decode_v2 is not None and projection is not None:
+            self._decode_v2.argtypes = [C.POINTER(C.c_uint8), C.c_size_t, C.c_uint32,
+                                       C.c_uint32, C.POINTER(_Buffer)]
+            self._decode_v2.restype = C.c_int32
+            self.projection_version = PROJECTION_VERSION
         self.info = {"implementation": "rust", "abi_version": ABI_VERSION,
                      "library_sha256": expected_sha256, "library_path": str(path)}
 
-    def decode(self, raw, viewer=31, *, include_entities=False):
+    def decode(self, raw, viewer=31, *, include_entities=_UNSET, mode=None):
+        try:
+            selected = resolve_mode(include_entities, mode)
+        except ValueError as error:
+            raise RustDecoderError(str(error)) from error
+        if mode is not None and self.projection_version != PROJECTION_VERSION:
+            raise RustDecoderError("snapshot decoder lacks requested projection capability")
         if type(raw) is not bytes or len(raw) > MAX_INPUT:
             raise RustDecoderError("snapshot must be bytes of at most16MiB")
-        if type(viewer) is not int or not 0 <= viewer <= 0xffffffff or type(include_entities) is not bool:
+        if type(viewer) is not int or not 0 <= viewer <= 0xffffffff:
             raise RustDecoderError("invalid snapshot viewer/include_entities")
         # The bytes object is immutable and remains alive until the FFI call ends.
         source = C.cast(C.c_char_p(raw), C.POINTER(C.c_uint8))
         output = _Buffer()
         try:
-            status = self._decode(source, len(raw), viewer, int(include_entities), C.byref(output))
+            if mode is None:
+                status = self._decode(source, len(raw), viewer, int(selected == "full"), C.byref(output))
+            else:
+                status = self._decode_v2(source, len(raw), viewer, STATE_MODES.index(mode), C.byref(output))
             if status != 0:
                 raise RustDecoderError(f"Rust snapshot decoder failed, status{status}")
             _require(bool(output.data) and 0 < output.len <= MAX_OUTPUT, "buffer pointer/length")
@@ -166,7 +208,9 @@ class RustSnapshotDecoder:
                                    object_pairs_hook=_unique_object)
             except (ValueError, UnicodeError, RecursionError) as error:
                 raise RustDecoderError("invalid Rust decoder JSON") from error
-            return _validate_state(state, raw, viewer, include_entities)
+            if mode is None:
+                return _validate_state(state, raw, viewer, selected == "full")
+            return _validate_state(state, raw, viewer, mode=mode)
         finally:
             if output.data:
                 status = self._free(output.data, output.len)
