@@ -79,6 +79,9 @@ class RustWorkerVerifierTests(unittest.TestCase):
         self.stack.enter_context(mock.patch.object(w.v.fixtures, 'json_refusal_cases', return_value=[
             dict(name='bad-json', raw=b'invalid3', viewer=31, include_entities=True)]))
         self.calls, self.receipt_hook, self.after_write_hook = [], None, None
+        # The benchmark runner and its native-platform preflight form one mocked
+        # boundary. The verifier's own path/output validation remains real.
+        self.stack.enter_context(mock.patch.object(w.b, 'validate_args'))
         self.stack.enter_context(mock.patch.object(w.b, 'run', side_effect=self.fake_benchmark))
 
     async def fake_benchmark(self, options):
@@ -121,6 +124,15 @@ class RustWorkerVerifierTests(unittest.TestCase):
         self.assertEqual(len(report['pairs']), 3)
         self.assertEqual(report['authored'], {'valid': 1, 'refused': 3})
         self.assertFalse(report['performance_acceptance_evaluated'])
+
+    def test_orchestration_does_not_depend_on_native_benchmark_platform(self):
+        # Patch only the benchmark module's reference, never global os.name or
+        # pathlib's host selection. This also exercises the Linux CI boundary.
+        with mock.patch.object(w.b, 'os', SimpleNamespace(name='posix')):
+            code, report = self.run_verifier()
+        self.assertEqual(code, 0)
+        self.assertTrue(report['passed'])
+        self.assertEqual(len(self.calls), 6)
 
     def test_missing_or_wrong_backend_identity_is_rejected(self):
         values = [None, {'implementation': 'python'},
