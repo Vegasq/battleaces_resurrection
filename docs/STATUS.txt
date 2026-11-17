@@ -1,4 +1,13 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-17UTC N46 FUNCTIONAL RUST/WINE PASS:explicit decoder identity travels
+through owned guardian;fresh originalAI and all1823states match on Windows and
+Linux/Wine for both decoder arms. Linux lifecycle36controls pass. Exploratory
+five-minute maximum-army publication improves9.88Hz Python->13.04Hz Rust,while
+still failing20Hz and retaining497gaps>100ms. Exact applied-arrival pair differs;
+no full performance/player acceptance. CI44125808029/44125808050 passes;Windows
+each1866tests/112skips,launcher/history audits green. All41evidence files verify;
+temporary VM/firewall/tag and cleanup task removed. Default/live hosts unchanged.
+Scope,raw receipts and remaining profile target:rust-wine-worker.txt.
 2026-11-17UTC N45 WORKER INTEGRATION PASS:explicit hash-bound Rust library now
 decodes state inside opted-in native workers. Twelve alternating replays check
 20310frames with zero observable mismatches and normal cleanup. Median combat

@@ -20,11 +20,13 @@ COMPLETE - N45 ISOLATED RUST DECODER INTEGRATION
 [x] Finish native Linux library and complete compatibility CI.
 Scope:rust-worker-integration.txt. Live services remain unchanged.
 
-N46 - RUST DECODER WINE WORKER AND FRESH AI
+N46 - FUNCTIONAL RUST/WINE QUALIFIED;LARGE-ARMY CADENCE STILL FAILS
 [x] Carry explicit DLL/hash through the owned Wine guardian;retain identity/cleanup.
 [x] Qualify fresh original AI and every state on Windows and actual Linux/Wine.
-[ ] Complete an isolated paired publication comparison and record failures/limits.
-[ ] Complete compatibility CI,download evidence and delete temporary resources.
+[x] Complete an isolated paired publication comparison and record failures/limits.
+[!] Maximum-army trial improves9.88->13.04Hz but misses20Hz;497gaps>100ms remain.
+[x] Complete compatibility CI,download evidence and delete temporary resources.
+[ ] Next:profile remaining worker cost before another performance qualification.
 [ ] Later:full repeated RTT/concurrency/resource matrix and player acceptance.
 Scope:rust-wine-worker.txt. Default launchers/live services remain unchanged.
 

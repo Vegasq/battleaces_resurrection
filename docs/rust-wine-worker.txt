@@ -27,6 +27,10 @@ Linux/Wine fresh-ai-linux01 also PASS on the isolated1vCPU/1GiB benchmark host:
 both arms match1823frames and close normally. Runtime:Ubuntu24.04 system
 Python3.12.3 coordinator,Wine9.0,private Windows Python3.14.8 worker. This is
 correctness evidence,not a timing or Internet-gameplay qualification.
+Linux report:local/rust-wine-20261117/download01/app-rust01/local/fresh-ai-linux01/verification.json
+SHA256:3f329590e684b949fa78e235686aa62b0a7905639c289f5f6ea47e006851840b
+Both Linux arms generate463post-join bot actions and remove owned prefix/cgroup;
+source,library and inputs remain unchanged.
 Authored Linux guardian/lifecycle controls36tests PASS in19.636seconds,including
 the new decoder forwarding/mismatched-identity cleanup case. These use an
 authored protocol peer;the separate fresh-AI run uses the actual original DLLs.
@@ -42,10 +46,64 @@ Private scripts/plan and raw receipts:local/rust-wine-20261117/.
 One pair cannot supply the original three-pair/network/concurrency/player gates.
 Arrival scheduling can change applied command frames;the exact-pair audit must
 remain visible rather than treating independently arriving commands as identical.
-Results pending. No performance acceptance or perceived-lag fix is claimed.
+Both five-minute arms complete with native workload/identity/source/resource
+coverage checks. One pair is exploratory;it fails the mandatory20Hz cadence
+target and cannot qualify the remaining network/concurrency/player matrix.
+
+Metric                          Python decoder       Rust decoder
+Publication Hz                         9.8767            13.0400
+Published frames                        2963               3912
+Publication gap p95 ms                167.592            143.310
+Publication gap p99 ms                215.479            189.144
+Gaps above100ms                           909                497
+Worker startup seconds                 4.842              5.527
+Peak test-cgroup memory MiB           429.016            428.867
+
+The Rust arm publishes about32percent more frames in this trial but still has
+497gaps above100ms. Both retain>=128MiB host-available memory with no observed
+swap or OOM. The observer fully covers both child lifetimes and stays outside
+their event loops. Raw benchmark resource gates remain false;separate driver
+receipts qualify the resource coverage rather than rewriting those raw gates.
+Applied command frames/arrival sequences differ between live TLS runs;the
+exact-pair audit is false and retained. This is not an identical-input causal
+coordinator-latency result. N45's identical-input replay proof remains separate.
+No perceived-lag fix,full performance acceptance or rollout is claimed.
+Private pair receipt:local/rust-wine-20261117/download01/maximum-1-0-rust01-pair01-pair.json
+All raw benchmark/event/observer/driver receipts are retained in that download.
+
+COMPATIBILITY
+Implementation0cd9a86 on feature/rust-snapshot-decoder passes Linux CI44125808029
+and Windows CI44125808050. Linux:8Rust tests,67Python controls,and actual native
+shared-library ABI32valid/290refused/1000ownershipcycles. Windows Python3.12
+and3.14.8 each pass1866tests/112skips;launcher and4572-entry history audits pass
+with9exact historical reviews and zero failures. The additional Windows skip
+is the Linux guardian lifecycle case separately exercised on the benchmark VM.
+https://github.com/Vegasq/battleaces_resurrection/actions/runs/44125808029
+https://github.com/Vegasq/battleaces_resurrection/actions/runs/44125808050
+Retained logs:local/rust-wine-20261117/linux-ci44125808029.log and
+windows-ci44125808050.log;Windows log SHA256:
+a4d374caa6b16abd431ea15543aac03fb887ac1b893a4a660592681e13a7128a
 
 RESOURCE SCOPE
 Nick approved one temporary benchmark VM up toUSD1 compute,with deletion after
 downloaded evidence or within72hours. Its resources are independent of both live
 regional hosts. Private DEV.txt N46-LINUXENV holds approval/IDs/deadline/receipts.
 No public game/dashboard listeners or live service changes are part of this work.
+Completed2026-11-17T16:39Z:all41 diagnostic files downloaded and hash-verified,
+then temporary VM/firewall/tag deleted and their absence verified via API. Both
+excluded live VM IDs remain present. Owned local deadline-cleanup task removed.
+Approximate computeUSD0.003807(excludes taxes/transfer;not an invoice).
+Archive:local/rust-wine-20261117/rust-wine-evidence01.zip,5635907bytes,SHA256:
+ee4a04c4d883273af8ec38c08c4a235c0b99a65671c1296fc2480107f0cefdd9
+Receipts:evidence-downloaded.json,final-cloud-verification01.json and
+final-scheduled-task-verification01.json in the same private directory.
+Initial cleanup returned before asynchronous deletion appeared in list output;
+failed source is preserved. Bounded read-only confirmation polling was added;
+the final API audit verifies all three resources absent. No live target changed.
+
+NEXT
+Retain the functional Rust/Wine integration. Profile remaining worker cost on
+this candidate before another qualification attempt. The earlier N43 profile
+places the largest cost in original native simulation;its post-Rust share is
+not measured by this publication trial. Full repeated pairs,network/concurrency
+coverage and a prepared human test remain open for a qualifying candidate.
