@@ -356,6 +356,10 @@ def validate_args(args):
 
 async def create_worker(args, data, output, *, ai=None, backend=None):
     kwargs = dict(working_directory=output, ai=ai, startup_timeout=120, request_timeout=10, close_timeout=3)
+    if getattr(args, 'snapshot_decoder_library', None):
+        require(not args.profile_worker and backend is None, 'decoder experiment requires unprofiled native worker')
+        kwargs.update(snapshot_decoder_library=args.snapshot_decoder_library,
+                      snapshot_decoder_sha256=args.snapshot_decoder_sha256)
     if args.profile_worker:
         from tools.profile_worker_timing import create_profiled_worker
         return await create_profiled_worker(data, args.assets/'Simulation.dll', profile_path=args.output/'worker-profile.json',
@@ -439,6 +443,7 @@ async def run(args):
                           native_worker_pid=getattr(worker, 'native_pid', worker.pid),
                           worker_runtime=getattr(worker, 'runtime_info', None),
                           simulation_sha256=worker.dll_sha256, ai=worker.ai_info)
+            report['snapshot_decoder'] = getattr(worker, 'decoder_info', None)
             prior, paced_start = None, time.perf_counter()
             replay_stream = (args.replay/'frames.bin').open('rb') if args.replay else None
             try:
@@ -566,6 +571,8 @@ def main():
     parser.add_argument('--wine-prefix-template', type=Path, help='prepared private Wine worker template')
     parser.add_argument('--wine-cgroup-parent', type=Path, help='delegated cgroup2 parent for owned workers')
     parser.add_argument('--replay', type=Path, help='completed benchmark directory; exact recorded inputs, no AI regeneration')
+    parser.add_argument('--snapshot-decoder-library', type=Path, help='explicit experimental Rust decoder library')
+    parser.add_argument('--snapshot-decoder-sha256', help='required exact experimental decoder identity')
     args = parser.parse_args()
     validate_args(args)
     return asyncio.run(run(args))

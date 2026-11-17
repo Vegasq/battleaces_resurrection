@@ -160,8 +160,14 @@ class SyntheticSimulation:
             threading.Event().wait()
 
 
-def serve(source, sink, *, test_backend=False):
-    simulation, ai, last_request = None, None, 0
+def serve(source, sink, *, test_backend=False, snapshot_decoder_library=None, snapshot_decoder_sha256=None):
+    simulation, ai, last_request, decoder = None, None, 0, None
+
+    def state(viewer=31, *, include_entities=False):
+        if decoder is None:
+            return simulation.state(viewer, include_entities=include_entities)
+        return decoder.decode(simulation.snapshot_bytes(viewer), viewer, include_entities=include_entities)
+
     try:
         while True:
             message = read_message(source)
@@ -181,6 +187,11 @@ def serve(source, sink, *, test_backend=False):
                     if nonce is not None:
                         require(not test_backend and isinstance(nonce, str) and len(nonce) == 64
                                 and all(c in '0123456789abcdef' for c in nonce), 'invalid native worker nonce')
+                    if snapshot_decoder_library is not None or snapshot_decoder_sha256 is not None:
+                        require(not test_backend and os.name == 'nt' and struct.calcsize('P') == 8,
+                                'Rust snapshot decoder requires a native Windows x64 worker')
+                        from .rust_snapshot_decoder import RustSnapshotDecoder
+                        decoder = RustSnapshotDecoder(snapshot_decoder_library, snapshot_decoder_sha256)
                     if test_backend:
                         simulation = SyntheticSimulation(payload)
                     else:
@@ -191,6 +202,7 @@ def serve(source, sink, *, test_backend=False):
                         ai = WorkerAI(simulation, payload, AISetup.from_wire(metadata['ai']))
                     response = {"pid": os.getpid(), "game_data_sha256": simulation.game_data_sha256,
                                 "dll_sha256": simulation.dll_sha256, "synthetic_test_backend": test_backend,
+                                "snapshot_decoder": decoder.info if decoder is not None else {"implementation": "python"},
                                 "ai": ai.info if ai is not None else None,
                                 "runtime": {"python_version": sys.version, "implementation": sys.implementation.name,
                                             "executable": sys.executable, "platform": sys.platform,
@@ -207,10 +219,10 @@ def serve(source, sink, *, test_backend=False):
                         if ai is not None: ai.before_step(frame, payload)
                         seconds = simulation.process_frame(payload, dt_ms=input_dt)
                         # No ACK is emitted until step AND authoritative state retrieval succeed.
-                        state = simulation.state(31, include_entities=True)
-                        require(state["frame"] == frame, "native snapshot frame differs from completed step")
+                        snapshot_state = state(31, include_entities=True)
+                        require(snapshot_state["frame"] == frame, "native snapshot frame differs from completed step")
                         if ai is not None: ai.after_step()
-                        response = {"game_time_seconds": seconds, "state": state,
+                        response = {"game_time_seconds": seconds, "state": snapshot_state,
                                     "input_sha256": hashlib.sha256(payload).hexdigest()}
                     elif operation == BOT_INPUT:
                         require(ai is not None and frame == simulation.frame + 1 and not payload and not metadata,
@@ -225,7 +237,7 @@ def serve(source, sink, *, test_backend=False):
                         if operation == STATE:
                             include_entities = metadata.get("include_entities", False)
                             require(type(include_entities) is bool, "include_entities must be boolean")
-                            response = {"state": simulation.state(viewer, include_entities=include_entities)}
+                            response = {"state": state(viewer, include_entities=include_entities)}
                         elif operation == SNAPSHOT:
                             response_payload = simulation.snapshot(viewer)
                             require(len(response_payload) <= 16 * 1024 * 1024, "snapshot exceeds limit")
@@ -267,12 +279,16 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stdio", action="store_true", required=True)
     parser.add_argument("--test-backend", action="store_true")
+    parser.add_argument("--snapshot-decoder-library")
+    parser.add_argument("--snapshot-decoder-sha256")
     args = parser.parse_args(argv)
     if args.test_backend and os.environ.get("BA_ENABLE_SYNTHETIC_WORKER_TESTS") != "1":
         parser.error("synthetic backend requires explicit test environment gate")
     sink = isolate_protocol_stdout()
     try:
-        return serve(sys.stdin.buffer, sink, test_backend=args.test_backend)
+        return serve(sys.stdin.buffer, sink, test_backend=args.test_backend,
+                     snapshot_decoder_library=args.snapshot_decoder_library,
+                     snapshot_decoder_sha256=args.snapshot_decoder_sha256)
     except Exception as error:
         print(f"Simulation worker failed: {type(error).__name__}: {error}", file=sys.stderr, flush=True)
         return 2

@@ -47,6 +47,8 @@ def source_hashes():
              'tests/snapshot_decoder_fixtures.py', 'rust/snapshot-decoder/Cargo.toml',
              'rust/snapshot-decoder/Cargo.lock', 'rust/snapshot-decoder/src/lib.rs',
              'rust/snapshot-decoder/src/main.rs']
+    names.extend(p.relative_to(ROOT).as_posix() for p in sorted((CRATE/'src').glob('*.rs'))
+                 if p.relative_to(ROOT).as_posix() not in names)
     return {name: sha((ROOT / name).read_bytes()) for name in names}
 
 

@@ -1,0 +1,72 @@
+BATTLE ACES - N45 ISOLATED RUST DECODER WORKER INTEGRATION
+Updated:2026-11-17UTC. Qualification in progress;default runtime stays Python.
+
+SCOPE
+Continue N44 by loading the Rust decoder into an explicitly opted-in native
+Windows worker. The original simulation DLL,thread ownership,worker process,
+request protocol and terminal-error/cleanup behavior are retained. Only state
+decoding at the worker boundary changes. The Rust DLL returns strict JSON which
+Python parses before the existing worker response is serialized. Whole-worker
+measurements therefore include that conversion cost and normal pipe IPC.
+
+The parent requires an absolute library path and exact SHA256,then checks the
+worker's reported implementation,ABI version and loaded library identity. No
+silent fallback is allowed. Normal launchers do not supply the experiment flag.
+Standalone FFI validation also runs against a native Linux shared library;
+native game worker integration currently requires Windows. This does not
+recompile the original simulation DLL into a Linux binary.
+
+BOUNDARIES
+Rust ABI1 borrows snapshot bytes for one call and returns a pointer/length to
+owned JSON. The Python adapter always releases a successful output allocation
+through the same library. Decode/refusal statuses are explicit;unwinding panics
+are caught. Invalid foreign pointers,double frees,allocator aborts and a hostile
+library cannot be made safe by this ABI. Input<=16MiB and JSON<=64MiB;intermediate
+decoded-map allocation still requires a production memory budget. Use only the
+source-owned hash-bound library and owned diagnostic inputs.
+
+QUALIFICATION
+- Rust ABI controls:argument rejection,strict JSON,allocation/free and panic
+  containment;clippy warnings-denied and formatting checks.
+- Python controls:library identity/ABI,buffer release on all paths,no fallback,
+  parent/worker handshake and synthetic/backend restrictions.
+- Actual FFI comparison on authored fixtures and all retained native snapshots
+  from N44,in both full and summary modes. Exact finite floats/negative0 match.
+- Three alternating Python/Rust pairs per retained native workload. Recorded
+  AI commands are replayed,not regenerated. Every observable state at every
+  frame must match its journal;this does not cover hidden DLL state.
+- Bind source/library/journal/assets/capture identities before and after;
+  require ordinary worker exit0,closed threads and no worker failure.
+- Compare step RPC and startup per same-machine pair. Unpaced RPC measurements
+  are worker cost evidence,not Internet20Hz publication or player acceptance.
+
+Commands from repository root after a pinned release build:
+  cargo +1.98.1 build --release --locked --manifest-path rust/snapshot-decoder/Cargo.toml
+  python -B -m tools.verify_rust_ffi --library rust/snapshot-decoder/target/release/ba_snapshot_decoder.dll
+  python -B -m tools.verify_rust_worker --library rust/snapshot-decoder/target/release/ba_snapshot_decoder.dll --corpus local/rust-decoder-20261117/corpus-wasp-team4-01 --corpus local/rust-decoder-20261117/corpus-crab-ai-large-01 --output local/rust-worker-20261117/verify01 --pairs 3
+On Linux the authored FFI check uses libba_snapshot_decoder.so. The worker
+verifier is Windows-only and requires private retained corpora;never public CI.
+
+RESULTS
+Windows verify01 PASS:three alternating pairs per corpus,twelve owned replays,
+20310frames matching all retained observable states. All workers exit0 with no
+failure and closed threads. Source/library/corpus/journals/assets are unchanged.
+Authored FFI32valid/290refused and1000allocation/free cycles also pass. Rust8tests,
+fmt/clippy pass;Python adapter/worker regression78tests/19skips pass.
+Library SHA256:135b53056f34c9e87e5561254762792d24fef483fe74e7e4642bd81e61ab99b1
+Source-owned pinned release Cargo receipt:local/rust-worker-20261117/cargo-build01.jsonl
+Native results:local/rust-worker-20261117/verify01/verification.json
+
+Whole-worker STEP RPC milliseconds,median of three per-run summaries:
+Workload/phase     Python mean  Rust mean  Python p95  Rust p95
+Wasp movement          28.251     18.511      39.525     29.287
+Wasp combat            39.530     30.053      56.661     45.630
+Crab/AI movement        8.373      5.852      10.444      8.048
+Crab/AI combat         13.412     10.976      16.563     14.205
+Every pair improves mean combat time. Wasp combat still has a median15/600
+STEP calls above50ms with Rust(99/600Python);p99 remains54.378ms. This is an
+unpaced Windows worker comparison,including FFI/JSON conversion and pipe IPC.
+It does not establish the N43 Linux1vCPU20Hz/publication/network/player gates.
+Crab/AI uses recorded AI inputs;fresh-AI integration remains a separate check.
+Native Linux library and complete compatibility CI are pending.
+No server deployment,release,user install or new cloud VM is part of this work.

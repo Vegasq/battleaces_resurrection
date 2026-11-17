@@ -1,6 +1,10 @@
 //! Decoder for the selected observable state in server/native_simulation.py.
 //! This module does not load game binaries or advance a simulation.
-#![forbid(unsafe_code)]
+#![deny(unsafe_code)]
+
+// Pointer ownership is confined to the opt-in C ABI; the decoder stays safe Rust.
+#[allow(unsafe_code)]
+pub mod ffi;
 
 use serde::{Serialize, Serializer};
 use sha2::{Digest, Sha256};

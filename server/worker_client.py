@@ -107,6 +107,7 @@ class SimulationWorker:
         self._backend_owner = None
         self.native_pid = None
         self.runtime_info = None
+        self.decoder_info = None
         self.frame = -1
         self.game_time_seconds = 0
         self.last_state = None
@@ -122,12 +123,19 @@ class SimulationWorker:
 
     @classmethod
     async def create(cls, game_data, dll_path=None, *, startup_timeout=120.0, request_timeout=3.0,
-                     close_timeout=2.0, working_directory=None, ai=None, _test_backend=False, backend=None):
+                     close_timeout=2.0, working_directory=None, ai=None, _test_backend=False, backend=None,
+                     snapshot_decoder_library=None, snapshot_decoder_sha256=None):
         if not isinstance(game_data, bytes) or not 1 <= len(game_data) <= ipc.MAX_PAYLOAD:
             raise ValueError("GameData must contain 1..32 MiB of raw bytes")
         if any(not isinstance(value, (int, float)) or not 0 < value <= 600
                for value in (startup_timeout, request_timeout, close_timeout)):
             raise ValueError("worker timeouts must be in (0,600] seconds")
+        decoder_path = None
+        if snapshot_decoder_library is not None or snapshot_decoder_sha256 is not None:
+            if _test_backend or backend is not None or os.name != 'nt':
+                raise ValueError('Rust snapshot decoder requires a native Windows worker without a Wine backend')
+            from .rust_snapshot_decoder import verified_library_path
+            decoder_path = verified_library_path(snapshot_decoder_library, snapshot_decoder_sha256)
         if backend is not None:
             from .wine_worker import WineWorkerBackend
             if not isinstance(backend, WineWorkerBackend) or _test_backend:
@@ -147,6 +155,9 @@ class SimulationWorker:
         # select a different worker. Works with a relocated embeddable runtime too.
         bootstrap = "import runpy,sys;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('server.simulation_worker',run_name='__main__')"
         args = [sys.executable, "-I", "-S", "-B", "-u", "-c", bootstrap, str(ROOT), "--stdio"]
+        if decoder_path is not None:
+            args.extend(['--snapshot-decoder-library', str(decoder_path),
+                         '--snapshot-decoder-sha256', snapshot_decoder_sha256])
         working_directory = Path(working_directory).resolve() if working_directory is not None else ROOT
         if not working_directory.is_dir(): raise ValueError('worker working directory must already exist')
         environment = os.environ.copy()
@@ -197,6 +208,12 @@ class SimulationWorker:
                     raise WorkerError("worker CREATE identity/digest mismatch")
                 if response.get("synthetic_test_backend") is not bool(_test_backend):
                     raise WorkerError("unexpected worker backend")
+                decoder_info = response.get('snapshot_decoder', {'implementation': 'python'})
+                expected_decoder = ({'implementation': 'rust', 'abi_version': 1,
+                                     'library_sha256': snapshot_decoder_sha256, 'library_path': str(decoder_path)}
+                                    if decoder_path is not None else {'implementation': 'python'})
+                if decoder_info != expected_decoder:
+                    raise WorkerError('worker snapshot decoder identity mismatch')
                 runtime_info = response.get('runtime')
                 if backend is not None:
                     if not (isinstance(runtime_info, dict) and runtime_info.get('os_name') == 'nt'
@@ -218,6 +235,7 @@ class SimulationWorker:
                 worker.ai_info, worker._bot_roster = ai_info, roster
                 worker.native_pid = response['pid']
                 worker.runtime_info = runtime_info
+                worker.decoder_info = decoder_info
                 worker.game_data_sha256 = expected
                 worker.dll_sha256 = response.get("dll_sha256")
             return worker

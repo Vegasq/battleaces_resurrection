@@ -28,11 +28,13 @@ jobs:
       - name: Check decoder lints
         run: cargo +1.98.1 clippy --locked --all-targets --manifest-path rust/snapshot-decoder/Cargo.toml -- -D warnings
       - name: Check parity verifier and private corpus controls
-        run: python -B -m unittest tests.test_rust_snapshot_decoder tests.test_snapshot_corpus tests.test_repository_audit -q
+        run: python -B -m unittest tests.test_rust_snapshot_decoder tests.test_snapshot_corpus tests.test_repository_audit tests.test_rust_worker_decoder tests.test_rust_worker_verifier -q
       - name: Build native Linux release executable
         run: |
           cargo +1.98.1 build --release --locked --manifest-path rust/snapshot-decoder/Cargo.toml
           file rust/snapshot-decoder/target/release/ba-snapshot-decode
+      - name: Verify native Linux library ABI with authored fixtures
+        run: python -B -m tools.verify_rust_ffi --library rust/snapshot-decoder/target/release/libba_snapshot_decoder.so
       # This verifier generates authored fixtures. Original game assets and
       # captured native snapshots are never supplied to this public CI job.
       - name: Verify authored parity and benchmark the decoder
