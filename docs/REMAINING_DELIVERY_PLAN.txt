@@ -4,27 +4,43 @@ Updated:2026-11-17. Final release acceptance remains OPEN.
 [!] means a measured failure of the acceptance target.
 Prior baseline queue preserved at history/2026-11-15/scheduling-ai-base-plan.txt.
 
-N48 - COMPACT SERVER STATE
-[x] Record the task plan,model/effort routing,dependencies and acceptance gates.
+NEXT - ORIGINAL SIMULATION COST / LARGE-ARMY TAIL LATENCY
+[ ] Investigate original simulation cost/tails before another end-to-end20Hz run.
+N48/N49 below are complete at scoped candidate/measurement level. On the test VM,
+compact Wasp combat still averages59.7ms;two-core native profiling has81.1ms p95.
+A complete20Hz update has50ms. No Wine penalty,capacity or perceived-lag fix is
+established. Later matrix remains in linux-native-coordinator-acceptance.txt.
+Live deployment,resizing,installer/release replacement and any new billable
+resource require their separate concrete later decision;none is requested now.
+
+COMPLETE - N48 COMPACT SERVER STATE CANDIDATE
+[x] Record task plan,model/effort routing,dependencies and acceptance gates.
 [x] T1:freeze ownership/full/summary contract and audit every state consumer.
 [x] T2/T3:implement explicit Rust projection and Python/worker/server integration.
-[ ] T4:qualify every replay frame,ownership/command checks and fresh AI.
+[x] T4:qualify every replay frame,ownership/command checks and fresh AI.
 [x] T6:complete independent native-interface and command-validation review.
-[ ] T7:measure three alternating pairs,complete compatibility CI and record results.
+[x] T7:three alternating full/compact pairs per workload on Windows and Linux.
+[x] Qualify actual compact Room/AI,disjoint profiles and compatibility CI.
+[x] Verify evidence download and delete exact temporary resources/task.
+All1562Wasp/1823Crab frames match per arm;all defined mean/p95 gates pass.
+Linux Wasp combat median pair mean79.074->59.691ms;JSON work falls68.28percent.
+Full diagnostics/legacy ABI/default selection remain. Explicit candidate only.
 Model routing:Sol6.1 high for contract/integration,medium for tooling/tests;
-one bounded Astra6 high review. Scope:compact-state-and-cpu-plan.txt.
-Frozen contract:compact-state-contract.txt. Windows Rust14controls/Clippy pass;
-Cross-platform performance and Linux qualification remain open.
-Windows Wasp/Crab3pairs and actual compact Room/fresh-AI pass;profiled
-attribution,CPU runs and CI remain. Evidence:compact-state-evidence.txt.
+one bounded Astra6 high review. Plan:compact-state-and-cpu-plan.txt.
+Contract:compact-state-contract.txt;results:compact-state-evidence.txt.
 
-N49 - CONTROLLED SIMULATION CPU SCALING
-[ ] T5:build owned-worker one/two-core harness with topology and cleanup checks.
-[ ] T7:run matched repeated pairs;separate native simulation from whole STEP.
-[ ] Qualify Linux-specific scaling before drawing a hosting conclusion.
-Prepare local tooling alongside N48;run timed arms sequentially after source freeze.
-No live changes or new cloud resources are part of the current authorization.
-Models,ownership,dependencies and decision gates:compact-state-and-cpu-plan.txt.
+COMPLETE - N49 CONTROLLED SIMULATION CPU SCALING
+[x] T5:owned-worker one/two-core harness with topology/affinity/cleanup checks.
+[x] T7:sixteen Windows and sixteen Linux arms;all exact input/state checks pass.
+[x] Separate repeated unprofiled whole-STEP from instrumented native simulation.
+[x] Record Linux-specific task-unit scope,CPU limits/pressure and limitations.
+[x] Complete CI,verified evidence download and exact resource/task deletion.
+Windows worker-only Wasp combat STEP54.392->33.794ms;Linux whole-task
+84.963->68.629ms,with separate native means60.510->47.383ms on one/two cores.
+Each value is a same-environment comparison;they are not cross-host Wine costs.
+Two allowed cores help but do not close20Hz or qualify hosting capacity.
+Results:worker-cpu-scaling-evidence.txt. Environment recipe:
+worker-cpu-linux-environment.txt. Live servers/normal clients/releases unchanged.
 
 COMPLETE - N44 PORTABLE RUST SNAPSHOT DECODER FIRST MILESTONE
 [x] Implement the existing Python observable-state contract in portable safe Rust.

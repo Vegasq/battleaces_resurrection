@@ -1,7 +1,14 @@
 BATTLE ACES - RELEASE ACCEPTANCE
-Reviewed:2026-11-08. FINAL RELEASE:NOT ACCEPTED.
+Reviewed:2026-11-17. FINAL RELEASE:NOT ACCEPTED.
 Work queue:REMAINING_DELIVERY_PLAN.txt. Latest results:STATUS.txt.
 Exact prior checklist/history:history/2026-10-24/RELEASE_ACCEPTANCE.txt.
+
+N48/N49 complete at isolated candidate/measurement scope:compact state passes
+Windows/Linux parity,AI/Room and paired STEP gates;two allowed cores help native
+execution. Linux compact large-combat STEP still averages59.7ms against50ms.
+The separate20Hz cadence/resource/RTT/concurrency/startup/player gates remain
+OPEN;no final release or deployment follows. Scope/results:
+compact-state-evidence.txt and worker-cpu-scaling-evidence.txt.
 
 Nick's requested0.4.0 publication/public-game reopening is COMPLETE. Paired
 installers are hash-verified on GitHub;matching live host/data-preserving upgrade

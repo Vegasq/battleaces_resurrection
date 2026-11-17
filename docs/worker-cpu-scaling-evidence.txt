@@ -1,0 +1,164 @@
+BATTLE ACES - N49 CONTROLLED CPU SCALING EVIDENCE
+Updated:2026-11-17UTC. Controlled Windows/Linux experiments complete;20Hz OPEN.
+Plan:compact-state-and-cpu-plan.txt. Linux setup:worker-cpu-linux-environment.txt.
+
+WINDOWS OWNED-WORKER EXPERIMENT
+GetLogicalProcessorInformationEx identifies eight OS-reported physical cores
+with two logical siblings each. The experiment selects logical0 and2 from
+distinct cores. One-core arms allow0;two-core arms allow0+2. A retained owned
+Popen handle applies/verifies the mask after Job assignment and before CREATE.
+The actual process mask is rechecked after CREATE and before normal close.
+Coordinator and unrelated processes retain their existing affinity.
+
+Three alternating unprofiled pairs per Wasp/Crab workload plus one separate
+profiled one/two-core pair produce sixteen arms. Every1562Wasp/1823Crab frame
+matches the retained original input and full observable state. All workers
+exit0 with closed threads;source/library/runtime/input/evidence guards pass.
+Recorded AI inputs are replayed in this experiment;fresh AI parity belongs to
+the distinct N48 evidence. Snapshot mode here is legacy/full in both arms.
+
+Median-of-pair mean STEP milliseconds/frame:
+Workload/phase       one core       two cores
+Wasp movement          45.388         22.890
+Wasp combat            54.392         33.794
+Crab movement          35.478          7.288
+Crab combat            35.472         11.974
+
+Separate instrumented native simulation combat means:
+Wasp43.597->22.748ms;Crab30.983->8.318ms. These scopes include original input
+processing and SimStep. Their inclusive CPU/thread metrics and observer deltas
+remain in raw reports;profile timings do not replace the primary observations.
+All three unprofiled combat pairs improve for each workload.
+
+This demonstrates a wall-time benefit from another allowed core on this PC.
+Scheduling effects can contribute,especially in the smaller workload;these
+are not linear computational scaling estimates. The host still exposes its
+normal topology;process affinity does not turn it into a one-vCPU cloud host.
+Frequency/boost/power policy,external contention and hardware dedication are
+uncontrolled. This is Windows worker-only affinity. Linux task-unit limits
+include coordinator,guardian and Wine together and need their own evidence.
+No hosting resize,20Hz publication,capacity or player-acceptance claim follows.
+
+Evidence:local/compact-state-20261117/windows-cpu01/cpu-experiment.json
+SHA256:29b6ab2b5ef5ce36d03f6043e9cb6b9e8fe50230369237e1bd427e17a962cd6b
+Exact masks,topology,cumulative host CPU/power observations,all raw arms and
+profile summaries remain private. Candidate DLL2391253a...ade04dd760 is shared
+with N48;Rust build/source receipt is in compact-state-evidence.txt.
+
+LINUX PREFLIGHT AND PRESERVED CORRECTION
+The separately approved two-vCPU shared VM has two distinct OS-reported core
+IDs. Fresh transient systemd units apply AllowedCPUs before the coordinator
+starts;owned Wine children inherit the kernel hard cap. Active unit/cgroup
+identity,actual masks and normal/canceled worker/prefix/cgroup cleanup are
+checked before timing. These controls change no shared/global CPU policy.
+
+The first four inner preflights pass,but their outer report fails when systemd
+prunes the final stopped unit's cgroup before cleanup queries it. Preserve that
+failure. The source correction accepts an exactly identified stopped unit's
+empty ControlGroup only with inactive/failed state and exact MainPID='0'.
+Pre-CREATE remains active with a valid path;post-stop identity is rechecked.
+Twenty-six authored controls and independent targeted review pass. A new
+source-bound revision preserves the old files/staging receipt and failed run.
+Fresh preflight02 passes all four outer/inner normal+canceled cases. Original
+staging plus exact revision02 delta binds the effective source;no failed report
+was relabelled PASS. Subsequent actual Linux replays and CPU measurements pass.
+
+Official systemd v255 semantics:
+https://github.com/systemd/systemd/blob/v255/src/core/service.c#L1147
+https://github.com/systemd/systemd/blob/v255/src/core/cgroup.c#L2827
+https://github.com/systemd/systemd/blob/v255/src/core/dbus-unit.c#L1137
+
+WINDOWS PRIMARY TAIL DISTRIBUTIONS
+Ranges below are min..max across the three separate unprofiled arms,not
+pooled percentiles. Each phase has600frames per arm. Times are milliseconds;
+last two columns are per-arm counts strictly above50/100ms.
+Workload mode/cores phase | p50 | p95 | p99 | max | >50 | >100
+wasp 1 movement | 38.0..38.8 | 79.3..81.1 | 90.0..92.4 | 110.6..122.3 | 115..119 | 2
+wasp 1 combat | 44.6..44.9 | 82.5..84.4 | 108.7..116.3 | 222.8..244.4 | 249..254 | 9..10
+wasp 2 movement | 19.7..20.2 | 38.4..38.9 | 43.2..44.7 | 52.8..83.4 | 2..3 | 0
+wasp 2 combat | 32.4..32.8 | 49.4..49.7 | 60.1..63.5 | 82.2..106.5 | 28..30 | 0..1
+crab 1 movement | 35.3..35.5 | 36.9..37.1 | 38.2..38.3 | 40.2..45.4 | 0 | 0
+crab 1 combat | 35.5 | 38.1..38.3 | 39.8..40.6 | 42.3..43.3 | 0 | 0
+crab 2 movement | 6.9..7.0 | 9.3..9.4 | 10.6..11.3 | 18.0..61.2 | 0..1 | 0
+crab 2 combat | 11.9..12.1 | 15.2..15.4 | 16.8..17.6 | 19.5..31.0 | 0 | 0
+Private distribution extraction:local/compact-state-20261117/windows-distributions01.json
+SHA256:df426ea871c446cf0094e64935eec416ecf74b584eeae01533e7c1d179c1f6ff
+It binds63retained source files and preserves per-arm exact values/reply bytes
+and available memory observations. N49 did not record reply bytes or memory;
+no phase-specific memory distribution is inferred.
+
+LINUX ACTUAL CONTROLLED CPU EXPERIMENT
+All sixteen task units pass:three alternating unprofiled one/two-core pairs and
+one separate profiled pair for each workload. Every1562Wasp/1823Crab frame
+matches original inputs/full observable state. These CPU arms use legacy/full
+output in both masks,not N48 ownership mode,and replay recorded AI commands.
+Source,library,runtime,template,topology and actual pre-CREATE/after-CREATE/
+before-close masks remain bound. Every unit and owned Wine worker/guardian/
+prefix/cgroup/thread cleanup passes. No live host/worker is attached or changed.
+All1531retained observed thread masks match their unit's allowed CPU cap.
+
+The two online/allowed OS cores are0/1,each with one reported sibling. One-core
+units allow0;two-core units0+1. Kernel cpusets apply before engine initialization
+and cover coordinator+guardian+Wine. Unit and system.slice cpu.max are
+'max 100000'(no quota);root cpu.max is absent. All sixteen after-cleanup counters
+report nr_throttled=0 and throttled_usec=0. Per-unit cpu.stat/cpu.pressure before
+and after,ancestor limits,inode-bound effective masks and thread/process masks
+remain in receipts. Nonzero scheduling pressure is retained,not assumed idle.
+This shared VM exposes virtual topology;dedicated physical cores,clock/boost/
+power stability and external contention are unqualified. It does not emulate
+host-wide one-vCPU provisioning and differs from Windows worker-only affinity.
+
+Median-of-three unprofiled arm mean STEP milliseconds/frame:
+Workload/phase       one allowed core       two allowed cores
+Wasp movement             64.163                  47.888
+Wasp combat               84.963                  68.629
+Crab movement             22.836                  15.759
+Crab combat               31.695                  24.935
+All three combat pairs improve for each workload. Separate profiled native
+simulation means:Wasp movement38.954->21.193ms,combat60.510->47.383ms;
+Crab movement15.377->7.394ms,combat23.589->16.200ms.
+Native Wasp combat p95 remains97.372/81.146ms and exceeds50ms in383/248of600
+frames on one/two cores;25/9native steps exceed100ms. These are separate
+instrumented arms,not primary STEP observations or an end-to-end cadence test.
+
+DECISION
+Two allowed cores help this Linux task scope;another core alone does not meet
+the50ms complete-update budget. N48 compact-state and N49 CPU measurements are
+qualified at their stated scopes. The next performance investigation should
+reduce original native simulation cost/tails before another broad20Hz matrix.
+Do not multiply the separate speedups. N48 directly measures two-core ownership
+output under its explicit protocol;there is no full factorial mode/core study.
+No Wine penalty is established from cross-hardware Windows/Linux comparisons.
+Hosting capacity,server resizing,deployment and player acceptance remain separate.
+
+LINUX PRIMARY TAIL DISTRIBUTIONS
+Ranges are min..max across three unprofiled arms,not pooled percentiles.
+Each phase has600frames per arm. Milliseconds;last columns count >50/>100ms.
+Workload mode/cores phase | p50 | p95 | p99 | max | >50 | >100
+wasp 1 movement | 55.7..58.9 | 113.8..118.5 | 130.5..152.0 | 163.4..236.7 | 437..509 | 56..62
+wasp 1 combat | 79.7..83.6 | 118.2..125.9 | 137.0..150.1 | 186.2..201.3 | 565..595 | 125..159
+wasp 2 movement | 42.8..43.5 | 74.0..83.3 | 87.5..97.9 | 111.9..121.1 | 156..180 | 2..6
+wasp 2 combat | 64.7..66.1 | 101.0..101.9 | 124.1..127.5 | 159.7..173.0 | 480..519 | 32..36
+crab 1 movement | 21.6..23.9 | 29.5..31.8 | 32.5..34.9 | 37.3..41.0 | 0 | 0
+crab 1 combat | 31.3..31.7 | 41.0..43.1 | 45.2..48.5 | 51.7..66.0 | 2 | 0
+crab 2 movement | 15.0..15.3 | 20.5..21.8 | 23.0..26.7 | 27.3..30.4 | 0 | 0
+crab 2 combat | 24.4..24.7 | 32.0..32.3 | 36.9..41.2 | 48.2..59.7 | 0..2 | 0
+
+VERIFIED PRIVATE EVIDENCE AND RESOURCE CLEANUP
+Linux root:local/compact-state-20261117/linux-environment/download01/app-compact01/local/
+linux-cpu01/wine-cpu-experiment.json
+SHA256:2d9a39496635929a5c62b47f75908f9cc768993261f4b387e17cee9e0406bd37
+Complete private archive:311files,20169215bytes,including failed preflight01,
+Room01 refusal,original staging and exact revisions02/03. All downloaded archive
+members verify against their manifest. Archive SHA256:
+80953b71f6fd8493b5200580400bb00d6870e1df62dac3ee6a7fa791310caea3
+Derived linux-summary01.json SHA256:
+084a0bb16c9aaac7c873d6c7caf3bcf7bc6486784041b5329a481c8abd81ac15
+Temporary VM/firewall/tag deleted after verified download;exact owned deadline
+task removed. Final provider/task absence and both excluded live IDs present
+verify2026-11-17T22:53:37Z. Compute estimateUSD0.034740 excludes tax/transfer and
+is not an invoice. Cleanup receipt SHA256:
+2edbefa78f9b96bd2fa564318321a61372a6d0dbe76c439bbd9e83bdcd64001a
+No temporary benchmark resource remains. Live services and normal launches were
+not changed. Final compatibility CI/source0ef8587 is recorded in
+compact-state-evidence.txt;20Hz publication and perceived-lag acceptance remain OPEN.

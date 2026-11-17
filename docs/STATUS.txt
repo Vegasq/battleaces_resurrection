@@ -1,4 +1,29 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-17UTC N48/N49 COMPLETE AT CANDIDATE/MEASUREMENT SCOPE:Windows and
+Linux Wasp/Crab3pairs preserve every1562/1823frame per arm and pass defined
+STEP mean/p95 gates. Actual compact Room/fresh originalAI/command/history/
+identity/ordinary cleanup checks pass on both platforms. Linux compact Wasp
+combat median pair mean79.074->59.691ms;JSON category12.902->4.092ms(68.28%).
+Sixteen CPU arms per platform pass actual-mask/state/cleanup controls. Linux
+one/two-core Wasp combat STEP84.963->68.629ms;separate native60.510->47.383ms,
+with native p95 still81.146ms on two cores. Full diagnostics/ABI/defaults remain.
+Final source0ef8587 CI:2025tests/112skips each Windows version;14Rust/208portable
+Linux controls plus actual FFI checks. All311downloaded diagnostics verify,
+including failures/revisions. Temporary VM/firewall/tag/deadline task absent;
+both live IDs present,live services/installed game/releases unchanged. Estimated
+computeUSD0.034740,tax/transfer excluded. Details:compact-state-evidence.txt and
+worker-cpu-scaling-evidence.txt. Next:original simulation cost/tails.20Hz,
+capacity,RTT/concurrency/startup matrix and player acceptance remain OPEN.
+2026-11-17UTC N48/N49 WINDOWS EVIDENCE AND FINAL CI PASS:Wasp/Crab parity,
+fresh AI,actual compact Room,JSON profiles and sixteen Windows CPU arms pass
+at their stated scopes. Wasp JSON processing drops about69percent;Windows
+one/two-core median combat STEP54.392/33.794ms. Final source0ef8587 CI passes
+2025tests/112skips per Windows version and208portable Linux controls plus
+14Rust tests/actual FFI checks. Separately approved Linux VM is running timed
+qualification after fresh normal/canceled one/two-mask preflight02 passes.
+Original preflight terminal-cgroup failure is preserved,with scoped cleanup
+fix reviewed/tested. No20Hz,capacity,deployment or player-acceptance claim.
+Focused results:compact-state-evidence.txt;worker-cpu-scaling-evidence.txt.
 2026-11-17UTC N48 WINDOWS WASP/ROOM PASS:three full/ownership pairs preserve
 all1562reference frames per arm. Combat means33.9..34.3->25.6..25.7ms and
 movement22.5..22.9->13.6..13.8ms;all p95 gates pass. Scope is the current explicit

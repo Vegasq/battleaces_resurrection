@@ -5,6 +5,14 @@ Updated:2026-11-17 UTC. N43. Status:PERFORMANCE CANDIDATE NOT ACCEPTED.
 Numerical thresholds below are targets,not results.
 Nick's answers and any later actionable playtest request belong in DEV.txt N43.
 
+2026-11-17 N48/N49 follow-up:compact ownership passes its functional/unpaced
+performance gates and controlled one/two-core tests show a native benefit.
+The Linux two-core compact Wasp combat mean remains59.7ms and separately
+profiled two-core native p95 is81.1ms. These complete the scoped optimization/
+measurement plan,not P1/P5 or M2..M4/P2/P4/A1. Original failed end-to-end results
+below remain unchanged. Next:original simulation cost/tails before broader
+qualification. Results:compact-state-evidence.txt;worker-cpu-scaling-evidence.txt.
+
 OBJECTIVE AND SCOPE
 Run networking,matchmaking,dashboard and persistence in Linux Python,with Wine
 confined to the original simulation/AI workers. Preserve client compatibility

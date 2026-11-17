@@ -1,7 +1,12 @@
 BATTLE ACES - N48 COMPACT STATE AND N49 CPU SCALING PLAN
-Updated:2026-11-17. Planned work;implementation and performance gates remain open.
+Updated:2026-11-17. T1..T7 complete at scoped candidate/measurement level;20Hz OPEN.
 Baseline:fc796e0 on feature/rust-snapshot-decoder;N47 evidence is retained.
 Current task checkboxes live in REMAINING_DELIVERY_PLAN.txt.
+Completion evidence:compact-state-evidence.txt and worker-cpu-scaling-evidence.txt.
+All Windows/Linux functional,paired STEP,profiling,CPU and CI checks pass at
+their stated scopes.311downloaded evidence files verify;temporary resources
+and exact owned cleanup task are deleted. The unchanged end-to-end20Hz and
+player-acceptance gates below remain later work,not a claim of this plan.
 
 OUTCOME AND ORDER
 N48 reduces repeated state serialization/parsing without weakening command

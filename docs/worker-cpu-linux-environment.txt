@@ -1,6 +1,8 @@
-N49 LINUX CPU ENVIRONMENT - PREPARED, NOT EXECUTED
-2026-11-17. No resource creation, remote login or native measurement is authorized
-by this document. N47's temporary VM was deleted; its approval was consumed.
+N49 LINUX CPU ENVIRONMENT AND EXECUTION RECIPE
+2026-11-17. Nick separately approved one isolated two-vCPU test VM in DEV.txt
+N49-LINUXENV. Actual results and limitations:worker-cpu-scaling-evidence.txt.
+This recipe does not authorize spending or live changes. N47's temporary VM
+was deleted;its approval was consumed and is separate from the current answer.
 
 ENVIRONMENT
 Use a fresh isolated Linux x64 test machine with at least two ONLINE/ALLOWED

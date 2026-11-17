@@ -1,5 +1,5 @@
 BATTLE ACES - N48 COMPACT STATE EVIDENCE
-Updated:2026-11-17UTC. Windows Wasp/Crab/Room qualified;remaining gates open.
+Updated:2026-11-17UTC. N48 qualified on Windows/Linux at candidate scope;20Hz OPEN.
 Contract:compact-state-contract.txt. Tasks/models:compact-state-and-cpu-plan.txt.
 
 IMPLEMENTATION AND REVIEW
@@ -15,7 +15,8 @@ one expected skip;the actual candidate DLL also passes93authored adapter cases
 and9nonfinite refusals. Windows CPU controls14pass;Linux orchestration controls
 16pass. Room/verifier hooks28authored checks pass. Focused profiler64checks pass.
 These controls have distinct scopes and are not a combined native-test count.
-Linux CI now requires actual native ELF v2 parity/refusal checks;CI is pending.
+Linux CI requires and passes actual native ELF v2 parity/refusal checks;final
+compatibility results are recorded below.
 
 Independent review found two profiling defects before native measurements:
 worker shape validation shared the adapter's metric,and initial diagnostic
@@ -24,7 +25,8 @@ alias,separate worker-validation leaf category and strict initial STATE-pair
 coverage resolve both. Integrated native-stub tests and a targeted independent
 recheck pass. No metric-call/count or nested-conservation rule was relaxed.
 The actual compact Room tool and Windows/Linux CPU ownership paths were also
-reviewed. Linux runtime delegation/cpuset/cleanup still requires real preflight.
+reviewed. Fresh Linux preflight02 passes real delegation/cpuset/cleanup cases;
+its retained initial failure and correction are recorded in the CPU evidence.
 
 CANDIDATE IDENTITY
 Private Windows DLL SHA256:
@@ -102,11 +104,152 @@ guards pass. This checks the actual DLL through ctypes;authored fixtures remain
 distinct from the original-capture and simulation replay evidence above.
 Receipt:local/compact-state-20261117/ffi-windows01.json. Nine verifier controls pass.
 
-REMAINING
-Finish the separate profiled JSON-cost pair and controlled Windows one/two-core
-runs. Complete compatibility CI.
-Prepare and obtain authorization for a new isolated Linux environment before
-Linux/Wine measurements. Old N47 resource approval was consumed and VM deleted.
-N48 state processing alone cannot close the measured66.3ms native Linux combat
-cost against a50ms complete-update budget. N49 scaling and existing end-to-end
-Linux acceptance gates remain open.
+SEPARATE WINDOWS JSON PROFILES
+Full/ownership instrumented arms each preserve all1562Wasp frames and pass
+disjoint accounting plus their matching earlier unprofiled mode control checks.
+Measured parse+adapter validation+response JSON means fall6.245->1.932ms
+movement and5.709->1.761ms combat,about69percent in both phases,exceeding the
+25percent target. Worker shape validation is separately attributed:combat
+1.938->0.694ms. Original simulation stays21.103/21.018ms in the two profiles.
+Profile-control combat RPC deltas are+1.079ms full/+0.765ms compact. Controls
+precede these separate profiles;differences include environment/order effects
+and must not be subtracted as exact instrumentation overhead. Primary three-
+pair performance observations remain unprofiled.
+Evidence:local/compact-state-20261117/windows-json-profile01/verification.json
+SHA256:a8e5f67236d1f20434ec7d717be36d128531e6be481e84de6268add3be33ea38
+
+COMPATIBILITY
+Sourcee61fe6d passes2015tests/112skips on Python3.12/3.14.8,launcher build and
+4637-entry history audits with9reviewed historical findings/zero failures.
+Windows CI44179531148 attempt2 retains3.12's first pass and3.14's exact-source
+retry. The original3.14 attempt has one unchanged5s Node fixture timeout;its
+focused local check passes0.063s. Earlier e920 CI also finds missing packaged
+runtime modules and an unchanged syntheticTLS MATCH timeout. The server package
+now includes all three runtime dependencies,isolated imports explicitly cover
+them,and failure notes preserve bounded startup/audit details. Timeouts and
+assertions remain unchanged. Original failed logs stay private.
+NativeLinux CI44179531005 passes14Rust tests,198portable controls,93actualv2
+FFI mode comparisons,9native nonfinite refusals and the existing legacy ABI
+checks. The later Linux-only unit cleanup fix0ef8587 has26authored controls and
+targeted independent review. Final Windows CI44185363776 passes2025tests with
+112skips on each Python3.12/3.14.8,plus launcher/history checks. Final native
+Linux CI44185363767 passes14Rust tests,208portable controls and actual FFI
+projection/legacy checks. Original failure logs remain retained.
+
+DECISION AND REMAINING GATES
+N48 passes the defined functional and unpaced STEP performance gates on Windows
+and the isolated Linux/Wine environment. Retain compact mode as an explicitly
+selected server candidate with full diagnostics. This does not change defaults,
+normal launchers,installed clients,live hosts or release artifacts.
+N49 is complete at controlled CPU-scaling scope;see worker-cpu-scaling-evidence.txt.
+Large Wasp combat still averages59.7ms with compact state on this Linux VM and
+has slow tails. Original native simulation remains the next performance target.
+The separate Linux end-to-end cadence/RTT/concurrency/resource/startup/player
+acceptance matrix stays OPEN. No deployment or perceived-lag claim follows.
+
+WINDOWS PRIMARY TAIL DISTRIBUTIONS
+Ranges below are min..max across the three separate unprofiled arms,not
+pooled percentiles. Each phase has600frames per arm. Times are milliseconds;
+last two columns are per-arm counts strictly above50/100ms.
+Workload mode/cores phase | p50 | p95 | p99 | max | >50 | >100
+wasp full movement | 20.9..21.3 | 31.9..32.5 | 33.9..37.4 | 40.2..45.3 | 0 | 0
+wasp full combat | 32.6..33.1 | 49.8..50.9 | 60.4..61.1 | 79.9..81.2 | 30..34 | 0
+wasp ownership movement | 12.0..12.3 | 23.1..23.3 | 25.1..25.7 | 31.2..32.1 | 0 | 0
+wasp ownership combat | 24.6..24.9 | 40.3..40.7 | 49.6..51.1 | 70.8..73.2 | 6..7 | 0
+crab full movement | 7.1 | 9.6..9.7 | 10.3..10.7 | 11.1..11.9 | 0 | 0
+crab full combat | 12.4 | 15.3..15.4 | 16.5..17.0 | 20.0..20.4 | 0 | 0
+crab ownership movement | 4.5..4.6 | 7.0 | 7.6..7.9 | 8.6..9.0 | 0 | 0
+crab ownership combat | 9.8..9.9 | 12.8..12.9 | 13.9..14.2 | 17.1..17.4 | 0 | 0
+Private distribution extraction:local/compact-state-20261117/windows-distributions01.json
+SHA256:df426ea871c446cf0094e64935eec416ecf74b584eeae01533e7c1d179c1f6ff
+It binds63retained source files and preserves per-arm exact values/reply bytes
+and available memory observations. N49 did not record reply bytes or memory;
+no phase-specific memory distribution is inferred.
+
+LINUX/WINE - THREE ALTERNATING PAIRS PER WORKLOAD
+Ubuntu24.04/Wine9.0,Windows x64 Python3.14.8 and native Linux Python3.12.3 on
+an isolated shared two-vCPU/2GiB VM. Both output modes use the same versioned
+protocol,strict validation,source,inputs and candidate DLL. All1562Wasp and
+1823Crab frames match per arm;Crab regenerates the recorded original AI bytes.
+Inherited same-raw Windows capture checks remain explicitly Windows evidence;
+Linux replay checks preserve the defined cross-acquisition semantic scope.
+All source/input/library/evidence stability and owned cleanup checks pass.
+All three pairs improve mean STEP and pass the defined p95 tolerance in both
+movement and combat. Separate performance.passed is true for both workloads.
+
+Median-of-three unprofiled arm means,full->compact milliseconds/frame:
+Wasp movement57.735->35.215;combat79.074->59.691.
+Crab movement17.101->11.523;combat26.069->19.904.
+Wasp combat individual pair means83.677->61.299,79.074->59.691,78.365->59.221.
+Crab combat26.069->19.886,25.630->20.278,26.255->19.904.
+Actual reply-byte means agree with Windows:Wasp movement114669->28949,
+combat102862->25912;Crab movement33407->8932,combat33473->9014.
+
+Memory:all twelve after-replay observations are available. Worker cgroups lack
+memory.current/peak/swap.current,so the observer uses retained cgroup membership
+and PID/start-time-checked /proc RSS/HWM. After-replay summed observed direct RSS:
+Wasp full234.48..234.61MB,compact234.81..236.05MB;Crab full247.95..248.75MB,
+compact247.51..248.87MB(decimalMB). These non-atomic sums may double-count shared
+pages and exclude exited/unobserved processes. They show no memory saving.
+Individual lifetime HWMs are retained;they are never summed as a simultaneous
+peak. Group peak,host peak and swap/capacity are unavailable,not inferred.
+Observer runs only before/after replay,outside timed STEP.
+
+The actual Linux compact Room searches30s then runs40050ms ticks with three
+original bots. All401delivered frames equal the authoritative journal. Bots
+issue3/7/9ordinary commands;command-validation/history probes,ordinary human
+disconnect,normal worker/guardian/prefix/cgroup/thread cleanup,history restart
+and identity/deck recovery pass. Elapsed59.841s. This is scripted loopback
+protocol evidence,not physical Unity/player acceptance or completed-game proof.
+The first Room invocation refused a symlink Wine path before worker creation.
+Private revision03 resolves that path and uses fresh Room02;public source and
+previous profiles are unchanged. Original refusal/log/receipts remain archived.
+
+Separate fresh same-mode Linux controls/profiles preserve every input/state,
+strict decoder identity and disjoint nested accounting. Measured JSON category
+is parse+adapter validation+response JSON;worker shape validation stays separate.
+Movement/combat JSON milliseconds/frame:
+Wasp14.675->4.350(70.36percent),12.902->4.092(68.28percent).
+Crab4.110->1.771(56.90percent),4.343->1.701(60.85percent).
+Both exceed the25percent target in both phases. Combat profile/control RPC
+mean deltas are Wasp+1.588ms full/+4.323ms compact,Crab+3.683/+3.748ms.
+Those differences include environment/order and instrumentation effects;they
+are not exact subtractable observer costs. Primary paired timings are unprofiled.
+
+LINUX PRIMARY TAIL DISTRIBUTIONS
+Ranges are min..max across three unprofiled arms,not pooled percentiles.
+Each phase has600frames per arm. Milliseconds;last columns count >50/>100ms.
+Workload mode/cores phase | p50 | p95 | p99 | max | >50 | >100
+wasp full movement | 50.6..53.1 | 87.6..92.1 | 105.6..122.6 | 125.5..141.3 | 316..394 | 11..18
+wasp full combat | 76.4..80.7 | 116.3..124.4 | 142.0..155.1 | 180.9..213.8 | 562..585 | 95..144
+wasp ownership movement | 29.5..30.3 | 65.8..66.8 | 79.0..81.4 | 98.5..113.5 | 87..90 | 0..2
+wasp ownership combat | 54.7..58.4 | 93.9..97.8 | 115.0..125.4 | 163.9..184.0 | 351..398 | 16..26
+crab full movement | 16.3..16.4 | 21.3..23.9 | 24.7..27.0 | 29.8..33.6 | 0 | 0
+crab full combat | 25.1..26.0 | 33.7..35.2 | 37.8..41.9 | 41.6..50.1 | 0..1 | 0
+crab ownership movement | 10.8..11.2 | 15.5..18.1 | 18.0..20.5 | 21.1..23.6 | 0 | 0
+crab ownership combat | 19.7..20.2 | 26.0..26.9 | 29.5..30.0 | 32.0..33.1 | 0 | 0
+
+VERIFIED PRIVATE EVIDENCE AND RESOURCE CLEANUP
+Linux root:local/compact-state-20261117/linux-environment/download01/app-compact01/local/
+linux-wasp01/verification.json
+SHA256:57c6a30b8133873f2471ef2c54205a1d3defe81602512375f0e27864d12c7fc7
+linux-crab01/verification.json
+SHA256:4dd91bb2cf3a418a8c8ccfd3f24e2d0ce6418929a183a45d4927f4da174467a3
+linux-room02/verification.json
+SHA256:bcaf6028f50bc8a9605df699e5bc401ab05390d8c19bb7fd44460a2f3600250a
+linux-json-profile01/verification.json
+SHA256:a84e239699b872621f3a14bf599a2435d170709e52a7c264657e162e76b7c8e4
+Complete private archive:311files,20169215bytes,including failed preflight01,
+Room01 refusal,original staging and exact revisions02/03. All downloaded archive
+members verify against their manifest. Archive SHA256:
+80953b71f6fd8493b5200580400bb00d6870e1df62dac3ee6a7fa791310caea3
+Derived linux-summary01.json SHA256:
+084a0bb16c9aaac7c873d6c7caf3bcf7bc6486784041b5329a481c8abd81ac15
+Temporary VM/firewall/tag deleted after verified download;exact owned deadline
+task removed. Final provider/task absence and both excluded live IDs present
+verify2026-11-17T22:53:37Z. Compute estimateUSD0.034740 excludes tax/transfer and
+is not an invoice. Cleanup receipt SHA256:
+2edbefa78f9b96bd2fa564318321a61372a6d0dbe76c439bbd9e83bdcd64001a
+No temporary benchmark resource remains. Live services and normal launches were
+not changed. Final compatibility CI/source0ef8587 is recorded above;
+20Hz publication and perceived-lag acceptance remain OPEN.
