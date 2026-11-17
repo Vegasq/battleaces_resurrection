@@ -1,5 +1,6 @@
 """Authored source/transport controls, including explicitly synthetic workers."""
 import asyncio
+from collections import deque
 import copy
 import gzip
 import json
@@ -223,9 +224,14 @@ class BufferedTLSControl(unittest.IsolatedAsyncioTestCase):
             trace = b.base.Trace(folder)
             args = SimpleNamespace(output=folder, assets=folder, matches=1, ai=False, rtt_ms=0, jitter=[0])
             experiment = b.ReplayExperiment(args, trace, frozen, source, None)
+            worker_start_failures = deque(maxlen=4)
             async def factory(data, bots=None):
                 self.assertIsNone(bots)
-                native = await SimulationWorker.create(data, working_directory=folder, _test_backend=True)
+                try:
+                    native = await SimulationWorker.create(data, working_directory=folder, _test_backend=True)
+                except Exception as error:
+                    worker_start_failures.append(dict(error_type=type(error).__name__, error=str(error)[:1024]))
+                    raise
                 wrapped = b.ReplayWorker(native, trace, spec, source)
                 experiment.workers.append(wrapped)
                 return wrapped
@@ -236,14 +242,35 @@ class BufferedTLSControl(unittest.IsolatedAsyncioTestCase):
                 admission=admission.AdmissionController(None, rc_open=True), experimental_command_scheduling=True)
             experiment.port = (await experiment.server.start('127.0.0.1', 0))[1]
             experiment.client_tls = tls.load_client_context(self.pki['ca'], 'localhost')
+            failure = None
             try:
                 episode = await asyncio.wait_for(experiment.prepare(0, 0), 10)
                 await experiment.load(episode)
                 await asyncio.wait_for(experiment.replay(episode), 5)
                 self.assertFalse(episode.room.command_scheduling)
+            except BaseException as error:
+                failure = error
+                raise
             finally:
                 await experiment.close()
                 trace.close()
+                if failure is not None:
+                    # EventRows can only be read after trace.close(); retain a
+                    # bounded diagnostic before TemporaryDirectory removes it.
+                    try:
+                        relevant = deque(maxlen=20)
+                        fields = ('event', 'at_ms', 'room', 'match', 'slot', 'worker_pid',
+                                  'error_kind', 'error', 'reason', 'errno', 'winerror')
+                        for row in trace.rows:
+                            event = row.get('event', '')
+                            if ('error' in event or 'fail' in event or event in
+                                    ('match_preparing', 'worker_started', 'worker_released', 'match_aborted')):
+                                relevant.append({key: value[:1024] if isinstance(value, str) else value
+                                                 for key in fields if (value := row.get(key)) is not None})
+                        failure.add_note('synthetic TLS replay diagnostics: '+json.dumps(dict(
+                            events=list(relevant), worker_start_failures=list(worker_start_failures)), sort_keys=True))
+                    except Exception as diagnostic_error:
+                        failure.add_note('synthetic TLS replay diagnostics unavailable: '+type(diagnostic_error).__name__)
             result = b.qualify_replay(trace.rows, experiment.episodes, source)
             self.assertTrue(result['complete'])
             self.assertEqual(result['participant_inputs'], 8)

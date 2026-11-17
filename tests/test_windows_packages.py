@@ -188,7 +188,8 @@ class WindowsPackageTests(unittest.TestCase):
                   'assert all(pathlib.Path(module.__file__).resolve().is_relative_to(root) for module in modules)')
         for product, modules in (
                 ('server', ('tools.package_server','server.host','server.windows_service','server.state_backup',
-                            'server.public_matchmaking','server.loadout_protocol','tools.import_assets')),
+                            'server.public_matchmaking','server.loadout_protocol','tools.import_assets',
+                            'server.state_projection','server.rust_snapshot_decoder','server.worker_affinity')),
                 ('client', ('tools.package_client','client_patch.transport.client','client_patch.transport.enrollment',
                             'client_patch.patcher.patch_client'))):
             app = self.root/'out'/('battleaces-'+product+'-win64')/'program/app'

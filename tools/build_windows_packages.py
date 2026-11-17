@@ -40,6 +40,7 @@ SERVER = COMMON + (
     'server/state_lock.py', 'server/state_backup.py', 'server/windows_service.py',
     'server/paths.py', 'server/profiles.py', 'server/profile_io.py', 'server/protobuf_wire.py',
     'server/simulation_worker.py', 'server/tls_listener.py', 'server/worker_client.py',
+    'server/state_projection.py', 'server/rust_snapshot_decoder.py', 'server/worker_affinity.py',
     'tools/extract_descriptors.py', 'tools/import_assets.py', 'tools/package_server.py',
 )
 CLIENT = COMMON + (
