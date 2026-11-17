@@ -43,7 +43,7 @@ class _OneLaunch:
     def __getattr__(self, name):
         return getattr(self.original, name)
 
-    def Popen(self, args, *positional, **kwargs):
+    def restore(self):
         # This executes synchronously before SimulationWorker.create's first
         # await. Concurrent normal workers therefore never inherit this proxy.
         if self.module.subprocess is self:
@@ -53,6 +53,9 @@ class _OneLaunch:
         if self.used or threading.get_ident() != self.owner_thread:
             raise RuntimeError('unexpected diagnostic worker launch')
         self.used = True
+
+    def Popen(self, args, *positional, **kwargs):
+        self.restore()
         expected = [sys.executable, '-I', '-S', '-B', '-u', '-c', WORKER_BOOTSTRAP, str(ROOT), '--stdio']
         if (not isinstance(args, list) or args[:9] != expected or args[9:] not in ([], ['--test-backend'])
                 or positional or kwargs.get('stdin') != self.original.PIPE
@@ -66,8 +69,123 @@ class _OneLaunch:
         return self.original.Popen(command, **kwargs)
 
 
+GUARDIAN_PROFILE_BOOTSTRAP = "import sys;sys.path.insert(0,sys.argv.pop(1));from tools.profile_worker_timing import guardian_main;sys.exit(guardian_main())"
+GUARDIAN_FIELDS = ('--wine', '--windows-python', '--prefix-template', '--working-directory',
+                   '--runtime-directory', '--cgroup', '--parent-pid', '--watch-fd', '--status-fd')
+HYBRID_PROFILE_SOURCES = ('server/wine_worker.py', 'server/wine_worker_guardian.py', 'server/wine_worker_cgroup.py')
+
+
+def _guardian_fields(argv):
+    if (not isinstance(argv, list) or len(argv) != len(GUARDIAN_FIELDS)*2
+            or tuple(argv[::2]) != GUARDIAN_FIELDS or not all(isinstance(v, str) for v in argv)):
+        raise RuntimeError('unexpected diagnostic guardian arguments')
+    return dict(zip(GUARDIAN_FIELDS, argv[1::2]))
+
+
+def _wine_output(output):
+    # translate_path requires an existing path. Translate the validated parent;
+    # reserve the new file exclusively in the Windows worker, never overwrite.
+    from server.wine_worker import windows_path
+    if not output.is_absolute() or output.exists() or output.is_symlink() or not output.parent.is_dir():
+        raise ValueError('diagnostic output must be a new absolute file in an existing directory')
+    if any(char in output.name for char in '\\:*?"<>|\r\n\0'):
+        raise ValueError('diagnostic output name cannot be represented safely in Wine')
+    return windows_path(output.parent) + '\\' + output.name
+
+
+class _OneGuardianLaunch(_OneLaunch):
+    def __init__(self, module, output, max_records, thread_sample_interval, backend, directory):
+        super().__init__(module, output, max_records, thread_sample_interval)
+        self.backend, self.directory = backend, directory
+
+    def Popen(self, args, *positional, **kwargs):
+        self.restore()
+        from server.wine_worker import GUARDIAN_BOOTSTRAP
+        expected = [sys.executable, '-I', '-S', '-B', '-u', '-c', GUARDIAN_BOOTSTRAP, str(ROOT)]
+        if not isinstance(args, list) or args[:8] != expected:
+            raise RuntimeError('unexpected diagnostic guardian bootstrap')
+        fields = _guardian_fields(args[8:])
+        runtime, cgroup = Path(fields['--runtime-directory']), Path(fields['--cgroup'])
+        try:
+            descriptors = tuple(int(fields[name]) for name in ('--watch-fd', '--status-fd'))
+        except ValueError as error:
+            raise RuntimeError('unexpected diagnostic guardian descriptors') from error
+        if (positional or fields['--wine'] != str(self.backend.wine_executable)
+                or fields['--windows-python'] != str(self.backend.windows_python)
+                or fields['--prefix-template'] != str(self.backend.prefix_template)
+                or fields['--working-directory'] != str(self.directory)
+                or fields['--parent-pid'] != str(os.getpid())
+                or runtime.parent != self.directory or not runtime.name.startswith('ba-wine-worker-')
+                or cgroup.parent != self.backend.cgroup_parent or cgroup.name != runtime.name
+                or kwargs.get('cwd') != self.directory or kwargs.get('stdin') != self.original.PIPE
+                or kwargs.get('stdout') != self.original.PIPE or kwargs.get('stderr') != self.original.PIPE
+                or kwargs.get('close_fds') is not True or kwargs.get('start_new_session') is not True
+                or kwargs.get('pass_fds') != descriptors or min(descriptors) < 0 or len(set(descriptors)) != 2
+                or kwargs.get('shell', False) or self.output.is_relative_to(runtime)
+                or self.output.is_relative_to(self.backend.prefix_template)):
+            raise RuntimeError('unexpected diagnostic guardian command or ownership')
+        command = list(args)
+        command[6] = GUARDIAN_PROFILE_BOOTSTRAP
+        command.extend(['--profile-output', str(self.output), '--max-records', str(self.max_records),
+                        '--thread-sample-interval', str(self.thread_sample_interval)])
+        return self.original.Popen(command, **kwargs)
+
+
+class _OneWineChildLaunch(_OneLaunch):
+    def __init__(self, module, output, max_records, thread_sample_interval, guardian_args):
+        super().__init__(module, output, max_records, thread_sample_interval)
+        self.fields = _guardian_fields(guardian_args)
+
+    def Popen(self, args, *positional, **kwargs):
+        self.restore()
+        from server.wine_worker import windows_path
+        fields = self.fields
+        runtime = Path(fields['--runtime-directory'])
+        expected = [fields['--wine'], windows_path(Path(fields['--windows-python'])),
+                    '-I', '-S', '-B', '-u', '-c', WORKER_BOOTSTRAP, windows_path(ROOT), '--stdio']
+        pass_fds = kwargs.get('pass_fds')
+        environment = kwargs.get('env', {})
+        if (args != expected or positional or kwargs.get('cwd') != runtime/'work'
+                or kwargs.get('stdin') is not sys.stdin.buffer or kwargs.get('stdout') is not sys.stdout.buffer
+                or kwargs.get('stderr') is not sys.stderr.buffer or kwargs.get('close_fds') is not True
+                or not isinstance(pass_fds, tuple) or len(pass_fds) != 1
+                or type(pass_fds[0]) is not int or pass_fds[0] < 0
+                or not callable(kwargs.get('preexec_fn')) or kwargs.get('shell', False)
+                or environment.get('WINEPREFIX') != str(runtime/'prefix')
+                or environment.get('WINEARCH') != 'win64'
+                or environment.get('WINEDLLOVERRIDES') != 'mscoree,mshtml='
+                or self.output.is_relative_to(runtime)
+                or self.output.is_relative_to(Path(fields['--prefix-template']))):
+            raise RuntimeError('unexpected diagnostic Wine child command or ownership')
+        command = list(args)
+        command[7] = PROFILE_BOOTSTRAP
+        command.extend(['--profile-output', _wine_output(self.output), '--max-records', str(self.max_records),
+                        '--thread-sample-interval', str(self.thread_sample_interval), '--profile-hybrid-worker'])
+        return self.original.Popen(command, **kwargs)
+
+
+def guardian_main(argv=None):
+    """Explicit diagnostic entrypoint; reuse every production guardian lifetime rule."""
+    from server import wine_worker_guardian as guardian
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if len(argv) < 6 or argv[-6::2] != ['--profile-output', '--max-records', '--thread-sample-interval']:
+        raise ValueError('diagnostic guardian requires explicit profiling arguments')
+    output, max_records, interval = Path(argv[-5]), int(argv[-3]), int(argv[-1])
+    _limits(max_records, interval)
+    _wine_output(output)
+    if isinstance(guardian.subprocess, _OneLaunch):
+        raise RuntimeError('another diagnostic guardian launch is active')
+    proxy = _OneWineChildLaunch(guardian, output, max_records, interval, argv[:-6])
+    guardian.subprocess = proxy
+    try:
+        return guardian.main(argv[:-6])
+    finally:
+        if guardian.subprocess is proxy:
+            guardian.subprocess = proxy.original
+
+
 async def create_profiled_worker(game_data, dll_path=None, *, profile_path,
-                                 max_records=20000, thread_sample_interval=20, **kwargs):
+                                 max_records=20000, thread_sample_interval=0, **kwargs):
     """Create an ordinary owned SimulationWorker with an explicit sidecar profile.
 
     The supplied output must not exist. Native and synthetic backend selection,
@@ -76,22 +194,34 @@ async def create_profiled_worker(game_data, dll_path=None, *, profile_path,
     """
     from server import worker_client
     _limits(max_records, thread_sample_interval)
-    if kwargs.get('backend') is not None:
-        raise ValueError('diagnostic profiling currently requires the direct worker backend')
+    backend = kwargs.get('backend')
+    if backend is not None:
+        from server import wine_worker
+        if type(backend) is not wine_worker.WineWorkerBackend:
+            raise ValueError('diagnostic profiling requires an explicit WineWorkerBackend or direct backend')
     output = Path(profile_path).absolute()
     if output.exists() or output.is_symlink():
         raise FileExistsError(output)
     if not output.parent.is_dir():
         raise ValueError('profile output parent must already exist')
-    if isinstance(worker_client.subprocess, _OneLaunch):
+    output = output.parent.resolve(strict=True)/output.name
+    module = worker_client if backend is None else wine_worker
+    if isinstance(module.subprocess, _OneLaunch):
         raise RuntimeError('another diagnostic worker launch is active')
-    proxy = _OneLaunch(worker_client, output, max_records, thread_sample_interval)
-    worker_client.subprocess = proxy
+    if backend is None:
+        proxy = _OneLaunch(module, output, max_records, thread_sample_interval)
+    else:
+        _wine_output(output)
+        if kwargs.get('working_directory') is None:
+            raise ValueError('profiled Wine worker requires an explicit working directory')
+        directory = Path(kwargs['working_directory']).resolve(strict=True)
+        proxy = _OneGuardianLaunch(module, output, max_records, thread_sample_interval, backend, directory)
+    module.subprocess = proxy
     try:
         return await worker_client.SimulationWorker.create(game_data, dll_path, **kwargs)
     finally:
-        if worker_client.subprocess is proxy:
-            worker_client.subprocess = proxy.original
+        if module.subprocess is proxy:
+            module.subprocess = proxy.original
 
 
 def _clocks():
@@ -168,7 +298,7 @@ def thread_cpu_snapshot():
 
 
 class Recorder:
-    def __init__(self, max_records=20000, thread_sample_interval=20):
+    def __init__(self, max_records=20000, thread_sample_interval=0):
         _limits(max_records, thread_sample_interval)
         self.max_records, self.thread_sample_interval = max_records, thread_sample_interval
         self.records, self.thread_samples = [], []
@@ -294,9 +424,11 @@ def instrumentation(recorder):
             setattr(owner, name, original)
 
 
-def source_hashes():
+def source_hashes(hybrid=False):
     names = ('tools/profile_worker_timing.py', 'server/worker_client.py', 'server/simulation_worker.py',
              'server/native_simulation.py', 'server/native_ai.py', 'server/worker_ai.py')
+    if hybrid:
+        names += HYBRID_PROFILE_SOURCES
     return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in names}
 
 
@@ -307,17 +439,20 @@ def main(argv=None):
     parser.add_argument('--test-backend', action='store_true')
     parser.add_argument('--profile-output', type=Path, required=True)
     parser.add_argument('--max-records', type=int, default=20000)
-    parser.add_argument('--thread-sample-interval', type=int, default=20)
+    parser.add_argument('--thread-sample-interval', type=int, default=0)
+    parser.add_argument('--profile-hybrid-worker', action='store_true')
     args = parser.parse_args(argv)
     _limits(args.max_records, args.thread_sample_interval)
     if args.test_backend and os.environ.get('BA_ENABLE_SYNTHETIC_WORKER_TESTS') != '1':
         parser.error('synthetic backend requires explicit test environment gate')
+    if args.profile_hybrid_worker and (args.test_backend or os.name != 'nt' or sys.platform != 'win32' or sys.maxsize <= 2**32):
+        parser.error('hybrid profile requires the actual Windows x64 native worker')
     if not args.profile_output.is_absolute():
         parser.error('profile output must be absolute')
     # Reserve the destination before any native execution. No frame-time writes.
     with args.profile_output.open('x', encoding='utf-8') as output:
         recorder = Recorder(args.max_records, args.thread_sample_interval)
-        hashes = source_hashes()
+        hashes = source_hashes(args.profile_hybrid_worker)
         sink = ipc.isolate_protocol_stdout()
         exit_code = 2
         failure = None
@@ -333,6 +468,7 @@ def main(argv=None):
             sink.close()
             report = dict(schema=1, completed=True, exit_code=exit_code, failure=failure, pid=os.getpid(),
                 synthetic_test_backend=args.test_backend, source_sha256=hashes,
+                launch_kind='native-linux-wine-worker' if args.profile_hybrid_worker else 'direct-worker',
                 clock_resolution_seconds={name: time.get_clock_info(name).resolution
                                           for name in ('perf_counter', 'thread_time', 'process_time')},
                 metric_scope='inclusive nested timings; do not sum parent and child',

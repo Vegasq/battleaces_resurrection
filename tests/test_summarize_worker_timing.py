@@ -132,5 +132,52 @@ class SummaryTests(unittest.TestCase):
         self.assertIsNone(result['thread_cpu']['busiest_thread_fraction'])
 
 
+    def hybrid_fixture(self):
+        profile, report, rows = copy.deepcopy((self.profile, self.report, self.rows))
+        sources = dict(profile['source_sha256'], **{name: 'a'*64 for name in summary.HYBRID_PROFILE_SOURCES})
+        profile.update(pid=32, launch_kind='native-linux-wine-worker', source_sha256=sources)
+        report.update(backend=dict(kind='native-linux-wine-worker'), native_worker_pid=32,
+            source_at_start=sources, source_at_finish=sources,
+            worker_runtime=dict(platform='win32', os_name='nt', pointer_bits=64, implementation='cpython',
+                                python_version='authored Windows Python', executable='Z:\\python.exe'),
+            backend_statistics=dict(guardian_pid=1234, cleanup_complete=True, prefix_removed=True,
+                                    cgroup_removed=True, exit_code=0, native_exit_code=0))
+        return profile, report, rows
+
+    def test_hybrid_profile_binds_native_pid_and_retained_guardian_cleanup(self):
+        profile, report, rows = self.hybrid_fixture()
+        self.save(self.directory, profile, report, rows)
+        self.assertTrue(summary.summarize(self.directory)['passed'])
+
+    def test_hybrid_guardian_profile_cannot_masquerade_as_native_worker(self):
+        for mutation in ('guardian_pid', 'no_native', 'bool_native', 'wrong_launch', 'no_launch', 'runtime',
+                         'cleanup', 'native_exit', 'wrong_guardian', 'source', 'missing_backend', 'unknown_backend'):
+            with self.subTest(mutation=mutation):
+                profile, report, rows = self.hybrid_fixture()
+                if mutation == 'guardian_pid': profile['pid'] = report['worker_pid']
+                elif mutation == 'no_native': del report['native_worker_pid']
+                elif mutation == 'bool_native': report['native_worker_pid'] = True
+                elif mutation == 'wrong_launch': profile['launch_kind'] = 'direct-worker'
+                elif mutation == 'no_launch': del profile['launch_kind']
+                elif mutation == 'runtime': report['worker_runtime']['platform'] = 'linux'
+                elif mutation == 'cleanup': report['backend_statistics']['cgroup_removed'] = False
+                elif mutation == 'native_exit': report['backend_statistics']['native_exit_code'] = -9
+                elif mutation == 'wrong_guardian': report['backend_statistics']['guardian_pid'] += 1
+                elif mutation == 'source': del profile['source_sha256'][summary.HYBRID_PROFILE_SOURCES[0]]
+                elif mutation == 'missing_backend': del report['backend']
+                else: report['backend']['kind'] = 'unrecognized'
+                self.save(self.directory, profile, report, rows)
+                with self.assertRaises(ValueError): summary.summarize(self.directory)
+
+    def test_direct_legacy_report_does_not_switch_binding_from_native_pid_field(self):
+        profile, report, rows = copy.deepcopy((self.profile, self.report, self.rows))
+        report['native_worker_pid'] = 32
+        self.save(self.directory, profile, report, rows)
+        self.assertTrue(summary.summarize(self.directory)['passed'])
+        profile['pid'] = 32
+        self.save(self.directory, profile, report, rows)
+        with self.assertRaisesRegex(ValueError, 'PID differs'): summary.summarize(self.directory)
+
+
 if __name__ == '__main__':
     unittest.main()

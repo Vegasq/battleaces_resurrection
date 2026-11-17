@@ -57,9 +57,10 @@ def state_digest(state):
 
 def source_hashes():
     paths = sorted((ROOT/'server').glob('*.py')) + [Path(__file__)]
-    profile = ROOT/'tools/profile_worker_timing.py'
-    if profile.exists():
-        paths.append(profile)
+    for name in ('tools/profile_worker_timing.py', 'tools/summarize_worker_timing.py'):
+        path = ROOT/name
+        if path.exists():
+            paths.append(path)
     return {p.relative_to(ROOT).as_posix(): digest(p.read_bytes()) for p in paths}
 
 
@@ -291,7 +292,6 @@ def wine_requested(args):
     require(requested or getattr(args, 'wine_cgroup_parent', None) is None,
             '--wine-cgroup-parent requires the three Wine runtime paths')
     if requested:
-        require(not args.profile_worker, 'diagnostic profiling with WineWorkerBackend is not supported')
         require(all(Path(value).is_absolute() for value in values), 'Wine runtime paths must be explicit absolute paths')
         cgroup = getattr(args, 'wine_cgroup_parent', None)
         require(cgroup is None or Path(cgroup).is_absolute(), 'Wine cgroup parent must be an absolute path')
@@ -357,10 +357,9 @@ def validate_args(args):
 async def create_worker(args, data, output, *, ai=None, backend=None):
     kwargs = dict(working_directory=output, ai=ai, startup_timeout=120, request_timeout=10, close_timeout=3)
     if args.profile_worker:
-        require(backend is None, 'diagnostic profiling with WineWorkerBackend is not supported')
         from tools.profile_worker_timing import create_profiled_worker
         return await create_profiled_worker(data, args.assets/'Simulation.dll', profile_path=args.output/'worker-profile.json',
-                                            max_records=20000, thread_sample_interval=args.profile_thread_interval, **kwargs)
+                                            max_records=20000, thread_sample_interval=args.profile_thread_interval, backend=backend, **kwargs)
     return await SimulationWorker.create(data, args.assets/'Simulation.dll', backend=backend, **kwargs)
 
 
@@ -531,6 +530,12 @@ async def run(args):
                 require(profile['completed'] and profile['exit_code'] == 0 and profile['dropped_records'] == 0
                         and not profile['synthetic_test_backend'], 'incomplete/synthetic worker profile')
                 report['worker_profile_sha256'] = digest((args.output/'worker-profile.json').read_bytes())
+                from tools.summarize_worker_timing import validate_profile
+                with journal.open('rb') as stream:
+                    lengths = [len(read_frame(stream)) for _ in rows]
+                    require(not stream.read(1), 'extra input journal frames')
+                validate_profile(profile, dict(report=report, rows=rows, payload_lengths=lengths),
+                                 report['worker_profile_sha256'])
             except (OSError, ValueError, KeyError) as error:
                 report.update(passed=False, native_qualified=False, profile_error=str(error))
         (args.output/'benchmark.json').write_text(json.dumps(report, indent=2, sort_keys=True)+'\n', encoding='utf-8')

@@ -19,9 +19,11 @@ import math
 import os
 from pathlib import Path
 import platform
+import queue
 import random
 import struct
 import sys
+import threading
 import time
 import traceback
 
@@ -40,16 +42,55 @@ from tools import benchmark_large_armies as army
 ROOT = Path(__file__).resolve().parents[1]
 require, digest, summary = army.require, army.digest, army.summary
 MAX_EVENTS = 300000
+# Eight TLS peers can emit >64 records in one ready-task burst before the
+# interpreter schedules the writer. Keep that burst bounded without retaining
+# an entire match; a slow/full sink still fails rather than blocking gameplay.
+TRACE_QUEUE_ROWS = 256
+MAX_TRACE_BYTES = 512*1024*1024
+
+
+def file_digest(path):
+    value = hashlib.sha256()
+    with path.open('rb') as stream:
+        for block in iter(lambda: stream.read(256*1024), b''): value.update(block)
+    return value.hexdigest()
+
+
+class EventRows:
+    """Reiterable disk view; no decoded whole-trace retention."""
+    def __init__(self, path, owner=None):
+        self.path, self.owner = path, owner
+
+    def __len__(self):
+        require(self.owner is not None, 'row count requires an owned trace')
+        return self.owner.count
+
+    def __iter__(self):
+        require(self.owner is None or self.owner.closed, 'trace must be finalized before analysis')
+        with self.path.open(encoding='utf-8') as stream:
+            for index, line in enumerate(stream):
+                require(index < MAX_EVENTS and len(line) <= 2*1024*1024, 'trace row/count exceeds bound')
+                yield json.loads(line)
 
 
 class Trace:
-    def __init__(self, output):
+    def __init__(self, output, *, queue_rows=TRACE_QUEUE_ROWS):
         self.origin = time.perf_counter()
-        self.rows = []
-        self.commands = defaultdict(dict)
+        require(type(queue_rows) is int and 1 <= queue_rows <= TRACE_QUEUE_ROWS, 'invalid trace queue bound')
+        self.path = output/'events.jsonl'
+        self.rows = EventRows(self.path, self)
+        self.pending_commands = defaultdict(set)
+        self.unexpected_events = 0
         self.publications = {}
         self.emit_ms = defaultdict(float)
-        self.stream = (output/'events.jsonl').open('x', encoding='utf-8')
+        self.stream = self.path.open('x', encoding='utf-8')
+        self.queue = queue.Queue(queue_rows)
+        self.count = self.written = self.bytes_written = self.high_water = 0
+        self.maximum_row_bytes = 0
+        self.sink_cpu_ms = self.sink_active_ms = 0.0
+        self.failure, self.closed, self.complete = None, False, False
+        self.sink = threading.Thread(target=self._write_loop, name='ba-benchmark-trace', daemon=True)
+        self.sink.start()
         self.clock = dict(kind='coordinator-process-perf_counter', pid=os.getpid(), platform=sys.platform,
                           origin_seconds=self.origin, wall_origin_seconds=time.time(), unit='milliseconds')
 
@@ -58,22 +99,84 @@ class Trace:
 
     def emit(self, event, **fields):
         began = time.perf_counter()
-        require(len(self.rows) < MAX_EVENTS, 'bounded diagnostic event capacity exceeded')
+        require(not self.closed and self.failure is None, 'diagnostic trace writer unavailable: '+str(self.failure))
+        if self.count >= MAX_EVENTS:
+            self.failure = 'bounded diagnostic event capacity exceeded'
+            raise ValueError(self.failure)
         row = dict(event=event, at_ms=self.now(), **fields)
-        self.rows.append(row)
-        if event in ('client_command_created', 'client_command_sent', 'command_batch_accepted', 'command_batch_committed'):
-            self.commands[event][(fields['match'], fields['slot'], fields['sequence'])] = row
+        try:
+            self.queue.put_nowait(row)
+        except queue.Full:
+            self.failure = 'diagnostic trace queue saturated; run cannot qualify'
+            raise ValueError(self.failure) from None
+        self.count += 1
+        self.high_water = max(self.high_water, self.queue.qsize())
+        if event == 'client_command_created':
+            self.pending_commands[fields['match']].add((fields['slot'], fields['sequence']))
+        elif event == 'command_batch_committed':
+            self.pending_commands[fields['match']].discard((fields['slot'], fields['sequence']))
         if event == 'frame_queued':
             self.publications[fields['match']] = fields['frame']
+        if event == 'protocol_error' or (event == 'match_aborted' and fields.get('reason') != 'bounded benchmark episode teardown'):
+            self.unexpected_events += 1
         self.emit_ms[event] += (time.perf_counter()-began)*1000
         return row
 
+    def _write_loop(self):
+        began = time.perf_counter()
+        cpu = time.thread_time()
+        self.sink_thread_id = threading.get_native_id()
+        try:
+            while True:
+                row = self.queue.get()
+                if row is None:
+                    self.queue.task_done()
+                    break
+                active = time.perf_counter()
+                encoded = json.dumps(row, sort_keys=True, allow_nan=False)+'\n'
+                size = len(encoded.encode('utf-8'))
+                require(size <= 2*1024*1024 and self.bytes_written+size <= MAX_TRACE_BYTES, 'trace byte limit exceeded')
+                self.stream.write(encoded)
+                self.bytes_written += size
+                self.maximum_row_bytes = max(self.maximum_row_bytes, size)
+                self.written += 1
+                self.sink_active_ms += (time.perf_counter()-active)*1000
+                self.queue.task_done()
+            active = time.perf_counter()
+            self.stream.flush()
+            self.sink_active_ms += (time.perf_counter()-active)*1000
+        except BaseException as error:
+            self.failure = f'{type(error).__name__}: {error}'
+        finally:
+            try:
+                self.stream.close()
+            except BaseException as error:
+                self.failure = f'{type(error).__name__} closing trace: {error}'
+            self.sink_cpu_ms = (time.thread_time()-cpu)*1000
+            self.sink_lifetime_ms = (time.perf_counter()-began)*1000
+
     def close(self):
-        # No diagnostic file writes/JSON serialization on the measured loop.
-        # A forcibly killed run has no complete trace/receipt and cannot qualify.
-        for row in self.rows:
-            self.stream.write(json.dumps(row, sort_keys=True, allow_nan=False)+'\n')
-        self.stream.close()
+        if not self.closed:
+            began = time.perf_counter()
+            if self.sink.is_alive():
+                try: self.queue.put(None, timeout=10)
+                except queue.Full: self.failure = 'trace shutdown queue remained full'
+                self.sink.join(timeout=10)
+            self.closed = True
+            self.shutdown_ms = (time.perf_counter()-began)*1000
+            self.complete = self.failure is None and not self.sink.is_alive() and self.written == self.count
+        require(self.complete, 'diagnostic trace incomplete: '+str(self.failure))
+
+    def report(self):
+        return dict(persistence='bounded background JSON/disk writer; any saturation/write/shutdown error fails qualification',
+                    queue_row_limit=self.queue.maxsize, queue_high_water=self.high_water, enqueued=self.count,
+                    written=self.written, bytes_written=self.bytes_written, complete=self.complete, failure=self.failure,
+                    maximum_row_json_bytes=self.maximum_row_bytes, retained_row_reference_limit=self.queue.maxsize+1,
+                    sink_thread_id=getattr(self, 'sink_thread_id', None), sink_thread_id_domain=sys.platform,
+                    sink_cpu_ms=self.sink_cpu_ms, sink_active_ms=self.sink_active_ms,
+                    sink_lifetime_ms=getattr(self, 'sink_lifetime_ms', None), shutdown_ms=getattr(self, 'shutdown_ms', None),
+                    emit_ms_by_event=dict(self.emit_ms), pending_command_keys=sum(map(len, self.pending_commands.values())),
+                    retained_full_trace_rows=False, scope='writer CPU/GIL/disk overhead remains in process/cgroup measurements; no claim of zero observer cost')
 
 
 class Delivery:
@@ -262,11 +365,10 @@ class ObservedWorker:
         self.last_observation = observation
         state_sha = army.state_digest(result.state)
         observed = self.trace.now()
-        row = self.trace.emit('worker_frame', match=self.match, frame=result.frame, worker_pid=self.pid,
+        self.trace.emit('worker_frame', match=self.match, frame=result.frame, worker_pid=self.pid,
                         input_sha256=digest(payload), state_sha256=state_sha,
                         step_rpc_ms=ended-started, ai_rpc_ms=self.ai_ms,
                         observer_ms=observed-ended, **observation)
-        row['observer_ms'] = self.trace.now()-ended
         self.ai_ms = 0
         return result
 
@@ -324,6 +426,7 @@ class ResourceSampler:
     """Read ONLY an operator-selected isolated cgroup and its Linux task members."""
     def __init__(self, args, trace):
         self.args, self.trace, self.samples, self.stopped = args, trace, [], False
+        self.previous_cpu, self.cpu_count, self.cpu_sum, self.cpu_max = {}, 0, 0.0, 0.0
 
     def read(self):
         began = self.trace.now()
@@ -367,8 +470,23 @@ class ResourceSampler:
                 if value:
                     sample['tasks'].append(dict(pid=pid, tid=int(task.parent.name), process_start_ticks=identity['start_ticks'],
                                                 **proc_stat(value)))
+        sample['task_count'] = len(sample['tasks'])
+        current = {}
+        for task in sample['tasks']:
+            identity = tuple(task[k] for k in ('pid', 'process_start_ticks', 'tid', 'start_ticks'))
+            if identity in self.previous_cpu:
+                old, at = self.previous_cpu[identity]
+                elapsed = sample['capture_ms']-at
+                if elapsed > 0:
+                    rate = max(0, task['cpu_ticks']-old)*100000/(sample['linux_clock_ticks']*elapsed)
+                    self.cpu_count += 1
+                    self.cpu_sum += rate
+                    self.cpu_max = max(self.cpu_max, rate)
+            current[identity] = (task['cpu_ticks'], sample['capture_ms'])
+        self.previous_cpu = current
         sample['sampler_ms'] = self.trace.now()-began
-        self.samples.append(sample)
+        # Full task dictionaries go only to the bounded writer; retain small counters.
+        self.samples.append({key: value for key, value in sample.items() if key != 'tasks'})
         self.trace.emit('resource_sample', **sample)
 
     async def run(self):
@@ -380,25 +498,16 @@ class ResourceSampler:
 
     def report(self):
         complete = bool(self.samples) and all(s['host_memory_bytes'].get('MemAvailable') is not None and
-            s['tasks'] and s['cgroup_memory.current'] and s['cgroup_memory.swap.current'] and s['cgroup_cpu.stat']
+            s['task_count'] and s['cgroup_memory.current'] and s['cgroup_memory.swap.current'] and s['cgroup_cpu.stat']
             and not {'io.stat', 'memory.events', 'memory.peak'} & set(s['errors'])
             and all(s['pressure_'+name] for name in ('cpu', 'memory', 'io')) for s in self.samples)
-        cpu, previous = [], {}
-        for sample in self.samples:
-            current = {}
-            for task in sample['tasks']:
-                identity = tuple(task[k] for k in ('pid', 'process_start_ticks', 'tid', 'start_ticks'))
-                if identity in previous:
-                    old, at = previous[identity]
-                    elapsed = sample['capture_ms']-at
-                    if elapsed > 0:
-                        cpu.append(max(0, task['cpu_ticks']-old)*100000/(sample['linux_clock_ticks']*elapsed))
-                current[identity] = (task['cpu_ticks'], sample['capture_ms'])
-            previous = current
         return dict(scope='explicit isolated Linux cgroup; Linux PID/start_ticks identity, never Windows PID',
             cgroup=str(self.args.resource_cgroup) if self.args.resource_cgroup else None, complete=complete,
             samples=len(self.samples), sampler_ms=summary([s['sampler_ms'] for s in self.samples]),
-            per_thread_cpu_percent=count_summary(cpu),
+            per_thread_cpu_percent=dict(count=self.cpu_count, mean=self.cpu_sum/self.cpu_count if self.cpu_count else None,
+                                        maximum=self.cpu_max if self.cpu_count else None,
+                                        detail='full per-thread counters retained in streamed resource_sample events'),
+            retained_resource_task_dicts=0, retained_resource_summary_rows=len(self.samples),
             minimum_available_bytes=min((s['host_memory_bytes'].get('MemAvailable', 0) for s in self.samples), default=None),
             peak_cgroup_memory_bytes=max((int(s['cgroup_memory.peak'] or 0) for s in self.samples), default=None),
             maximum_sampled_cgroup_memory_bytes=max((int(s['cgroup_memory.current'] or 0) for s in self.samples), default=None),
@@ -430,14 +539,21 @@ def measurements(rows, origins, lane_matches, measurement_start=None, measuremen
         for row in (r for r in rows if r['event'] == event):
             key = row['match'], row['slot'], row['sequence']
             require(key not in result, 'duplicate command event: '+event)
-            result[key] = row
+            result[key] = {name: row[name] for name in ('at_ms', 'body_sha256', 'frame') if name in row}
         return result
     accepted, commits = commands('command_batch_accepted'), commands('command_batch_committed')
     created, sent = commands('client_command_created'), commands('client_command_sent')
-    pubs = {(r['match'], r['frame']): r for r in rows if r['event'] == 'frame_queued'}
-    sealed = {(r['match'], r['frame']): r for r in rows if r['event'] == 'command_frame_sealed'}
-    delivered = {(r['match'], r['slot'], r['frame']): r for r in rows if r['event'] == 'client_frame_delivered'}
-    workers = {(r['match'], r['frame']): r for r in rows if r['event'] == 'worker_frame'}
+    def frames(event, fields, client=False):
+        result = {}
+        for row in (r for r in rows if r['event'] == event):
+            key = (row['match'], row['slot'], row['frame']) if client else (row['match'], row['frame'])
+            require(key not in result, 'duplicate frame event: '+event)
+            result[key] = {name: row[name] for name in fields}
+        return result
+    pubs = frames('frame_queued', ('at_ms', 'frame_work_ms', 'frame_payload_sha256'))
+    sealed = frames('command_frame_sealed', ('at_ms', 'batches'))
+    delivered = frames('client_frame_delivered', ('at_ms',), client=True)
+    workers = frames('worker_frame', ('at_ms', 'step_rpc_ms', 'ai_rpc_ms', 'observer_ms', 'input_sha256'))
     times = {k: [] for k in ('injected_uplink_ms', 'sent_to_accepted_ms', 'accepted_to_sealed_ms',
                             'sealed_to_published_ms', 'created_to_delivered_ms', 'coordinator_outside_worker_ms')}
     missing = sorted((created.keys() | sent.keys() | accepted.keys() | commits.keys()) -
@@ -676,8 +792,7 @@ class Experiment:
         await asyncio.sleep((self.args.rtt_ms+250)/1000)
         async def committed():
             while True:
-                created = {key for key in self.trace.commands['client_command_created'] if key[0] == room.match_id}
-                if created <= self.trace.commands['command_batch_committed'].keys():
+                if not self.trace.pending_commands[room.match_id]:
                     return
                 await asyncio.sleep(.02)
         await asyncio.wait_for(committed(), 20)
@@ -738,12 +853,8 @@ def compare_runs(report, rows, previous):
     prior = json.loads((previous/'benchmark.json').read_text(encoding='utf-8'))
     event_file = previous/'events.jsonl'
     require(event_file.stat().st_size <= 512*1024*1024, 'paired trace exceeds bounded size')
-    require(digest(event_file.read_bytes()) == prior['events_sha256'], 'paired trace digest differs')
-    with event_file.open(encoding='utf-8') as stream:
-        other = []
-        for line in stream:
-            require(len(other) < MAX_EVENTS, 'paired event count exceeds bound')
-            other.append(json.loads(line))
+    require(file_digest(event_file) == prior['events_sha256'], 'paired trace digest differs')
+    other = EventRows(event_file)
     require(prior.get('passed') and prior.get('native_qualified') and prior.get('source_unchanged'),
             'paired run must be complete, source-bound and native')
     contract = ('asset_manifest_sha256', 'source_bootstrap_sha256', 'source_journal_report_sha256',
@@ -826,9 +937,7 @@ async def run(args):
             async with asyncio.TaskGroup() as tasks:
                 tasks.create_task(experiment.start_measurement())
                 for episode in first: tasks.create_task(experiment.lane(episode))
-            require(not any(row['event'] == 'protocol_error' or
-                (row['event'] == 'match_aborted' and row.get('reason') != 'bounded benchmark episode teardown')
-                for row in trace.rows), 'unexpected coordinator protocol failure/abort')
+            require(not trace.unexpected_events, 'unexpected coordinator protocol failure/abort')
         report.update(passed=True, native_qualified=True)
     except BaseException as error:
         report.update(error=f'{type(error).__name__}: {error}', traceback=traceback.format_exc())
@@ -840,12 +949,18 @@ async def run(args):
             for outcome in outcomes:
                 if isinstance(outcome, BaseException) and not isinstance(outcome, asyncio.CancelledError):
                     report.update(passed=False, resource_error=repr(outcome))
-        report['resources'] = sampler.report()
         if experiment:
             try:
                 await experiment.close()
             except BaseException as error:
                 report.update(passed=False, cleanup_error=repr(error))
+        try:
+            trace.close()
+        except (ValueError, OSError) as error:
+            report.update(passed=False, trace_error=repr(error))
+            trace.rows = ()  # Partial raw spool is retained; never analyze it as complete evidence.
+        report['resources'] = sampler.report()
+        if experiment:
             report['worker_startups'] = experiment.startups
             report['workers'] = [dict(pid=w.pid, native_pid=w.native_pid, exit_code=w.process.poll(), failure=w.failure,
                                       backend_statistics=w.backend_statistics,
@@ -901,6 +1016,7 @@ async def run(args):
             report['workload_qualified'] = bool(report['scripted_army_activity']) and all(
                 row['observed'] for row in report['scripted_army_activity'])
             report['activity_scope'] = 'at least one observed activity frame per scripted HUMAN army; sustained movement duration is reported separately, not inferred from this gate'
+            del measured
             report['acceptance'] = dict(duration=report['concurrent_active_seconds']+1e-6 >= 300,
                 activity_observed=report['workload_qualified'],
                 continuous_cadence=bool(report['measurements']['publication']) and all(v['cadence_pass'] for v in report['measurements']['publication'].values()),
@@ -915,10 +1031,8 @@ async def run(args):
                 report['pair_audit'] = compare_runs(report, trace.rows, args.compare)
             except (ValueError, KeyError, TypeError, OSError) as error:
                 report.update(passed=False, native_qualified=False, pair_audit_error=repr(error))
-        report['diagnostic_trace'] = dict(persistence='deferred until owned teardown; forced termination cannot yield a complete receipt',
-                                        emit_ms_by_event=dict(trace.emit_ms), events=len(trace.rows))
-        trace.close()
-        report['events_sha256'] = digest((args.output/'events.jsonl').read_bytes())
+        report['diagnostic_trace'] = trace.report()
+        report['events_sha256'] = file_digest(args.output/'events.jsonl')
         (args.output/'benchmark.json').write_text(json.dumps(report, indent=2, sort_keys=True)+'\n', encoding='utf-8')
     print(json.dumps({k: report[k] for k in ('passed', 'elapsed_seconds', 'error', 'acceptance') if k in report}))
     return 0 if report['passed'] else 1

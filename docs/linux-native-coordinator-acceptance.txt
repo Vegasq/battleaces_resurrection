@@ -25,10 +25,10 @@ expensive native simulation step or AI decision has become faster.
 
 FUNCTIONAL GATES
 [x] F1. Prove coordinator/listeners run in Linux Python;only simulation/AI uses Wine.
-[ ] F2. Identical assets,seeds and recorded inputs produce zero authoritative
+[x] F2. Identical assets,seeds and recorded inputs produce zero authoritative
     state/checksum mismatches against the full-Wine baseline. Include original
     AI decisions;no lost,duplicated or reordered commands.
-[ ] F3. Custom1v1,public1v1,2v2 and2vAI preserve30-second human search,AI fill,
+[x] F3. Custom1v1,public1v1,2v2 and2vAI preserve30-second human search,AI fill,
     reconnects,match completion,results/history and current command scheduling.
     Existing clients work unchanged;Windows host regression checks pass.
 [x] F4. Two simultaneous matches remain independent when one crashes or hangs.
@@ -98,8 +98,8 @@ slowdown:800-Wasp combat exceeds50ms in181/600frames,two exceed100ms. Profiling
 attributes mean21.3ms to native simulation and12.6ms to Python state decoding.
 Same-input full-Wine100-Crab runs match all1823 parsed observable states;the AI
 case exceeds50ms in21/600combat frames on the isolated1vCPU/1GiB host.
-Cross-runtime state exclusion is fixed and passes8 release/crash cases;the
-remainingF6 persistence/restart/rollback claims are still unverified.
+Cross-runtime state exclusion is fixed and passes8 release/crash cases;
+subsequentF6 persistence/restart/rollback results are recorded below.
 N43-LINUXENV records approval and72hour cleanup for the separate benchmark host.
 Hybrid scripted and recorded-AI replay now match all1823frames each. Fresh
 original AI also regenerates every input and observable state identically from
@@ -114,6 +114,16 @@ Linux host TLS1.3/admission/profile/dashboard routes pass;native restart and
 rollback to the retained full-Wine source preserve identity,profile,authored
 history fixture and configuration bytes. Together with the8 cross-runtime lock
 cases,these qualifyF1/F4/F5/F6 at the evidence scopes recorded in the companion.
-Next:finish multi-mode parity/flow qualification and repeated performance
+Five real public/Custom matches complete with matching delivered journals,
+native results and durable history. The additional solo2vAI check waits30.023s,
+fills one ally and two opponents,observes commands from all three original bots,
+and preserves history/identity through disconnect and new-session recovery.
+Together with unchanged-protocol/Windows regression evidence,this qualifiesF3
+at scripted TLS endpoint scope;physical Unity/perceived latency remainsA1.
+Fresh2vAI on both hybrid and full-Wine regenerates all1562 Windows-reference
+inputs/observable states identically,including bootstrap and binary journal.
+Together with1v1fresh-AI and2v2replay,this qualifiesF2 for the tested original
+exports;opaque unexported internal DLL state is not claimed. F1..F7 are complete
+at their documented scopes. Next:finish repeated performance
 measurements. No live service is being tested under heavy benchmark load.
 Remaining gates stay open;no latency improvement or final release is claimed.

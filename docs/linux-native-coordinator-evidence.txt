@@ -202,7 +202,7 @@ Private coordinator-small-smoke01-evidence.zip SHA256:
 e7d2722add9f6db2d5e1f9190d3cbd10d3fe21aa9d5507e041add6eb91471a01
 
 MATCHING INTERPRETER PREPARATION
-Native CPython3.14.8 is being built on the isolated host to match bundled Windows
+Native CPython3.14.8 was built on the isolated host to match bundled Windows
 Python3.14.8. Official source release and checksum:
 https://www.python.org/downloads/release/python-3148/
 c2215904f02b175596dc49351585104f4bc20341e1c47378b26a2c274360ce73
@@ -212,5 +212,197 @@ Windows build and platform-library differences remain explicit confounds.
 System Python is not replaced. The first preparation attempt rejected the
 archive's plain top-level directory entry before extraction;the corrected
 bounded check accepts that directory and keeps the initial failed log.
-Compiler runs are separate from benchmark measurements. Build is not yet a
-runtime qualification;record its actual result before using it in paired runs.
+Compiler runs are separate from benchmark measurements. Build completed in
+770.4seconds with523.4MiB peak memory and zero swap;the interpreter/import check
+passes and reports3.14.8/GCC13.3.0/OpenSSL3.0.13. The private build-tree executable
+is used directly;system Python remains unchanged. Build report:
+local/linux-hybrid-20261117/python3148-build-report.json.
+
+PROFILING DIAGNOSTICS04
+The reviewed diagnostic extension instruments an explicitly launched hybrid
+worker without changing production launcher behavior. It retains native worker
+PID/source/frame binding and ordinary owned cleanup. All49 focused controls pass
+under the newly built LinuxPython3.14.8. Periodic worker thread enumeration is
+disabled because it previously distorted latency. Real hybrid/full-Wine800-unit
+control/profile runs have now completed with all1562 recorded input/state frames
+matching in each arm. Natural worker exit and cleanup pass in all four runs.
+Snapshot04 contains committed59aabc8 plus six diagnostic-only overlay files;
+the coordinator/functional-verifier agents' subsequent edits are excluded.
+Archive SHA256:2b3be3618438c5da97c404691244043709ae1ab4d8268cfe5bcabaa5778df4b4.
+
+SAME-HOST800-UNIT CONTROL/PROFILE RESULT04
+Both coordinators usePython3.14.8 on the same1vCPU/1GiB host with the same source,
+assets,bootstrap and1562 recorded commands/states. These accelerated replays
+include600movement and600combat frames;they are not repeated5minute TLS trials.
+Unprofiled combat work:full-Wine mean90.613ms,p95126.991ms,p99153.655ms,
+max190.936ms,600/600>50ms and190>100ms. Hybrid mean95.660ms,p95142.390ms,
+p99187.121ms,max254.281ms,596/600>50ms and256>100ms. Both fail the processing
+budget for this workload;one pair does not establish a regression percentage.
+Unprofiled movement also misses50ms in598/600 full-Wine and599/600 hybrid frames.
+
+The diagnostic profiles match their exact unprofiled control inputs/states.
+Hybrid combat worker-active mean88.955ms comprises original native simulation
+55.467ms(62.35percent),snapshot decoding26.940ms(30.28percent),JSON3.018ms,
+native snapshot0.850ms,pipe write0.641ms,and other/observer2.039ms. Full-Wine
+worker-active mean88.034ms has very similar native54.817ms and decode26.254ms.
+RPC minus worker-active averages3.188ms hybrid and3.722ms full-Wine;this residual
+includes scheduling,IPC,parent work and observer tails,not pure coordinator cost.
+No latency-win claim follows. Moving coordinator Python outside Wine leaves the
+dominant original-worker simulation/decode costs present.
+
+All four runs have zero OOM events and zero swap traffic;minimum host available
+memory ranges406.3..433.9MiB. Sampled CPU steal stays below0.04percent. The
+hybrid unprofiled cgroup peak is519.9MiB versus237.9MiB full-Wine,including prefix
+copy page-cache charges;these are not simply private process RSS. Startup is
+4.922s hybrid versus0.952s full-Wine. The additional3.970s exceeds the proposed
+2s regression target in this pair;hybrid prefix cloning alone takes3.008s.
+Per-thread /proc counters show CPU work on the retained Wine worker's main
+thread and three additional threads. This proves additional worker threads are
+active on the single CPU;it neither identifies DLL ownership nor establishes
+speedup on multiple cores. Thread creation is not evidence of multicore scaling.
+
+Private evidence:local/linux-hybrid-20261117/wine-results/
+wasp-team4-paired-profile04-evidence.zip,26 verified regular files,SHA256:
+363f8921f5ac2bbbabb76cb1f615bd38cc6949286e004ac873e0865fff27e8de.
+Derived resources/timings:local/linux-hybrid-20261117/profile04-analysis.json.
+F2 now includes exact2v2 recorded replay;fresh2vAI parity is still pending.
+P1/P3/P5 are not satisfied by this result;full qualification remains open.
+
+DIAGNOSTIC SNAPSHOT05
+The arrival-mode coordinator trace now uses a bounded256-row background writer
+instead of retaining whole-match dictionaries. Saturation,write errors or an
+incomplete sink fail qualification;writer CPU,GIL,disk and queue costs remain
+visible. The20000-row authored control retains under5MiB traced allocation.
+The native-flow verifier covers original30second searches,public1/2/5,Custom,
+ordinary HQ concessions,results/history and new-session recovery after abort.
+All23 combined authored diagnostic controls pass on LinuxPython3.14.8.
+Snapshot05 SHA256:
+f9c2887cc80eae56cc0b6c211a5e9bd2e73413f81cd80ee0bad28f2be4dd619c.
+
+NATIVE PUBLIC/CUSTOM FLOWS05
+Actual original-DLL verification passes in137.69s on LinuxPython3.14.8 with
+unchanged20Hz ticks and30second human searches. Five matches complete through
+ordinary configured HQ self-destruct:public1 with two humans;public1 solo AI;
+public2 with three humans plus one AI;public5 with two humans plus two AI;
+Custom1v1. Each publishes141 exact contiguous journal frames,returns the native
+result to every participant,persists matching durable/HTTP history,and releases
+owned worker/capacity. Every original bot issues an ordinary command.
+The public1/public2 fallback offers appear after30.074/30.036s. Public5 with two
+humans starts immediately;solo2vAI's companion-search/three-bot fallback remains
+one supplemental F3 case,not inferred from the two-human result.
+An earlier running public1 disconnect aborts normally;the same RC identity and
+saved deck authenticate again and play successfully. This is new-session
+recovery,not in-place resumption. All six history records(five completed,one
+aborted) survive dashboard restart and match its HTTP response exactly.
+Worker exit/threads/prefix/cgroup cleanup and source hashes verify. Endpoints
+are scripted TLS clients;Unity UI/perceived movement is not qualified here.
+Archive hybrid-flows05-evidence.zip:21 verified regular files,SHA256:
+0754967717b23fb78f2daa1777071e3cacd5fee1ca7aed2f558740f548dbed3d.
+
+FIRST300-SECOND ARRIVAL PAIR - OBSERVER BIAS,NOT A LATENCY WIN
+small-1-0 pair01 completes both real native runs with command conservation,
+resource receipts and300seconds at target population. Hybrid publishes6000
+frames at20.0Hz,max gap65.296ms,no>100ms gaps. Full-Wine publishes5996frames
+at19.9867Hz,max gap163.817ms,224gaps>100ms. These timings are NOT a fair
+coordinator-latency comparison:the synchronous in-loop Linux resource sampler
+takes mean6.920ms/max19.337ms under Linux but mean80.597ms/max133.644ms through
+Wine's Z:/proc file access. All286 full-Wine samples exceed50ms. That observer
+blocks the event loop;correlation is being measured and the cohort is retained.
+The next controlled cohort must use the same external native Linux resource
+observer for both arms;internal resource qualification will remain false and
+the separately bound observer evidence must supply resource coverage instead.
+The earlier04 native worker profiles used the same external Linux sampling
+method in both arms and do not have this specific in-loop observer asymmetry.
+
+The strict arrival-pair audit also reports different applied frames/inputs and
+observable states despite matching assets/source/bootstrap/measurement contract.
+It correctly does NOT qualify identical-inputM2. A separate supported numbered-
+input BUFFERED replay diagnostic is being qualified for exact input/state cost
+comparisons;it cannot substitute for arrival-mode latency acceptance.
+Pair archive:small-1-0-pair01-evidence.zip,15 verified-path evidence files incl
+actual match bootstraps/journals,SHA256:
+a7066cab0763869cc1097c61e724086bf0258f864aa093a1e9c34503c17e7abd.
+
+SOLO2vAI SUPPLEMENT06 - RETAINED FAILED ATTEMPT
+The9 authored controls pass on both Windows and Linux. Actual solo2vAI waits
+for its normal companion-search fallback,but the120-frame native attempt fails
+at44.84s because at least one ally/opponent bot issues no ordinary command in
+that initial window. Do not treat this as an accepted three-bot flow or weaken
+the activity gate. Inspect the retained bot roster/frames to distinguish normal
+initial AI delay from a runtime issue before selecting the next bounded check.
+Archive hybrid-solo-flow06-evidence.zip SHA256:
+4970701f02759ced57d8ce746e8f9c53a3f1cf728676838941dbeb624767eed2.
+Source06 archive SHA256:875307ae2e1558cb35e86c6a92ae7085f84ac3df69e191738f18432102dac4b3.
+
+SOLO2vAI SUPPLEMENT06b - PASS AFTER JUSTIFIED LONGER WINDOW
+The failed06 archive contains121 sequential frames0..120,correct JoinArmy inputs
+and zero ordinary bot commands. Independent inspection of the earlier passing
+05 AI cases shows their first bot commands at frame131;their completion tail
+reached141. Thus120 was an insufficient observation window,not evidence of a
+broken bot. The same frozen06 source rerun with --play-frames400 passes in59.86s.
+Companion search lasts30.023s;human0 receives allybot2 from mode2/profile59 and
+opponents1/3 from mode5/profile60. All401 delivered frames equal the authoritative
+journal;the bots issue6/4/5 ordinary commands respectively. Deliberate human
+disconnect produces an aborted history,normal worker CLOSE and complete private
+cleanup;identity/deck survive fresh-session authentication. No fabricated team
+concession or in-place resumption is claimed. The aborted history survives
+dashboard restart. Together with five completed05 flows and Windows/protocol
+regressions,this closesF3 at scripted endpoint scope;A1 stays open.
+Archive hybrid-solo-flow06b-evidence.zip SHA256:
+2ff8e5d1e4cf9ddc8b286b70d20dca6c354f5c80ed2af0b19c3ee3c54f445c2f.
+
+BUFFERED EXACT-INPUT DIAGNOSTIC07
+The separate tool uses the supported fixed12-frame numbered-input path,normal
+validation and original native workers. It rejects unsupported source cohorts,
+changed source hashes and incomplete population/activity evidence. Every native
+input/observable state and every delivered frame is matched against the recorded
+source. This is legacy BUFFERED diagnostic evidence,not arrival-modeM2/P4.
+Ten authored controls pass on Linux. Hybrid and full-Wine actual5s movement
+prefixes from the completed300s small public source pass with modeled130ms RTT
+and0,10,-10,0ms jitter. Duration/resource/repeated-pair/arrival gates remain false.
+Archive buffered-smoke07-evidence.zip SHA256:
+ad80c0129b333ad9ebc79642d94ab292cab79b21b37831c480e11b6a4e06e2aa.
+Source07 archive SHA256:cfb2ffd3d4e20a42dd77ac8c591833365a530a26606d6c2888575e82c744e918.
+
+FRESH TEAM-AI PARITY06 - F2 PASS
+Hybrid and full-Wine run original2vAI afresh on the same isolated Linux host,
+matching the retained Windows wasp-team-ai01 reference in every one of1562
+frames. Bootstrap,asset inventory,workload,binary input journal,each regenerated
+AI/human input,parsed observable state and canonical output hash all match.
+Both workers close naturally without live threads;hybrid private prefix/cgroup
+cleanup passes. Elapsed120.08/117.81s respectively are single accelerated runs,
+not a performance-win comparison. This closesF2 together with the earlier1v1
+fresh-AI and2v2replay evidence;opaque unexported native state is not claimed.
+Archive fresh-team-ai06-evidence.zip contains10 hash-verified regular files:
+58301aa3aee26b1b4eab883957d9ae9bcc55385fea1a510edbeafd38ba932b7c.
+
+OBSERVER BIAS CORRELATION AND CORRECTION
+All224 full-Wine publication gaps above100ms in internal-observer pair01 overlap
+an in-loop resource-sampling interval. The largest portion outside those intervals
+is57.265ms. This is same-clock observational association,not a counterfactual
+latency calculation;the comparison cannot support P4. Exact analysis and archive
+verification:local/linux-hybrid-20261117/internal-observer-correlation01.json.
+The new private external02 observer uses the same native Linux Python process
+for both arms,inside the same delegated cgroup but outside the coordinator loop.
+Bounded samples retain cgroup dev/inode,PID/TID births,memory/swap/CPU/pressure/IO
+and observer CPU. Source/event/sampler hashes and full-child UTC coverage are
+checked separately;raw benchmark resource gates remain false. UTC anchors are
+used only for coarse coverage,never command-latency subtraction. Eight authored
+identity/bounds/source/coverage controls pass on both Windows and Linux.
+The first external01 Wine attempt failed before Python startup:unbuffered
+Windows CPython could not initialize inherited Linux regular-file stdout handles
+(WinError6). The failure is retained. External02 uses stdout/stderr pipes in both
+arms and saves their bounded terminal output after exit;production is unchanged.
+Actual5second two-match/medium/130ms+jitter preflights then pass for both arms.
+Linux and Wine sustain20..20.2Hz with zero>100ms gaps;maximum gaps are69.1/76.7ms
+respectively. External resource/source/lifetime bindings pass while raw internal
+resource gates remain false. This is a measurement setup check,not a latency win.
+Archive external-preflights01-evidence.zip includes60 verified regular files,
+the failed01 attempt,corrected02 source/plan,and both actual native preflights:
+a05dcfdd01b2fba520c6a2c841145365576874149777264618cb82bfc9778f86.
+
+The solo-flow diagnostic now defaults to400frames when --solo-team-only is
+selected and120frames for the completed-match matrix. An explicit120frame solo
+argument still reproduces the original short-window check. All10 focused
+controls pass. Native06b already qualified the exact400frame window explicitly;
+this default-only change does not require repeating that qualified native flow.

@@ -287,8 +287,7 @@ class BenchmarkTests(unittest.TestCase):
         args.wine_prefix_template = Path.cwd()/'private-template'
         self.assertTrue(b.wine_requested(args))
         args.profile_worker = True
-        with self.assertRaisesRegex(ValueError, 'profiling.*not supported'):
-            b.wine_requested(args)
+        self.assertTrue(b.wine_requested(args))
         args.profile_worker = False
         args.wine_prefix_template = Path('relative-prefix')
         with self.assertRaisesRegex(ValueError, 'absolute'):
@@ -312,10 +311,13 @@ class BenchmarkTests(unittest.TestCase):
             self.assertIs(factory.await_args.kwargs['backend'], selected)
             self.assertNotIn('_test_backend', factory.await_args.kwargs)
         args.profile_worker = True
-        with mock.patch.object(b.SimulationWorker, 'create', new_callable=mock.AsyncMock) as factory:
-            with self.assertRaisesRegex(ValueError, 'profiling.*not supported'):
-                asyncio.run(b.create_worker(args, b'authored-world', Path.cwd(), backend=selected))
-            factory.assert_not_called()
+        args.profile_thread_interval, args.output = 0, Path.cwd()/'output'
+        from tools import profile_worker_timing
+        with mock.patch.object(profile_worker_timing, 'create_profiled_worker', new_callable=mock.AsyncMock) as factory:
+            asyncio.run(b.create_worker(args, b'authored-world', Path.cwd(), backend=selected))
+            self.assertIs(factory.await_args.kwargs['backend'], selected)
+            self.assertEqual(factory.await_args.kwargs['thread_sample_interval'], 0)
+            self.assertNotIn('_test_backend', factory.await_args.kwargs)
 
     def test_backend_identity_binds_runtime_binaries_and_bounds_version_probe(self):
         with tempfile.TemporaryDirectory() as temporary:

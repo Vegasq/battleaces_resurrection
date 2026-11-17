@@ -4,7 +4,9 @@ import copy
 import json
 from pathlib import Path
 import tempfile
+import threading
 import time
+import tracemalloc
 from types import SimpleNamespace
 import unittest
 from unittest import mock
@@ -175,18 +177,74 @@ class MeasurementsTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'timing exceeds'):
             b.measurements(rows, {'m': 0}, {0: ['m']})
 
-    def test_trace_persistence_is_outside_measured_loop_and_identity_is_reproducible(self):
+    def test_trace_uses_background_sink_and_identity_is_reproducible(self):
         with tempfile.TemporaryDirectory(prefix='ba-trace-control-') as temporary:
             output = Path(temporary)
             trace = b.Trace(output)
             trace.emit('authored_test', value=1)
-            self.assertEqual((output/'events.jsonl').stat().st_size, 0)
             self.assertIn('authored_test', trace.emit_ms)
             trace.close()
             self.assertEqual(json.loads((output/'events.jsonl').read_text())['value'], 1)
+            self.assertTrue(trace.report()['complete'])
+            self.assertNotEqual(trace.report()['sink_thread_id'], threading.get_native_id())
         self.assertEqual(b.benchmark_token(1, 'seat0'), b.benchmark_token(1, 'seat0'))
         self.assertNotEqual(b.benchmark_token(1, 'seat0'), b.benchmark_token(1, 'seat1'))
         self.assertRegex(b.benchmark_token(1, 'seat0'), r'^ba1_[A-Za-z0-9_-]{43}$')
+
+    def test_high_volume_trace_streams_without_retaining_full_rows(self):
+        with tempfile.TemporaryDirectory(prefix='ba-spool-volume-') as temporary:
+            trace = b.Trace(Path(temporary))
+            tracemalloc.start()
+            try:
+                for start in range(0, 20000, 32):
+                    for index in range(start, min(start+32, 20000)):
+                        trace.emit('authored_volume', index=index, payload='x'*128)
+                    trace.queue.join()  # Unit-test producer pacing, never used on the measured event loop.
+                trace.close()
+                _, peak = tracemalloc.get_traced_memory()
+            finally:
+                tracemalloc.stop()
+                trace.close()
+            self.assertLess(peak, 5*1024*1024)
+            self.assertNotIsInstance(trace.rows, list)
+            self.assertEqual(sum(1 for _ in trace.rows), 20000)
+            self.assertEqual(sum(row['index'] for row in trace.rows), sum(range(20000)))
+            self.assertEqual(trace.report()['written'], 20000)
+            self.assertLessEqual(trace.report()['queue_high_water'], b.TRACE_QUEUE_ROWS)
+            self.assertFalse(trace.pending_commands)
+
+    def test_saturated_trace_fails_explicitly_without_silent_drop(self):
+        gate = threading.Event()
+        original = b.Trace._write_loop
+        def delayed(trace):
+            gate.wait(3)
+            original(trace)
+        with tempfile.TemporaryDirectory(prefix='ba-spool-full-') as temporary:
+            with mock.patch.object(b.Trace, '_write_loop', delayed):
+                trace = b.Trace(Path(temporary), queue_rows=1)
+                try:
+                    trace.emit('authored_first')
+                    with self.assertRaisesRegex(ValueError, 'saturated'):
+                        trace.emit('authored_second')
+                finally:
+                    gate.set()
+                    with self.assertRaisesRegex(ValueError, 'incomplete'):
+                        trace.close()
+            self.assertFalse(trace.report()['complete'])
+            self.assertEqual(trace.report()['enqueued'], 1)
+            self.assertEqual(trace.report()['written'], 1)
+
+    def test_background_write_error_cannot_produce_complete_receipt(self):
+        with tempfile.TemporaryDirectory(prefix='ba-spool-error-') as temporary:
+            trace = b.Trace(Path(temporary))
+            with mock.patch.object(b.json, 'dumps', side_effect=OSError('authored disk failure')):
+                trace.emit('authored_error')
+                trace.sink.join(3)
+            with self.assertRaisesRegex(ValueError, 'incomplete'):
+                trace.close()
+            self.assertFalse(trace.report()['complete'])
+            self.assertEqual(trace.report()['written'], 0)
+            self.assertIn('authored disk failure', trace.report()['failure'])
 
     def test_pair_audit_exposes_intent_frame_and_state_differences(self):
         rows = self.rows()
@@ -217,6 +275,30 @@ class MeasurementsTests(unittest.TestCase):
         fields[11], fields[12], fields[19], fields[21] = '10', '4', '12345', '9'
         self.assertEqual(b.proc_stat('17 (name with spaces) '+' '.join(fields)),
                          dict(cpu_ticks=14, start_ticks=12345, rss_pages=9))
+
+    def test_resource_sampler_spools_task_dicts_and_keeps_only_small_summaries(self):
+        with tempfile.TemporaryDirectory(prefix='ba-resource-control-') as temporary:
+            root = Path(temporary); proc, group = root/'proc', root/'group'
+            (proc/'pressure').mkdir(parents=True); (proc/'17/task/17').mkdir(parents=True); group.mkdir()
+            (proc/'meminfo').write_text('MemAvailable: 262144 kB\nMemTotal: 1048576 kB\nSwapTotal: 0 kB\nSwapFree: 0 kB\n')
+            for name in ('cpu', 'memory', 'io'): (proc/'pressure'/name).write_text('some avg10=0.00 total=0\n')
+            for name, value in {'cgroup.procs':'17\n', 'cpu.stat':'usage_usec 100\n', 'memory.current':'32768\n',
+                                'memory.peak':'65536\n', 'memory.swap.current':'0\n', 'memory.events':'oom 0\n', 'io.stat':''}.items():
+                (group/name).write_text(value)
+            fields = ['S']+['0']*23
+            fields[11], fields[12], fields[19], fields[21] = '10', '4', '12345', '9'
+            value = '17 (fixture) '+' '.join(fields)
+            for path in (proc/'17/stat', proc/'17/task/17/stat'): path.write_text(value)
+            trace = MemoryTrace()
+            sampler = b.ResourceSampler(SimpleNamespace(proc_root=proc, resource_cgroup=group, linux_clock_ticks=100), trace)
+            sampler.read(); sampler.read()
+            self.assertTrue(all('tasks' not in row for row in sampler.samples))
+            self.assertTrue(all(len(row['tasks']) == 1 for row in trace.rows))
+            report = sampler.report()
+            self.assertTrue(report['complete'])  # An existing, empty io.stat means zero I/O.
+            self.assertEqual(report['retained_resource_task_dicts'], 0)
+            self.assertEqual(report['peak_cgroup_memory_bytes'], 65536)
+            self.assertEqual(report['maximum_sampled_cgroup_memory_bytes'], 32768)
 
 
 class SyntheticTLSControl(unittest.IsolatedAsyncioTestCase):
@@ -268,8 +350,10 @@ class SyntheticTLSControl(unittest.IsolatedAsyncioTestCase):
                     await episode.room.finish('bounded benchmark episode teardown', aborted=True)
             finally:
                 await experiment.close()
-                trace.stream.close()
+                trace.close()
             self.assertTrue(all(worker.process.poll() == 0 for worker in experiment.workers))
+            conservation = b.measurements(trace.rows, {e.room.match_id: 0 for e in episodes}, experiment.lane_matches)
+            self.assertTrue(conservation['conservation']['complete'])
             self.assertFalse((output/'benchmark.json').exists())  # No native acceptance receipt from fixture control.
 
 

@@ -182,7 +182,7 @@ class ProfiledWorkerTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_indirect_backend_is_refused_before_installing_launch_proxy(self):
         original = worker_client.subprocess
-        with self.assertRaisesRegex(ValueError, 'direct worker backend'):
+        with self.assertRaisesRegex(ValueError, 'explicit WineWorkerBackend'):
             await profile.create_profiled_worker(b'test', profile_path=self.directory/'hybrid.json', backend=object())
         self.assertIs(worker_client.subprocess, original)
         self.assertFalse((self.directory/'hybrid.json').exists())
@@ -206,6 +206,185 @@ class ProfiledWorkerTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn(b'explicit test environment gate', result.stderr)
         self.assertFalse(output.exists())
+
+
+class HybridLaunchProxyTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.directory = Path(self.temporary.name).resolve()
+        self.backend = SimpleNamespace(wine_executable=self.directory/'wine', windows_python=self.directory/'python.exe',
+                                       prefix_template=self.directory/'template', cgroup_parent=self.directory/'group')
+        self.runtime = self.directory/'ba-wine-worker-authored'
+        self.argv = [value for pair in zip(profile.GUARDIAN_FIELDS,
+            (str(self.backend.wine_executable), str(self.backend.windows_python), str(self.backend.prefix_template),
+             str(self.directory), str(self.runtime), str(self.backend.cgroup_parent/self.runtime.name),
+             str(os.getpid()), '10', '11')) for value in pair]
+        self.calls = []
+        self.original = SimpleNamespace(PIPE=-1)
+        self.module = SimpleNamespace(subprocess=self.original)
+        def popen(args, **kwargs):
+            self.assertIs(self.module.subprocess, self.original)
+            self.calls.append((args, kwargs))
+            return 'owned child'
+        self.original.Popen = popen
+
+    def parent(self):
+        from server.wine_worker import GUARDIAN_BOOTSTRAP
+        proxy = profile._OneGuardianLaunch(self.module, self.directory/'profile.json', 100, 0,
+                                           self.backend, self.directory)
+        self.module.subprocess = proxy
+        args = [sys.executable, '-I', '-S', '-B', '-u', '-c', GUARDIAN_BOOTSTRAP, str(profile.ROOT)]+self.argv
+        kwargs = dict(cwd=self.directory, stdin=-1, stdout=-1, stderr=-1, close_fds=True,
+                      pass_fds=(10, 11), start_new_session=True, env={'unchanged': 'yes'}, bufsize=0)
+        return proxy, args, kwargs
+
+    def child(self):
+        proxy = profile._OneWineChildLaunch(self.module, self.directory/'profile.json', 100, 0, self.argv)
+        self.module.subprocess = proxy
+        args = [str(self.backend.wine_executable), 'wine:'+str(self.backend.windows_python),
+                '-I', '-S', '-B', '-u', '-c', profile.WORKER_BOOTSTRAP, 'wine:'+str(profile.ROOT), '--stdio']
+        kwargs = dict(cwd=self.runtime/'work', stdin=sys.stdin.buffer, stdout=sys.stdout.buffer,
+                      stderr=sys.stderr.buffer, close_fds=True, pass_fds=(17,), preexec_fn=lambda: None,
+                      env=dict(WINEPREFIX=str(self.runtime/'prefix'), WINEARCH='win64', WINEDLLOVERRIDES='mscoree,mshtml='))
+        return proxy, args, kwargs
+
+    def test_guardian_substitution_preserves_exact_ownership_and_restores_before_spawn(self):
+        proxy, args, kwargs = self.parent()
+        self.assertEqual(proxy.Popen(args, **kwargs), 'owned child')
+        command, options = self.calls[0]
+        self.assertEqual(command[:6], args[:6])
+        self.assertEqual(command[6], profile.GUARDIAN_PROFILE_BOOTSTRAP)
+        self.assertEqual(command[7:-6], args[7:])
+        self.assertEqual(options, kwargs)
+        self.assertIs(self.module.subprocess, self.original)
+
+    def test_guardian_invalid_command_and_ownership_refuse_before_launch(self):
+        for mutation in ('root', 'cgroup', 'runtime', 'prefix', 'fds', 'session', 'thread', 'shell', 'extra'):
+            with self.subTest(mutation=mutation):
+                proxy, args, kwargs = self.parent()
+                if mutation == 'root': args[7] = 'unrelated-root'
+                elif mutation in ('cgroup', 'runtime', 'prefix'):
+                    field = {'cgroup': '--cgroup', 'runtime': '--runtime-directory', 'prefix': '--prefix-template'}[mutation]
+                    args[args.index(field)+1] = str(self.directory/'unowned')
+                elif mutation == 'fds': kwargs['pass_fds'] = (10, 18)
+                elif mutation == 'session': kwargs['start_new_session'] = False
+                elif mutation == 'thread': proxy.owner_thread = -1
+                elif mutation == 'shell': kwargs['shell'] = True
+                else: args += ['--extra', 'x']
+                with self.assertRaises(RuntimeError): proxy.Popen(args, **kwargs)
+                self.assertIs(self.module.subprocess, self.original)
+                self.assertFalse(self.calls)
+
+    def test_wine_substitution_keeps_cgroup_preexec_private_prefix_and_stdio(self):
+        proxy, args, kwargs = self.child()
+        with patch('server.wine_worker.windows_path', side_effect=lambda p: 'wine:'+str(p)):
+            self.assertEqual(proxy.Popen(args, **kwargs), 'owned child')
+        command, options = self.calls[0]
+        self.assertEqual(command[:7], args[:7])
+        self.assertEqual(command[7], profile.PROFILE_BOOTSTRAP)
+        self.assertEqual(command[8:10], args[8:10])
+        self.assertEqual(command[command.index('--profile-output')+1], 'wine:'+str(self.directory)+'\\profile.json')
+        self.assertIn('--profile-hybrid-worker', command)
+        self.assertEqual(options, kwargs)
+        self.assertIs(options['preexec_fn'], kwargs['preexec_fn'])
+        self.assertIs(self.module.subprocess, self.original)
+
+    def test_wine_child_malformed_or_synthetic_launch_refuses_and_restores(self):
+        for mutation in ('root', 'synthetic', 'stdio', 'preexec', 'fds', 'prefix', 'shell'):
+            with self.subTest(mutation=mutation):
+                proxy, args, kwargs = self.child()
+                if mutation == 'root': args[8] = 'other-root'
+                elif mutation == 'synthetic': args.append('--test-backend')
+                elif mutation == 'stdio': kwargs['stdout'] = -1
+                elif mutation == 'preexec': kwargs['preexec_fn'] = None
+                elif mutation == 'fds': kwargs['pass_fds'] = ()
+                elif mutation == 'prefix': kwargs['env']['WINEPREFIX'] = 'shared-prefix'
+                else: kwargs['shell'] = True
+                with patch('server.wine_worker.windows_path', side_effect=lambda p: 'wine:'+str(p)):
+                    with self.assertRaises(RuntimeError): proxy.Popen(args, **kwargs)
+                self.assertIs(self.module.subprocess, self.original)
+                self.assertFalse(self.calls)
+
+    def test_diagnostic_guardian_reuses_original_main_and_restores_on_failure(self):
+        from server import wine_worker_guardian as guardian
+        original = guardian.subprocess
+        def fail(argv):
+            self.assertEqual(argv, self.argv)
+            self.assertIsInstance(guardian.subprocess, profile._OneWineChildLaunch)
+            raise ValueError('authored prelaunch refusal')
+        with patch.object(guardian, 'main', side_effect=fail), patch.object(profile, '_wine_output', return_value='Z:\\profile.json'):
+            with self.assertRaisesRegex(ValueError, 'authored prelaunch'):
+                profile.guardian_main(self.argv+['--profile-output', str(self.directory/'profile.json'),
+                                                '--max-records', '100', '--thread-sample-interval', '0'])
+        self.assertIs(guardian.subprocess, original)
+
+    def test_output_translation_never_creates_file_and_rejects_invalid_name_or_existing(self):
+        with patch('server.wine_worker.windows_path', return_value='Z:\\owned') as translate:
+            self.assertEqual(profile._wine_output(self.directory/'new.json'), 'Z:\\owned\\new.json')
+            translate.assert_called_once_with(self.directory)
+            self.assertFalse((self.directory/'new.json').exists())
+            with self.assertRaises(ValueError): profile._wine_output(self.directory/'bad:name.json')
+            (self.directory/'existing').write_bytes(b'keep')
+            with self.assertRaises(ValueError): profile._wine_output(self.directory/'existing')
+            self.assertEqual((self.directory/'existing').read_bytes(), b'keep')
+
+    def test_thread_enumeration_is_disabled_by_default(self):
+        recorder = profile.Recorder()
+        with patch.object(profile, 'thread_cpu_snapshot', side_effect=AssertionError('must not enumerate')):
+            self.assertEqual(recorder.sample_threads(1), 0)
+        self.assertEqual(recorder.thread_samples, [])
+
+
+class HybridProfileConcurrencyTests(unittest.IsolatedAsyncioTestCase):
+    async def test_profiled_hybrid_restores_before_await_and_leaves_normal_hybrid_and_direct_alone(self):
+        from server import wine_worker
+        helper = HybridLaunchProxyTests()
+        helper.setUp()
+        self.addCleanup(helper.doCleanups)
+        backend = object.__new__(wine_worker.WineWorkerBackend)
+        for name, value in vars(helper.backend).items(): object.__setattr__(backend, name, value)
+        _, hybrid_args, hybrid_kwargs = helper.parent()
+        helper.module.subprocess = helper.original
+        normal = SimpleNamespace(PIPE=-1)
+        calls = []
+        def popen(args, **kwargs):
+            self.assertIs(wine_worker.subprocess, normal)
+            self.assertIs(worker_client.subprocess, normal)
+            calls.append(args)
+            return args[6]
+        normal.Popen = popen
+        async def create(data, dll=None, **kwargs):
+            if kwargs.get('backend') is backend:
+                result = wine_worker.subprocess.Popen(list(hybrid_args), **hybrid_kwargs)
+            else:
+                args = [sys.executable, '-I', '-S', '-B', '-u', '-c', profile.WORKER_BOOTSTRAP, str(profile.ROOT), '--stdio']
+                result = worker_client.subprocess.Popen(args, stdin=-1, stdout=-1, stderr=-1, close_fds=True)
+            await asyncio.sleep(0)
+            return result
+        with patch.object(wine_worker, 'subprocess', normal), patch.object(worker_client, 'subprocess', normal), \
+                patch.object(profile, '_wine_output', return_value='Z:\\profile.json'), \
+                patch.object(SimulationWorker, 'create', side_effect=create):
+            results = await asyncio.gather(
+                profile.create_profiled_worker(b'test', profile_path=helper.directory/'hybrid.json',
+                    backend=backend, working_directory=helper.directory),
+                SimulationWorker.create(b'test', backend=backend),
+                profile.create_profiled_worker(b'test', profile_path=helper.directory/'direct.json'))
+        self.assertEqual(results, [profile.GUARDIAN_PROFILE_BOOTSTRAP, wine_worker.GUARDIAN_BOOTSTRAP, profile.PROFILE_BOOTSTRAP])
+        self.assertEqual(len(calls), 3)
+
+    async def test_hybrid_prelaunch_failure_restores_both_modules(self):
+        from server import wine_worker
+        backend = object.__new__(wine_worker.WineWorkerBackend)
+        original, direct = wine_worker.subprocess, worker_client.subprocess
+        with tempfile.TemporaryDirectory() as temporary, \
+                patch.object(profile, '_wine_output', return_value='Z:\\profile.json'), \
+                patch.object(SimulationWorker, 'create', side_effect=ValueError('authored validation failure')):
+            with self.assertRaisesRegex(ValueError, 'authored validation'):
+                await profile.create_profiled_worker(b'test', profile_path=Path(temporary)/'profile.json',
+                    backend=backend, working_directory=temporary)
+        self.assertIs(wine_worker.subprocess, original)
+        self.assertIs(worker_client.subprocess, direct)
 
 
 if __name__ == '__main__':

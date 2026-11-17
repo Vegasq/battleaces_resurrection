@@ -17,6 +17,7 @@ import struct
 PHASES = ('setup', 'movement', 'combat')
 PROFILE_SOURCES = ('tools/profile_worker_timing.py', 'server/worker_client.py', 'server/simulation_worker.py',
                    'server/native_simulation.py', 'server/native_ai.py', 'server/worker_ai.py')
+HYBRID_PROFILE_SOURCES = ('server/wine_worker.py', 'server/wine_worker_guardian.py', 'server/wine_worker_cgroup.py')
 MAX_FRAMES = 32000
 MAX_FRAME_BYTES = 4 * 65536 + 1024
 
@@ -106,6 +107,42 @@ def load_benchmark(directory):
                                  'frames.bin': journal_digest.hexdigest()})
 
 
+def validate_profile_identity(profile, report):
+    """Bind Windows-worker timing separately from the Linux guardian's PID."""
+    backend = report.get('backend')
+    kind = backend.get('kind') if isinstance(backend, dict) else None
+    hybrid = kind == 'native-linux-wine-worker'
+    required_sources = PROFILE_SOURCES
+    expected_pid = report.get('worker_pid')
+    if hybrid:
+        runtime, cleanup = report.get('worker_runtime', {}), report.get('backend_statistics', {})
+        require(isinstance(runtime, dict) and runtime.get('platform') == 'win32'
+                and runtime.get('os_name') == 'nt' and runtime.get('pointer_bits') == 64
+                and runtime.get('implementation') == 'cpython'
+                and isinstance(runtime.get('python_version'), str) and bool(runtime['python_version'])
+                and isinstance(runtime.get('executable'), str) and bool(runtime['executable']),
+                'hybrid worker runtime identity missing/invalid')
+        require(isinstance(cleanup, dict) and cleanup.get('cleanup_complete') is True
+                and cleanup.get('prefix_removed') is True and cleanup.get('cgroup_removed') is True
+                and all(type(cleanup.get(key)) is int and cleanup[key] == 0 for key in ('exit_code', 'native_exit_code'))
+                and type(report.get('worker_pid')) is int and report['worker_pid'] > 0
+                and type(cleanup.get('guardian_pid')) is int and cleanup['guardian_pid'] == report['worker_pid'],
+                'hybrid guardian identity/cleanup missing/invalid')
+        require(profile.get('launch_kind') == kind, 'hybrid profile did not identify a Windows worker launch')
+        expected_pid = report.get('native_worker_pid')
+        require(type(expected_pid) is int and 0 < expected_pid <= 0xffffffff, 'hybrid native PID missing/invalid')
+        required_sources += HYBRID_PROFILE_SOURCES
+    else:
+        require(kind in (None, 'windows-worker') and profile.get('launch_kind') in (None, 'direct-worker'),
+                'unknown/mismatched profile launch kind')
+    require(type(profile.get('pid')) is int and profile['pid'] > 0 and profile['pid'] == expected_pid,
+            'profile worker PID differs')
+    sources = profile.get('source_sha256', {})
+    require(isinstance(sources, dict) and set(sources) == set(required_sources)
+            and all(valid_sha(sources[name]) and sources[name] == report['source_at_start'].get(name)
+                    for name in required_sources), 'profile source binding differs')
+
+
 def validate_profile(profile, benchmark, profile_sha):
     report, frames = benchmark['report'], benchmark['rows']
     require(profile.get('schema') == 1 and profile.get('completed') is True
@@ -114,12 +151,7 @@ def validate_profile(profile, benchmark, profile_sha):
             and profile.get('synthetic_test_backend') is False, 'worker profile incomplete/failed/synthetic')
     require(report.get('profiled') is True and report.get('worker_profile_sha256') == profile_sha,
             'profile sidecar is not bound to this benchmark')
-    require(type(profile.get('pid')) is int and profile['pid'] > 0 and profile['pid'] == report.get('worker_pid'),
-            'profile worker PID differs')
-    sources = profile.get('source_sha256', {})
-    require(isinstance(sources, dict) and set(sources) == set(PROFILE_SOURCES)
-            and all(valid_sha(sources[name]) and sources[name] == report['source_at_start'].get(name)
-                    for name in PROFILE_SOURCES), 'profile source binding differs')
+    validate_profile_identity(profile, report)
     records = profile.get('records')
     require(isinstance(records, list) and 3 <= len(records) <= 20000, 'profile records absent/outside bound')
     require(records[0].get('operation') == 'CREATE' and records[0].get('frame') == -1
@@ -292,7 +324,8 @@ def summarize(directory, control=None):
                      'receive time includes parent pacing/idle and is excluded from active compute',
                      'thread CPU samples omit exited threads and do not identify which DLL created or used a thread',
                      'thread CPU totals include profiler/sampler overhead; thread enumeration can dominate sampled RPC tails',
-                     'profile frame binding uses owned worker PID/source/output digest and exact frame/size coverage; profiler stores no raw command data',
+                     'profile frame binding uses validated native worker PID/source/output digest and exact frame/size coverage; profiler stores no raw command data',
+                     'parent RPC minus worker active time compares durations, not cross-process clock origins; it also includes IPC and scheduling',
                      'single profiled run does not establish performance improvement or network playability'])
     if control is not None:
         baseline = load_benchmark(control)

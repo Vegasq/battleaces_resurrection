@@ -10,8 +10,12 @@ ACTIVE GOAL - N43 HYBRID LINUX SERVER
 [x] Reproduce/fix Linux-Wine state-lock exclusion;8 release/crash cases pass.
 [x] Qualify isolated Wine worker ownership/cleanup,native Linux TLS/dashboard
     routing,and preserved fixture data across restart/full-Wine rollback.
-[ ] Complete same-host hybrid replay,paired performance/resource measurements
-    and later prepared player acceptance under the dedicated criteria.
+[x] Complete multi-mode same-host replay,fresh originalAI and native gameplay
+    completion/history/companion-fallback flows at documentedF1..F7 scopes.
+[ ] Complete controlled repeated performance/resource measurements and later
+    prepared player acceptance under the dedicated criteria. First800-unit
+    controls show no speedup;the corrected external observer passes both native
+    preflights and repeated five-minute comparisons are running.
 The focused document owns the proposed gates;DEV.txt N43 owns Nick's answers.
 Evidence:linux-native-coordinator-evidence.txt. Implementation is in progress;
 no performance improvement,complete hybrid qualification or deployment claimed.

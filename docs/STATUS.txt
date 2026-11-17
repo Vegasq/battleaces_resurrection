@@ -1,4 +1,23 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-17UTC N43 FUNCTIONAL GATES COMPLETE:F1..F7 now pass at the focused
+evidence scopes. Solo2vAI companion fallback and three original bots pass a
+400frame check;the earlier120frame failure ended before normal frame131 AI
+activation. Fresh2vAI hybrid/full-Wine reproduce all1562 reference inputs/states.
+Performance/player gates remain open. An in-loop resource observer distorted
+the first300s arrival comparison;all224 full-Wine>100ms gaps overlap sampling.
+An identical external Linux observer passes both actual short preflights;
+repeated five-minute comparisons are running with the corrected setup.
+The separate800-unit worker controls still show no large-army speedup.
+2026-11-17UTC N43 MEASURED LIMIT:matchedPython3.14.8,one1vCPU/1GiB host and
+identical800-unit replay show no large-army win in the first control pair:
+combat mean90.6ms full-Wine versus95.7ms hybrid,against a50ms budget. Profiles
+attribute about62percent of worker-active time to original simulation and30percent
+to state decoding. Hybrid startup is also3.97s slower in this pair. These are
+single unpaced controls,not final repeated TLS latency conclusions. Five actual
+native public/Custom matches complete with exact frame delivery/results/history;
+disconnect/new-session recovery and all owned cleanup pass. Solo2vAI fallback,
+fresh team-AI parity,full timed comparisons and player acceptance remain open.
+Evidence:linux-native-coordinator-evidence.txt. Live hosts remain unchanged.
 2026-11-17UTC N43 FUNCTIONAL CHECKPOINT:fullWindows regression1757tests passes
 with111expected skips. First actual nativeLinux TLS/public arrival-scheduling
 smoke sustains20Hz for5seconds at modeled130ms RTT+jitter;all300 commandbatches
