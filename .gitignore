@@ -1,6 +1,7 @@
 /local/
 /build/
 /dist/
+/rust/**/target/
 /investigation/
 **/.battleaces-resurrection/
 /server/assets/

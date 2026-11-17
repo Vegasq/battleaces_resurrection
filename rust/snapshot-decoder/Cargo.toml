@@ -1,0 +1,20 @@
+[package]
+name = "ba-snapshot-decoder"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+publish = false
+description = "Portable decoder for the existing Battle Aces snapshot contract"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+
+[[bin]]
+name = "ba-snapshot-decode"
+path = "src/main.rs"

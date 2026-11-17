@@ -11,6 +11,17 @@ from tools.audit_repository import inspect_content
 
 
 class PublicationAuditTests(unittest.TestCase):
+    def test_rust_sources_keep_binary_secret_and_output_guards(self):
+        for path in ('rust/snapshot-decoder/Cargo.toml', 'rust/snapshot-decoder/Cargo.lock',
+                     'rust/snapshot-decoder/src/lib.rs', 'rust/snapshot-decoder/src/main.rs'):
+            self.assertEqual(inspect_content(path, b'ordinary source'), [])
+            for data in (b'MZpayload', b'\x7fELFbinary', b'ghp_' + b'a'*30, b'text\0binary'):
+                self.assertTrue(inspect_content(path, data))
+        for path in ('rust/other/Cargo.toml', 'rust/snapshot-decoder/output.json',
+                     'rust/snapshot-decoder/target/debug/app.rs',
+                     'rust/snapshot-decoder/src/target/embedded.rs', 'tools/unrelated.rs'):
+            self.assertTrue(inspect_content(path, b'ordinary text'))
+
     def test_only_exact_reviewed_documentation_media_allowed(self):
         root = Path(__file__).resolve().parents[1]
         for name in ('crabs-2026.gif', 'discord-server.webp'):

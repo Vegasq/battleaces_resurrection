@@ -1,4 +1,11 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-17UTC N44 WINDOWS DECODER PASS:portable safe Rust matches Python on32
+authored valid cases and all30 original snapshots in full/summary modes;287
+malformed and3 nonfinite JSON cases refuse. Same-input warmed large-army decode
+medians are12.39..13.45ms Python versus0.296..0.320ms Rust on this Windows PC.
+These are decoder-only measurements,not server cadence or a perceived-lag fix.
+Native Linux authored CI remains pending. Production runtime/live services are
+unchanged. Scope,hashes and remaining integration boundary:rust-snapshot-decoder.txt.
 2026-11-17UTC N43 PERFORMANCE CANDIDATE NOT ACCEPTED:functionalF1..F7 pass,
 but corrected five-minute800-unit movement trials yield10.53Hz hybrid/10.05Hz
 full-Wine against20Hz. Both saturate the single CPU;hybrid has739>100ms gaps,

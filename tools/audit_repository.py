@@ -26,8 +26,9 @@ DEPLOY_SOURCES = {
     "deploy/linux/ba-server-supervise",
     "deploy/linux/battle-aces-server.service",
 }
+RUST_MANIFESTS = {"rust/snapshot-decoder/Cargo.toml", "rust/snapshot-decoder/Cargo.lock"}
 FORBIDDEN_PARTS = {"local", "build", "dist", "assets", "fixtures", "captures", "original",
-                   "backups", "metadata", "descriptors", "battle aces_data", "__pycache__"}
+                   "backups", "metadata", "descriptors", "battle aces_data", "__pycache__", "target"}
 SOURCE_FIXTURES = {
     "tests/fixtures/ads_caller181/callback.asm",
     "tests/fixtures/ads_caller181/host.cpp",
@@ -72,7 +73,8 @@ def inspect_content(name: str, data: bytes) -> list[str]:
         return []
     path = PurePosixPath(name)
     reasons = []
-    if name not in ROOT_FILES | DEPLOY_SOURCES and (path.parts[0] not in SOURCE_DIRS or path.suffix.lower() not in EXTENSIONS):
+    rust_source = path.parts[:3] == ("rust", "snapshot-decoder", "src") and path.suffix == ".rs"
+    if name not in ROOT_FILES | DEPLOY_SOURCES | RUST_MANIFESTS and not rust_source and (path.parts[0] not in SOURCE_DIRS or path.suffix.lower() not in EXTENSIONS):
         reasons.append("not an allowed source/documentation path")
     if name not in SOURCE_FIXTURES and any(part.lower() in FORBIDDEN_PARTS for part in path.parts):
         reasons.append("runtime/capture/asset directory")

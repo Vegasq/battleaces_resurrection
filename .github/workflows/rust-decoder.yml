@@ -1,0 +1,62 @@
+name: Rust snapshot decoder
+on: [push, pull_request]
+permissions:
+  contents: read
+
+jobs:
+  linux-decoder:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+      - name: Record runtime identities
+        run: |
+          rustc +1.98.1 -Vv
+          cargo +1.98.1 --version
+          python --version
+      - name: Check formatting
+        run: cargo +1.98.1 fmt --manifest-path rust/snapshot-decoder/Cargo.toml --check
+      - name: Run decoder tests
+        run: cargo +1.98.1 test --locked --manifest-path rust/snapshot-decoder/Cargo.toml
+      - name: Check decoder lints
+        run: cargo +1.98.1 clippy --locked --all-targets --manifest-path rust/snapshot-decoder/Cargo.toml -- -D warnings
+      - name: Check parity verifier and private corpus controls
+        run: python -B -m unittest tests.test_rust_snapshot_decoder tests.test_snapshot_corpus tests.test_repository_audit -q
+      - name: Build native Linux release executable
+        run: |
+          cargo +1.98.1 build --release --locked --manifest-path rust/snapshot-decoder/Cargo.toml
+          file rust/snapshot-decoder/target/release/ba-snapshot-decode
+      # This verifier generates authored fixtures. Original game assets and
+      # captured native snapshots are never supplied to this public CI job.
+      - name: Verify authored parity and benchmark the decoder
+        run: >-
+          python -B tools/verify_rust_snapshot_decoder.py
+          --binary rust/snapshot-decoder/target/release/ba-snapshot-decode
+          --output local/rust-decoder-ci
+          --benchmark
+      - name: Record authored verification identity
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          path = Path('local/rust-decoder-ci/verification.json')
+          report = json.loads(path.read_bytes())
+          print(json.dumps({
+              'verification_sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
+              'executable_sha256': report['build']['executable_sha256'],
+              'native_format': report['build']['native_format'],
+              'source_unchanged': report['source_unchanged'],
+              'binary_unchanged': report['binary_unchanged'],
+              'fifo_refused': report['authored']['fifo_refused'],
+              'python': report['python'],
+              'platform': report['platform'],
+              'logical_cpus': report['logical_cpus'],
+          }, sort_keys=True))
+          PY

@@ -1,0 +1,108 @@
+BATTLE ACES - N44 PORTABLE RUST SNAPSHOT DECODER
+Updated:2026-11-17UTC. Isolated decoder prototype;not a server integration.
+
+PURPOSE AND SCOPE
+N43 profiling identified Python observable-state decoding as a material worker
+cost,alongside the larger original native simulation cost. Nick authorized a
+decoder-first Rust milestone. rust/snapshot-decoder implements the existing
+server/native_simulation.py contract without loading or modifying game DLLs.
+It builds a native executable on Windows and Linux. Both crate targets forbid
+unsafe Rust. Production Python,client protocol,scheduling and live services
+are unchanged. No movement prediction or gameplay rollback is introduced.
+
+ACCEPTANCE FOR THIS MILESTONE
+- Build an optimized native Windows PE and Linux ELF from pinned Rust1.98.1
+  and committed Cargo.lock. Bind source,compiler and executable identities.
+- Match every selected decoded field,canonical checksum and raw SHA256 with
+  Python on authored fixtures and locally retained original snapshots.
+- Preserve signed vtables,missing/sparse components,sorted IDs,signed resource
+  values,unsigned64 result checksums,exact finite float values and negative0.
+- Refuse malformed vectors,duplicates and invalid offsets without a panic.
+  Refuse nonfinite JSON output;the decoder itself retains Python's behavior.
+- Measure warmed decode/destruction and decode+compactJSON separately,using
+  the same inputs and seven alternating Python/Rust pairs of100iterations.
+  Keep process startup,file IO,DLL execution and IPC outside these timings.
+- Keep all original assets/captures out of Git and public CI. No new cloud VM,
+  deployment,release or player test is required for this prototype milestone.
+
+IMPLEMENTATION AND BOUNDARIES
+The library uses checked little-endian reads and the Python canonical FNV1a64
+word order. Positions enter that hash as original32-bit words before conversion
+to JSON-compatible floats. A separate SHA256 covers the entire raw snapshot.
+These are selected observable fields,not a checksum of all hidden DLL state.
+The summary option omits entities while retaining counts/resources/results.
+JSON equivalence concerns values and types;object key order and textual float
+formatting may differ without changing the contract.
+
+The standalone Rust boundary caps input at16MiB,matching native acquisition;
+Python's standalone decoder has no equivalent total-byte cap. This difference
+is explicit in verification. Zero root and arbitraryu32 viewer preserve the
+standalone Python behavior;native acquisition separately enforces viewer0..31.
+The CLI refuses nonregular files before opening them and checks the opened
+handle again. It consumes owned offline fixtures,not hostile concurrent paths.
+Input/vector limits do not bound materialized JSON/maps tightly:valid aliased
+vectors can amplify allocation. Production integration requires a measured
+decoded-output/memory budget and an appropriate untrusted-input boundary.
+
+REPRODUCING THE CHECKS
+Install Rust1.98.1 and Python3.12 or newer,then from the repository root:
+  cargo +1.98.1 fmt --manifest-path rust/snapshot-decoder/Cargo.toml --check
+  cargo +1.98.1 test --locked --manifest-path rust/snapshot-decoder/Cargo.toml
+  cargo +1.98.1 clippy --locked --all-targets --manifest-path rust/snapshot-decoder/Cargo.toml -- -D warnings
+  python -B tools/verify_rust_snapshot_decoder.py --binary rust/snapshot-decoder/target/release/ba-snapshot-decode.exe --output local/rust-decoder-check01 --benchmark
+On Linux omit .exe from --binary. The verifier builds the pinned release binary
+itself and checks Cargo's executable receipt. Use a fresh output directory each
+time;verification.json and build logs retain failures and source identities.
+Optional --corpus accepts only separately retained local/ capture directories.
+.github/workflows/rust-decoder.yml runs the authored comparison on a standard
+ubuntu24.04 GitHub runner. It never receives original DLLs or game captures.
+
+PRIVATE NATIVE CORPUS
+tools/capture_snapshot_corpus.py replays an existing verified input journal
+through an owned native Windows worker. Recorded AI input bytes are replayed;
+the exporter does not regenerate AI. Every frame's selected observable state
+must match the reference,including frames not chosen for snapshot retention.
+It selects phase first/middle/last snapshots plus phase-end viewers0/1,binds
+asset/bootstrap/DLL/source/journal hashes and requires ordinary worker cleanup.
+Full and summary expected JSON are retained alongside each original snapshot.
+All artifacts remain under ignored local/rust-decoder-20261117/.
+
+corpus-wasp-team4-01:1562 verified reference frames,15 selected snapshots.
+manifest SHA256:606fc99da2735d9127a107a084957474a4df34d81d9c4a5df947159cbe665774
+corpus-crab-ai-large-01:1823 verified reference frames,15 selected snapshots.
+manifest SHA256:a8833c4c5cd97161284beaa5566b9bf026e9c2f010791f1f8e097d8f3273ae98
+Both captures close normally with worker exit0,no failure and closed IO threads.
+
+RESULTS
+Windows verify01 PASS:32 authored valid cases,287 malformed refusals,3 strict
+nonfinite JSON refusals,16MiB+1 refusal and directory refusal. All30 original
+snapshots match in full and summary modes(60 comparisons). Source and executable
+are unchanged across the run. Rust unit tests3/3 and clippy warnings-denied pass;
+Python exporter/verifier/publication controls42/42 pass without game execution.
+Report:local/rust-decoder-20261117/verify01/verification.json
+report SHA256:aa7d371c2119564c4e6c6a9ecbb14d586d5344149187e5e3dc601576632ca7da
+PE SHA256:7284eaf98367e849421903628531c745c5e210f8820931d82a6026a7b36767b7
+Runtime:Windows10 build19045,x86_64,16 logical CPUs,Python3.12.10,Rust1.98.1.
+Timings below are medians of seven100-iteration batch averages,in milliseconds.
+The native input per phase was selected by largest snapshot bytes before timing.
+Counts are all decoded entities,including non-unit entities,not army population.
+
+Input                           entities  Python/Rust decode  Python/Rust+JSON
+Authored800                         800       10.726/0.190        12.044/0.370
+Wasp movement f362                   958       13.453/0.320        14.966/0.520
+Wasp combat f1262                    909       12.387/0.296        13.812/0.449
+Crab/AI movement f923                274        3.631/0.074         4.110/0.120
+Crab/AI combat f1523                 277        3.708/0.070         4.130/0.120
+
+These measurements include complete decode/checksum/destruction;JSON columns
+add serialization. They are not per-frame p95/p99,cloud timings or server Hz.
+Native Linux authored comparison remains pending CI.
+
+NEXT BOUNDARY
+Passing this milestone qualifies a portable decoder and its isolated cost.
+It does not replace the Windows simulation DLL or qualify server tick rate.
+A later minimal worker integration must preserve DLL ownership/thread/ABI,
+worker protocol,cleanup/failure behavior and full gameplay parity,then measure
+end-to-end publication cadence against the original N43 acceptance criteria.
+The measured DLL simulation cost alone can exceed the50ms frame budget,so a
+faster decoder cannot by itself establish20Hz for every large-army workload.

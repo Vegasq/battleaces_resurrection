@@ -1,5 +1,5 @@
 BATTLE ACES - DOCUMENTATION INDEX
-Updated:2026-11-16. Paths below are relative to docs/.
+Updated:2026-11-17. Paths below are relative to docs/.
 
 START WITH THREE FILES
   REMAINING_DELIVERY_PLAN.txt - what is next and which D1-D9 gates remain
@@ -20,6 +20,7 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
+  rust-snapshot-decoder.txt - N44 portable decoder contract,parity fixtures,native corpus and paired measurements
   linux-native-coordinator-acceptance.txt - N43 proposed hybrid server gates,large-army profiling and comparison plan
   linux-native-coordinator-evidence.txt - N43 measured large-army bottlenecks,Linux baselines and cross-runtime lock fix
   public-game-access-20261117.txt - N42 public game port on Europe/America,protected admin access
