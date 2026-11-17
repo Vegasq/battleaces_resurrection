@@ -1,0 +1,119 @@
+BATTLE ACES - HYBRID LINUX SERVER ACCEPTANCE
+Updated:2026-11-17 UTC. N43. Status:ACTIVE;user selected this file as the goal.
+[x] means complete at the stated scope;[ ] means remaining work/evidence.
+Numerical thresholds below are targets,not results.
+Nick's answers and any later actionable playtest request belong in DEV.txt N43.
+
+OBJECTIVE AND SCOPE
+Run networking,matchmaking,dashboard and persistence in Linux Python,with Wine
+confined to the original simulation/AI workers. Preserve client compatibility
+and gameplay. Establish whether this improves measured and perceived latency.
+This is a hybrid server,not a recompilation of the original Windows DLLs.
+Prototype and benchmark in isolation. No production deployment,firewall change,
+server resize or release replacement is part of this acceptance exercise.
+
+FIRST PRIORITY - LARGE-ARMY SLOWDOWN
+Nick reports large slowdowns when many units are present. Reproduce and measure
+that workload before selecting the optimization target or attributing it to Wine.
+Both live hosts reported one online CPU through read-only getconf checks on
+2026-11-17 UTC. Our code uses a separate process per match;within a match,AI
+decisions precede simulation stepping. Internal DLL CPU parallelism is unverified.
+The earlier1600-frame Wine benchmark used an idle scripted human and one AI.
+Its12.1ms average was not a controlled large-army result and does not settle this
+report. Moving coordinator work outside Wine cannot alone establish that an
+expensive native simulation step or AI decision has become faster.
+
+FUNCTIONAL GATES
+[x] F1. Prove coordinator/listeners run in Linux Python;only simulation/AI uses Wine.
+[ ] F2. Identical assets,seeds and recorded inputs produce zero authoritative
+    state/checksum mismatches against the full-Wine baseline. Include original
+    AI decisions;no lost,duplicated or reordered commands.
+[ ] F3. Custom1v1,public1v1,2v2 and2vAI preserve30-second human search,AI fill,
+    reconnects,match completion,results/history and current command scheduling.
+    Existing clients work unchanged;Windows host regression checks pass.
+[x] F4. Two simultaneous matches remain independent when one crashes or hangs.
+[x] F5. Normal close,timeout,cancellation and coordinator death leave no owned
+    worker descendants within10seconds. No unrelated process,prefix or match
+    is affected;no blocked worker pipe/executor thread prevents shutdown.
+[x] F6. Linux and legacy Wine hosts cannot open the same data directory at once.
+    Stop/restart and rollback preserve identities,profiles,history and config.
+[x] F7. Worker identity and translated paths validate across Linux/Wine,including
+    relocated directories,spaces and non-ASCII names. Do not assume equal PIDs.
+
+WORKLOAD AND MEASUREMENT
+[x] M1. Define reproducible small,medium and large armies up to supported normal
+    game limits. Exercise movement/pathfinding and active combat,with AI and
+    recorded human commands. Record actual unit counts and command rates.
+[ ] M2. Run at least3 alternating paired5-minute measurements per tested load on
+    the same isolated Linux machine. Match assets,inputs,seeds and source apart
+    from backend selection. Match Python versions where possible and explicitly
+    report any runtime/hardware differences that limit causal attribution.
+[ ] M3. Measure one and two concurrent matches. Include controlled0/130/475ms
+    round-trip latency and a fixed jitter trace. Separate cold startup,warm
+    startup,AI,simulation/state export,IPC,coordinator delay and network waiting.
+[ ] M4. Report p50/p95/p99/max,50ms budget misses,delivery gaps above50/100ms,
+    per-thread CPU,host CPU pressure,peak memory,swap and disk overhead.
+    Preserve inputs,source/asset hashes,raw timings and failed runs privately.
+
+PROPOSED PERFORMANCE AND RESOURCE GATES
+[ ] P1. After warmup,sustain19.8..20.2Hz publication with no server-caused gap
+    above100ms under the defined benchmark loads. Attribute injected network
+    delay separately;do not hide slow frames behind an overall average.
+[ ] P2. On the current1vCPU/1GiB server class,one and two matches avoid OOM and
+    sustained swapping,and retain at least128MiB available memory. Record any
+    baseline failure too;failure does not authorize a server resize.
+[ ] P3. Warm match startup<=15seconds and no more than2seconds slower than the
+    baseline. Measure cold startup and any Wine-prefix preparation separately.
+[ ] P4. A coordinator latency-win claim requires>=15percent and>=1ms lower p95
+    coordinator-attributable delay,repeatably across paired runs. No p99 command
+    or publication latency regression beyond max(1ms,5percent of baseline).
+[ ] P5. The large-army workload satisfies the cadence gate and reproduces the
+    same gameplay correctly. A coordinator-only speedup cannot close this gate.
+
+PLAYER ACCEPTANCE AND DECISION
+[ ] A1. Prepare matching artifacts and a later blind A/B playtest against AI and
+    another human. Confirm movement feels at least as good with no new disconnects
+    before calling perceived lag fixed. No playtest is requested at this stage.
+If functional gates pass without measurable improvement,report a working hybrid
+port with no demonstrated latency win. Do not promote or deploy it as a lag fix
+on that basis. Deployment remains a separate decision after reviewable results.
+
+EVIDENCE TO REUSE
+server/worker_client.py - one worker process per match and serialized worker RPC
+server/dedicated_server.py - AI input generation followed by50ms simulation step
+server/native_simulation.py and server/native_ai.py - original Windows DLL bridges
+docs/live-online-lag-20261108.txt - historical Wine timing and measurement limits
+docs/korea-match-lag-20261109.txt - historical six-frame input starvation
+docs/server-ai-command-scheduling.txt - current scheduling qualification scope
+Current scoped results:linux-native-coordinator-evidence.txt. No performance
+improvement or complete hybrid runtime qualification is claimed.
+
+CURRENT WORK
+First establish M1 and baseline cost under unit load. Verified normal exported
+1v1/2v2/2vAI capacity is200 supply per army. Crab75 consumes2 supply;Wasp2 and
+Gunbot1 consume1. Candidate loads are10/50/100 Crabs per army,then20/100/200
+one-supply units. These are combat-unit counts,not a cap on total entities.
+Windows population/movement/combat and original-AI baselines now reproduce the
+slowdown:800-Wasp combat exceeds50ms in181/600frames,two exceed100ms. Profiling
+attributes mean21.3ms to native simulation and12.6ms to Python state decoding.
+Same-input full-Wine100-Crab runs match all1823 parsed observable states;the AI
+case exceeds50ms in21/600combat frames on the isolated1vCPU/1GiB host.
+Cross-runtime state exclusion is fixed and passes8 release/crash cases;the
+remainingF6 persistence/restart/rollback claims are still unverified.
+N43-LINUXENV records approval and72hour cleanup for the separate benchmark host.
+Hybrid scripted and recorded-AI replay now match all1823frames each. Fresh
+original AI also regenerates every input and observable state identically from
+relocated source/runtime/assets/work paths containing spaces and Unicode.
+That candidate02 run qualifiesF7 alongside the boundary identity/path controls.
+The documented small/medium/large normal-supply workloads qualifyM1;they do not
+close same-host repeated timing,capacity or continuous-cadence criteria.
+Candidate03 passes150 combined Linux controls(147pass,3expected skips). Two
+original simulation workers match recorded states;freezing one causes a bounded
+timeout and complete owned cleanup in0.648s while its peer continues correctly.
+Linux host TLS1.3/admission/profile/dashboard routes pass;native restart and
+rollback to the retained full-Wine source preserve identity,profile,authored
+history fixture and configuration bytes. Together with the8 cross-runtime lock
+cases,these qualifyF1/F4/F5/F6 at the evidence scopes recorded in the companion.
+Next:finish multi-mode parity/flow qualification and repeated performance
+measurements. No live service is being tested under heavy benchmark load.
+Remaining gates stay open;no latency improvement or final release is claimed.

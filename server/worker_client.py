@@ -7,9 +7,11 @@ from dataclasses import dataclass
 import hashlib
 import os
 from pathlib import Path
+import secrets
 import subprocess
 import sys
 import threading
+import time
 
 from . import simulation_worker as ipc
 
@@ -98,8 +100,13 @@ class SimulationWorker:
         self._lock = asyncio.Lock()
         self._request_id = 0
         self._terminal = False
+        self._closing = False
         self._cleanup_task = None
+        self._cleanup_deadline = None
         self._job = None
+        self._backend_owner = None
+        self.native_pid = None
+        self.runtime_info = None
         self.frame = -1
         self.game_time_seconds = 0
         self.last_state = None
@@ -115,13 +122,19 @@ class SimulationWorker:
 
     @classmethod
     async def create(cls, game_data, dll_path=None, *, startup_timeout=120.0, request_timeout=3.0,
-                     close_timeout=2.0, working_directory=None, ai=None, _test_backend=False):
+                     close_timeout=2.0, working_directory=None, ai=None, _test_backend=False, backend=None):
         if not isinstance(game_data, bytes) or not 1 <= len(game_data) <= ipc.MAX_PAYLOAD:
             raise ValueError("GameData must contain 1..32 MiB of raw bytes")
         if any(not isinstance(value, (int, float)) or not 0 < value <= 600
                for value in (startup_timeout, request_timeout, close_timeout)):
             raise ValueError("worker timeouts must be in (0,600] seconds")
-        if os.name != "nt" and not _test_backend:
+        if backend is not None:
+            from .wine_worker import WineWorkerBackend
+            if not isinstance(backend, WineWorkerBackend) or _test_backend:
+                raise ValueError('Wine workers require an explicit native WineWorkerBackend; synthetic controls are forbidden')
+            if dll_path is None or working_directory is None:
+                raise ValueError('Wine workers require explicit DLL and owned working directory paths')
+        if os.name != "nt" and not _test_backend and backend is None:
             raise WorkerError("production simulation workers require Windows x64")
         roster = None
         if ai is not None:
@@ -144,22 +157,53 @@ class SimulationWorker:
             environment.pop("BA_ENABLE_SYNTHETIC_WORKER_TESTS", None)
         # Anonymous pipes avoid Windows Proactor's named-pipe requirements. Only
         # private I/O threads block on them; the coordinator event loop does not.
-        process = subprocess.Popen(args, cwd=working_directory, env=environment,
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
-            bufsize=0, close_fds=True)
-        worker = cls(process, request_timeout=request_timeout, close_timeout=close_timeout, test_backend=_test_backend)
+        metadata = {"dll_path": str(Path(dll_path).resolve())} if dll_path is not None else {}
+        if ai is not None: metadata['ai'] = ai.wire()
+        nonce = owner = None
+        if backend is None:
+            process = subprocess.Popen(args, cwd=working_directory, env=environment,
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+                bufsize=0, close_fds=True)
+        else:
+            metadata['dll_path'] = backend.translate_path(Path(dll_path).resolve())
+            if ai is not None:
+                metadata['ai'] = {**metadata['ai'], 'directory': backend.translate_path(ai.directory)}
+            nonce = secrets.token_hex(32)
+            metadata['worker_nonce'] = nonce
+            process, owner = backend.launch(source_root=ROOT, working_directory=working_directory)
+        worker = None
         try:
-            worker._job = _WindowsJob(process.pid)
+            worker = cls(process, request_timeout=request_timeout, close_timeout=close_timeout, test_backend=_test_backend)
+            worker._backend_owner = owner
+            if owner is not None:
+                loop = asyncio.get_running_loop()
+                def exited():
+                    try: loop.call_soon_threadsafe(worker._backend_exited)
+                    except RuntimeError: pass  # Owner still cleans if the event loop has already ended.
+                owner.on_exit(exited)
+            if backend is None: worker._job = _WindowsJob(process.pid)
             async with worker._lock:
-                metadata = {"dll_path": str(Path(dll_path).resolve())} if dll_path is not None else {}
-                if ai is not None: metadata['ai'] = ai.wire()
                 response, payload = await worker._exchange(ipc.CREATE, -1, metadata, game_data, timeout=startup_timeout)
                 expected = hashlib.sha256(game_data).hexdigest()
-                if payload or response.get("pid") != process.pid or response.get("game_data_sha256") != expected:
+                identity_ok = response.get('pid') == process.pid
+                if backend is not None:
+                    from .native_simulation import SUPPORTED_DLL_SHA256
+                    identity_ok = (type(response.get('pid')) is int and 0 < response['pid'] <= 0xffffffff
+                        and isinstance(response.get('worker_nonce'), str)
+                        and secrets.compare_digest(response['worker_nonce'], nonce)
+                        and response.get('dll_sha256') == SUPPORTED_DLL_SHA256)
+                if payload or not identity_ok or response.get("game_data_sha256") != expected:
                     raise WorkerError("worker CREATE identity/digest mismatch")
                 if response.get("synthetic_test_backend") is not bool(_test_backend):
                     raise WorkerError("unexpected worker backend")
+                runtime_info = response.get('runtime')
+                if backend is not None:
+                    if not (isinstance(runtime_info, dict) and runtime_info.get('os_name') == 'nt'
+                            and runtime_info.get('pointer_bits') == 64
+                            and all(isinstance(runtime_info.get(key), str) and 0 < len(runtime_info[key]) <= 4096
+                                    for key in ('python_version', 'implementation', 'executable', 'platform'))):
+                        raise WorkerError('invalid Wine worker runtime identity')
                 ai_info = response.get('ai')
                 if ai is None:
                     if ai_info is not None: raise WorkerError('unexpected worker AI')
@@ -169,13 +213,34 @@ class SimulationWorker:
                             ai_info.get('dll_sha256') == SUPPORTED_AI_SHA256 and
                             isinstance(ai_info.get('manifest_sha256'), str) and len(ai_info['manifest_sha256']) == 64):
                         raise WorkerError('worker AI assignment/digest mismatch')
+                    if backend is not None and ai_info['manifest_sha256'] != hashlib.sha256((ai.directory/'ai-rules.json').read_bytes()).hexdigest():
+                        raise WorkerError('Wine worker AI manifest differs from coordinator assets')
                 worker.ai_info, worker._bot_roster = ai_info, roster
+                worker.native_pid = response['pid']
+                worker.runtime_info = runtime_info
                 worker.game_data_sha256 = expected
                 worker.dll_sha256 = response.get("dll_sha256")
             return worker
         except BaseException as error:
-            worker.failure = str(error)
-            await worker._abort()
+            if worker is not None:
+                worker.failure = str(error)
+                await worker._abort()
+            else:
+                # Construction can fail after a successful spawn (for example
+                # inability to start the stderr thread). Ownership must not wait
+                # for a worker object to become publishable.
+                try:
+                    if owner is not None:
+                        owner.request_stop()
+                        await asyncio.to_thread(owner.close)
+                    else:
+                        if process.poll() is None: process.terminate()
+                        try: await asyncio.to_thread(process.wait, timeout=close_timeout)
+                        except subprocess.TimeoutExpired:
+                            process.kill()
+                            await asyncio.to_thread(process.wait, timeout=close_timeout)
+                finally:
+                    for stream in (process.stdin, process.stdout, process.stderr): stream.close()
             raise
 
     @property
@@ -190,6 +255,24 @@ class SimulationWorker:
     def stderr_tail(self):
         with self._stderr_lock:
             return b"".join(self._stderr).decode("utf-8", "replace")
+
+    @property
+    def backend_statistics(self):
+        """Hybrid clone/lifetime/cleanup evidence, available after worker close."""
+        return self._backend_owner.statistics if self._backend_owner is not None else None
+
+    def _backend_exited(self):
+        if self._terminal:
+            return
+        if not self._closing:
+            self.failure = self._backend_owner.failure or 'Wine guardian exited before requested worker close'
+        task = asyncio.create_task(self._abort())
+        def completed(result):
+            if not result.cancelled():
+                error = result.exception()
+                if error is not None:
+                    self.failure = self.failure or f'Wine worker cleanup failed: {error}'
+        task.add_done_callback(completed)
 
     def _drain_stderr(self):
         while True:
@@ -305,40 +388,66 @@ class SimulationWorker:
         self._terminal = True
         # Terminate before closing pipe objects: another thread may be blocked
         # inside their read/write methods. Child exit releases those calls.
-        if self.process.poll() is None:
-            try: self.process.terminate()
-            except ProcessLookupError: pass
         try:
-            await asyncio.to_thread(self.process.wait, timeout=self.close_timeout)
-        except subprocess.TimeoutExpired:
-            if self.process.poll() is None:
-                try: self.process.kill()
-                except ProcessLookupError: pass
-            await asyncio.to_thread(self.process.wait, timeout=self.close_timeout)
+            if self._backend_owner is not None:
+                self._backend_owner.request_stop()
+                try:
+                    await asyncio.to_thread(self._backend_owner.close, deadline=self._cleanup_deadline)
+                except Exception as error:
+                    self.failure = self.failure or f'Wine worker cleanup failed: {error}'
+                    raise
+            else:
+                if self.process.poll() is None:
+                    try: self.process.terminate()
+                    except ProcessLookupError: pass
+                try:
+                    await asyncio.to_thread(self.process.wait, timeout=self.close_timeout)
+                except subprocess.TimeoutExpired:
+                    if self.process.poll() is None:
+                        try: self.process.kill()
+                        except ProcessLookupError: pass
+                    await asyncio.to_thread(self.process.wait, timeout=self.close_timeout)
         finally:
             if self._job is not None: self._job.close()
-            await asyncio.to_thread(self._stderr_thread.join, self.close_timeout)
-            await asyncio.to_thread(self._io.shutdown, wait=True, cancel_futures=True)
-            for stream in (self.process.stdin, self.process.stdout, self.process.stderr):
-                stream.close()
+            if self._backend_owner is not None:
+                # Even if the default executor cannot allocate a cleanup thread,
+                # the existing I/O thread must retire after owned pipe EOF.
+                self._io.shutdown(wait=False, cancel_futures=True)
+            try:
+                await asyncio.to_thread(self._stderr_thread.join, self.close_timeout)
+                await asyncio.to_thread(self._io.shutdown, wait=True, cancel_futures=True)
+            finally:
+                for stream in (self.process.stdin, self.process.stdout, self.process.stderr):
+                    stream.close()
 
     async def _abort(self):
         self._terminal = True
+        if self._backend_owner is not None and self._cleanup_deadline is None:
+            self._cleanup_deadline = time.monotonic()+9.5
         if self._cleanup_task is None:
             self._cleanup_task = asyncio.create_task(self._cleanup())
         await asyncio.shield(self._cleanup_task)
 
     async def close(self):
+        self._closing = True
+        if self._backend_owner is not None and self._cleanup_deadline is None:
+            self._cleanup_deadline = time.monotonic()+9.5
+        def budget():
+            if self._cleanup_deadline is None:
+                return self.close_timeout
+            # Preserve at least3s for kernel-scoped recovery. All phases share
+            # the same deadline; repeated lock/ACK/process waits cannot reset it.
+            return max(.001, min(self.close_timeout, self._cleanup_deadline-time.monotonic()-3))
         if self.closed:
             await self._abort()
             return
         acquired = False
         try:
-            await asyncio.wait_for(self._lock.acquire(), self.close_timeout)
+            await asyncio.wait_for(self._lock.acquire(), budget())
             acquired = True
             if not self.closed:
-                await self._exchange(ipc.CLOSE, self.frame, timeout=self.close_timeout)
-                await asyncio.to_thread(self.process.wait, timeout=self.close_timeout)
+                await self._exchange(ipc.CLOSE, self.frame, timeout=budget())
+                await asyncio.to_thread(self.process.wait, timeout=budget())
         except (WorkerError, TimeoutError, subprocess.TimeoutExpired):
             pass  # A stuck destructor cannot prevent owned-process cleanup.
         finally:

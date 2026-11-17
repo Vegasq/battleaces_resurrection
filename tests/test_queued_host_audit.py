@@ -187,7 +187,7 @@ class Tests(unittest.IsolatedAsyncioTestCase):
         from server.configuration import HostConfig
         from server.state_lock import exclusive_state, StateBusyError
         from types import SimpleNamespace
-        config = SimpleNamespace(data_directory=self.root/'drain', assets_directory=self.root/'assets',
+        config = SimpleNamespace(data_directory=self.root/'drain', assets_directory=self.root/'assets', wine_worker=None,
             log_max_bytes=65536, log_backups=2, diagnostic_audit=True, dashboard_port=0,
             max_rooms=4, input_window=64, access_mode='rc-open', listen_host='127.0.0.1', listen_port=0,
             minimum_client_revision=HostConfig.minimum_client_revision,
@@ -252,7 +252,7 @@ class Tests(unittest.IsolatedAsyncioTestCase):
         from server.configuration import HostConfig
         from server.state_lock import exclusive_state, StateBusyError
         from types import SimpleNamespace
-        config = SimpleNamespace(data_directory=self.root/'host', assets_directory=self.root/'assets',
+        config = SimpleNamespace(data_directory=self.root/'host', assets_directory=self.root/'assets', wine_worker=None,
             log_max_bytes=65536, log_backups=2, diagnostic_audit=True, dashboard_port=0,
             max_rooms=4, input_window=64, access_mode='rc-open', listen_host='127.0.0.1', listen_port=0,
             minimum_client_revision=HostConfig.minimum_client_revision,

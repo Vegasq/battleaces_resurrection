@@ -129,9 +129,10 @@ class HostReadinessTests(unittest.IsolatedAsyncioTestCase):
         server.listener.serve_forever = listener_wait.wait
         audit = mock.Mock()
         audit.aclose = mock.AsyncMock()
-        config = mock.Mock(data_directory=Path('data'), assets_directory=Path('assets'))
+        config = mock.Mock(data_directory=Path('data'), assets_directory=Path('assets'), wine_worker=None)
         template = mock.Mock()
-        async def check(*args):
+        async def check(*args, backend=None):
+            self.assertIsNone(backend)
             native_entered.set(); await native_release.wait(); return {'reaped': True}
         def ready(address):
             server.start.assert_awaited_once()

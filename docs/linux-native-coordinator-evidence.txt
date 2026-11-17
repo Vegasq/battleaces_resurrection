@@ -1,0 +1,216 @@
+BATTLE ACES - HYBRID LINUX COORDINATOR EVIDENCE
+Updated:2026-11-17 UTC. N43. Active investigation;not a release qualification.
+Criteria and unchecked gates:linux-native-coordinator-acceptance.txt.
+
+LARGE-ARMY BASELINE
+The reported slowdown is reproduced without Wine or networking on Windows.
+Original assets support200 supply per army:Crab75 costs2 supply;Wasp2 and
+Gunbot1 cost1. Combat-unit counts exclude workers,projectiles and zero-supply
+entities. Workloads build through ordinary HQ commands,then move and fight.
+Most runs use explicitly recorded16x income for staging,not spawned units.
+A separate1x-income100-Crab run reaches the same cap at frame8122.
+
+Private evidence:local/large-army-checks/. Each directory contains source/asset
+hashes,raw inputs,per-frame observable-state hashes,timings and cleanup results.
+All runs below use original DLLs and completed with owned workers reaped.
+Windows controls use Python3.12 and a16-logical-CPU desktop. Times are unpaced
+worker/driver processing,not network latency or observed publication cadence.
+
+Run                       Workload                  Combat work p95 / max ms
+crab-small01              10Crabs x2                  2.91 step RPC p95
+crab-medium01             50Crabs x2                  6.10 step RPC p95
+crab-large01             100Crabs x2                 11.52 /17.74 step RPC
+crab-ai-large-control01  100humanCrabs +originalAI    20.77 /25.25 AI+step
+wasp-large01             200Wasps x2                 21.90 /33.22
+wasp-team4-01            200Wasps x4                 66.31 /104.98
+wasp-team-ai01           2humans +2originalAIs        80.77 /160.40
+
+The800-Wasp four-army control exceeds50ms in181/600 combat frames and100ms
+in2/600. The2vAI case exceeds50ms in138/600;all four armies reach200 supply,
+with peak combat-unit counts200/200/200/100 because AI profile60 uses mixed
+decks. Actual movement,damage and losses are recorded. These are functional
+workload passes and performance failures,not evidence that lag is fixed.
+
+PROFILE ATTRIBUTION
+wasp-team4-profile01 replays all1562 control inputs with identical parsed
+observable states. Thread enumeration is disabled in this low-overhead run.
+Mean combat worker active time36.122ms is partitioned into:
+- original simulation21.322ms(59.0percent),p9534.840,max65.915ms;
+- Python snapshot decoding12.573ms(34.8percent),p9514.734,max18.715ms;
+- native snapshot0.360ms,JSON serialization1.442ms,and other work0.425ms.
+The simulation itself can exceed the50ms budget. Moving coordinator code to
+Linux leaves these worker costs in place. Decoder optimization is a possible
+later target;no such optimization or resulting speedup has been implemented.
+The profiled run being faster than its control is environment/observer
+variation,not an optimization. Paired repeated measurements remain required.
+
+Earlier sampled runs exposed65..126ms pauses from thread enumeration itself.
+Their observer cost is retained and separated from production work. Sampled
+CPU concentration does not establish DLL-internal thread ownership or scaling.
+No claim that the original simulation is strictly single-threaded is made.
+
+ISOLATED LINUX FULL-WINE BASELINE
+Nick approved a temporary1vCPU/1GiB AMD Ubuntu24.04 Droplet,up toUSD1 compute,
+to be deleted after evidence download or within72hours. Exact resource IDs,
+deadline and guarded cleanup are private DEV.txt N43-LINUXENV and
+local/linux-hybrid-20261117/provision-receipt.json. No live host was changed.
+Wine9.0(Ubuntu9.0~repack-4build3),Windows Python3.14.8,Linux Python3.12.3.
+The first source/assets archive inputs01.zip is bound by SHA256:
+516e38e67bef1817c8d9a94dba7c7bd6c692ffa60f646b56c1a836c43e6db973
+All1823 inputs and parsed observable states match their Windows controls:
+- crab-large-wine01:movement p9531.821ms;combat p9529.872,max38.784ms;
+  zero50ms misses;minimum host available memory477.875MiB;zero swap.
+- crab-ai-large-wine01:movement p9541.600ms,3/600 over50ms;combat p9548.930,
+  max66.916ms,21/600 over50ms;minimum available448.164MiB;zero swap.
+Raw evidence and driver resource samples:local/linux-hybrid-20261117/wine-results/.
+These desktop/cloud results have different CPUs and Python versions. They
+cannot measure Wine's causal overhead or close same-host hybrid performance,
+two-match capacity,cadence or human-playability gates. Systemd MemoryPeak values
+were implausibly low and are not used as process-memory qualification.
+
+CROSS-RUNTIME STATE EXCLUSION
+The old POSIX flock and Wine's Windows byte lock did not exclude one another.
+lock-probe02 reproduces the defect while same-runtime controls pass.
+server/state_lock.py retains flock and adds a Linux OFD byte0 lock on the same
+retained descriptor before any state initialization;unsupported ABI/kernel/
+filesystem fails closed. Native Windows locking remains unchanged. A separate
+C ABI probe verifies struct flock layout and constants on Linux x86_64.
+lock-probe03 passes all8 Linux/Linux,Wine/Wine and cross-runtime release/crash
+cases,including reacquisition,unchanged lock inode/bytes,and completed cleanup.
+Production+candidate Linux tests:20run,19pass,1Windows-only skip. This qualifies
+the exclusion subclaim ofF6,not all persistence/restart/rollback behavior.
+Verified source SHA256(server/state_lock.py):
+e897a265f735c0fd18f420d8392f6b2617bdf7ba40579ddd7ac3250e51854ef5
+Downloaded lock-probe03-evidence.zip SHA256:
+b25e76012c83662e877048626b2b6ec2195b0cc66c200b84cb5f10b7c050b304
+
+RETAINED FAILED CHECKS AND LIMITS
+The first headless Wine stdio checks and lock-probe01 failed with WinError6
+before measurement. Correct PIPE-backed Wine stdio with mscoree/mshtml disabled
+passes;disabling Wine display drivers was removed. The failures remain evidence.
+An initial recursive SCP of a Wine prefix followed its Z: symlink. Only the
+owned SCP process was stopped. Automatic approval review rejected deletion of
+the partial local copy with 'blocked by policy';it remains in the ignored test
+directory. Later transfers archive only regular non-symlink top-level evidence
+files,excluding prefixes. No original evidence or live service was removed.
+
+IMPLEMENTATION IN PROGRESS
+Explicit Linux host configuration selects a Wine worker backend;omitted/null
+configuration preserves native Windows behavior. Runtime process ownership uses
+private cloned prefixes and per-worker cgroup-v2 containment within the current
+coordinator supervisor hierarchy;ancestor/sibling delegation is refused.
+Frozen candidate01 in app-hybrid01 passes29 Linux tests(27pass,2expected skips),
+including14 authored Wine-boundary tests:CREATE/STEP/CLOSE hangs,individual
+guardian/coordinator death,independent matches,template mapping/FIFO refusal,
+and whole-supervisor kill. The last proves zero live descendants and closed
+pipes while a sibling survives;with both cleanup actors killed,scratch remains
+and is recovered explicitly by the fixture,not described as graceful cleanup.
+Candidate02 corrects the aggregate close-deadline and postlaunch constructor-
+failure gaps found in final review. Its31Linux tests pass(29pass,2expected skips),
+including all16 Wine-boundary cases and the default2s late-ACK/stalled-guardian
+case within10seconds. A further thread-exhaustion stop-notification refinement
+is being prepared;complete actual-worker failure isolation remains openF5.
+
+Real native health passes on LinuxPython3.12.3/WinePython3.14.8:original DLL
+create/step0/native exit0;guardian13614 and native Windows PID32 are separately
+recorded;prefix/cgroup removed. Prefix clone2733.6ms,worker lifetime1623.3ms,
+cleanup399.3ms. TLS configuration loads;this --check run opens no listener.
+Evidence:local/linux-hybrid-20261117/native-health01.log.
+crab-large-hybrid-replay01 then matches all1823 full-Wine recorded inputs and
+parsed observable states. Both600-frame phases have zero50ms processing misses;
+movement p9530.000ms and combat p9528.572ms. Startup4443.0ms includes2765.0ms
+prefix cloning;minimum host available471.652MiB. This is one unpaced replay,
+not a repeated latency comparison;startup overhead may fail the2s-regression
+target and must be measured explicitly. Worker/IO threads close and native
+exit0/prefix/cgroup removal are verified. Private evidence archive SHA256:
+411752371334ee80c74479e3e91dd7053c4aade2517c2c1b55c12f3a3fa1970b
+Same-host repeated coordinator measurements,AI regeneration,mode/lifecycle
+qualification and player acceptance remain open. This first replay alone closes
+no full gate. All performance/player gates stay open.
+
+FRESH AI AND RELOCATED PATHS
+crab-ai-large-hybrid-replay01 first matches all1823 recorded AI-command frames
+without regenerating AI. Archive SHA256:
+b37446217b2f5cb04eb5585f21bf95e229c5cc8e2985c8725d25c394f14a4d12
+Then crab-ai-large-hybrid-relocated01 runs original AI afresh under candidate02,
+from distinct source,Windows runtime,assets and scratch paths containing spaces
+and Unicode. All1823 generated inputs,parsed observable states and canonical
+hashes equal crab-ai-large-wine01,including the exact binary input journal.
+Guardian/native PID identity and original simulation/AI hashes validate;native
+exit0,closed worker IO threads,and prefix/cgroup removal are recorded. This
+qualifiesF7 and strengthens1v1F2 coverage;other modes remain separate work.
+Startup5620.8ms includes2670.5ms prefix clone. Combat processing p9545.786ms,
+max73.839ms and9/600 frames above50ms. This single unpaced run is neither a
+cadence pass nor a latency-win claim. Its evidence archive SHA256:
+f34dc08b0c3a9d544ffd9af3bb4dc914e22f70dd9ae734bcd020fa8a614c237a
+
+CANDIDATE03 OWNERSHIP AND HOST ROUTING
+Candidate03 sends stop notification synchronously before scheduling cleanup,
+including when thread/executor allocation fails. Combined Linux lifecycle,
+TLS,matchmaking,scheduling,dashboard and host controls pass150 tests:147pass,
+3expected skips. Earlier Windows1730-test run and Linux117-test run retained
+8/7 errors from old host test fixtures missing the new explicit wine_worker=None
+field;fixtures were corrected. The33 affected Windows controls pass. The final
+whole-source Windows functional-checkpoint run passes1757tests with111expected
+skips in221.38s:local/linux-hybrid-20261117/windows-regression02.log.
+
+tools/verify_hybrid_workers.py then creates two original Simulation.dll worlds
+and verifies each of their first20 frames against the native journal. It freezes
+only one retained private cgroup,excluding coordinator/guardians. STEP20 times
+out;all9 retained member pidfds become exited and owned process/IO/owner threads,
+prefix and cgroup are cleaned in0.648s. This is forced timeout cleanup,not normal
+Quit. The other world matches the next20 frames and exits naturally with native
+and guardian status0. This plus the authored crash/cancel/death/constructor and
+default-deadline controls qualifiesF4/F5 on the tested Linux runtime. It does not
+claim two aiprogram.dll workloads or sustained two-match performance.
+Evidence:local/linux-hybrid-20261117/wine-results/hybrid-two-worker01-evidence.zip
+SHA256:6e1eaecbf654dc3c72060a4c1df2bc33c1e48e4a39cddb579a2a576e0deb8a76
+
+host-state01 uses the real host.run path with loopback game TLS and dashboard.
+Linux initial start and restart authenticate the same RC identity,return its
+saved deck,and serve saved history through /api/status. A third actor uses the
+retained full-Wine source/runtime against the same data directory and passes
+the same checks. Profile,history and both configuration files stay byte-identical;
+both listeners close and state lock reacquires after every graceful stop.
+History is an explicitly authored valid completed-record fixture,not evidence
+of a completed native game. Real native health create/step/close runs at each
+startup;the Linux actor/listeners use nativePython3.12.3 and Wine is confined to
+its original-DLL worker. TLS1.3 passes in all three actors. Shutdown takes
+6.8/7.7/10.6ms respectively. Together with lock-probe03 this qualifiesF1/F6;
+full gameplay completion/reconnect/history updates remain separateF3 work.
+Evidence:local/linux-hybrid-20261117/wine-results/host-state01-evidence.zip
+SHA256:23f7ecfb28885111d0d1572363d42d7abb075ed44573a1469facae3b758a7793
+Private driver:local/linux-hybrid-20261117/verify-host-state01.py.
+Candidate03 source archive SHA256:
+3c343c9ba63cafeee638a74377502a5b234cd1a942aab5009a372fb1dc06efb5
+
+COORDINATOR MEASUREMENT SMOKE
+The source-owned coordinator benchmark uses actual loopback TLS,RC admission,
+public matchmaking,negotiated arrival scheduling and original native workers.
+Its scripted endpoints are not Unity rendering or physical-input evidence.
+Ordered per-message application holds model RTT/jitter;they do not model remote
+TCP/loss. All event differences use one coordinator-process clock. Source/input
+hashes,command conservation,native/publication frame equality,observer costs,
+actual populations/activity and episode gaps are checked and retained.
+The first small scripted1v1 hybrid run uses130ms modeled RTT and the repeated
+one-way offsets0,10,-10,0ms. It passes a5second active movement window with100
+publications at20.0Hz,max gap60.363ms,zero gaps>100ms;all300 created command
+batches are sent,accepted and committed. Activity and scoped cadence pass;
+duration,resources,repeated pairing and player acceptance are explicitly false.
+This smoke alone is not a performance qualification or improvement comparison.
+Private coordinator-small-smoke01-evidence.zip SHA256:
+e7d2722add9f6db2d5e1f9190d3cbd10d3fe21aa9d5507e041add6eb91471a01
+
+MATCHING INTERPRETER PREPARATION
+Native CPython3.14.8 is being built on the isolated host to match bundled Windows
+Python3.14.8. Official source release and checksum:
+https://www.python.org/downloads/release/python-3148/
+c2215904f02b175596dc49351585104f4bc20341e1c47378b26a2c274360ce73
+Configure uses --enable-optimizations(PGO),--with-ensurepip=no and a private
+prefix. LTO is omitted to bound compiler memory on1GiB;GCC/Linux versus MSVC/
+Windows build and platform-library differences remain explicit confounds.
+System Python is not replaced. The first preparation attempt rejected the
+archive's plain top-level directory entry before extraction;the corrected
+bounded check accepts that directory and keeps the initial failed log.
+Compiler runs are separate from benchmark measurements. Build is not yet a
+runtime qualification;record its actual result before using it in paired runs.

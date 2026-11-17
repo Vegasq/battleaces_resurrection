@@ -1,4 +1,27 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-17UTC N43 FUNCTIONAL CHECKPOINT:fullWindows regression1757tests passes
+with111expected skips. First actual nativeLinux TLS/public arrival-scheduling
+smoke sustains20Hz for5seconds at modeled130ms RTT+jitter;all300 commandbatches
+are conserved. Short-smoke scope only,no performance-win claim. Matching native
+Python3.14.8 build and longer controlled measurements are in progress.
+2026-11-17UTC N43 FUNCTIONAL PROGRESS:candidate03 passes150Linux controls;
+actual two-world isolation passes with frozen-worker timeout/cleanup0.648s and
+surviving world exact replay. Native Linux TLS/dashboard/admission and restart/
+full-Wine rollback preserve identity,profile,authored history and config bytes.
+Fresh original AI regenerates all1823 baseline inputs/states from relocated
+spaced/Unicode paths. F1/F4/F5/F6/F7 and workload-definitionM1 are qualified at
+their documented scopes. Multi-modeF2/F3,paired performance and player acceptance
+remain open;no latency improvement or deployment claimed. Focused evidence:
+linux-native-coordinator-evidence.txt. Both live hosts remain unchanged.
+2026-11-17UTC N43 ACTIVE:large-army slowdown reproduced without Wine/networking.
+800-Wasp Windows combat exceeds50ms in181/600frames;native simulation and Python
+state decoding dominate measured work. Full-Wine100-Crab AI baseline matches
+all1823 recorded observable states but exceeds50ms in21/600combat frames on an
+approved isolated1vCPU/1GiB host. Linux/Wine state exclusion defect fixed and
+8 release/crash controls pass. Hybrid backend/host implementation is ongoing;
+ownership/cleanup,paired performance and player gates remain open. Live hosts
+unchanged. Criteria:linux-native-coordinator-acceptance.txt;scoped results and
+measurement limits:linux-native-coordinator-evidence.txt.
 2026-11-17UTC N42 COMPLETE:public game TCP47623 opened on Europe first,then
 America. Persistent owner gate now permits game connections from all sources;
 cross-region TLS passes while SSH/dashboard remain inaccessible to non-owner

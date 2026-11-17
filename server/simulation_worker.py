@@ -177,6 +177,10 @@ def serve(source, sink, *, test_backend=False):
                     require(simulation is None and request_id == 1 and frame == -1, "exactly one CREATE is permitted")
                     require(bool(payload), "CREATE requires GameData")
                     require(not test_backend or 'ai' not in metadata, 'synthetic workers cannot enable native AI')
+                    nonce = metadata.get('worker_nonce')
+                    if nonce is not None:
+                        require(not test_backend and isinstance(nonce, str) and len(nonce) == 64
+                                and all(c in '0123456789abcdef' for c in nonce), 'invalid native worker nonce')
                     if test_backend:
                         simulation = SyntheticSimulation(payload)
                     else:
@@ -187,7 +191,12 @@ def serve(source, sink, *, test_backend=False):
                         ai = WorkerAI(simulation, payload, AISetup.from_wire(metadata['ai']))
                     response = {"pid": os.getpid(), "game_data_sha256": simulation.game_data_sha256,
                                 "dll_sha256": simulation.dll_sha256, "synthetic_test_backend": test_backend,
-                                "ai": ai.info if ai is not None else None}
+                                "ai": ai.info if ai is not None else None,
+                                "runtime": {"python_version": sys.version, "implementation": sys.implementation.name,
+                                            "executable": sys.executable, "platform": sys.platform,
+                                            "os_name": os.name, "pointer_bits": struct.calcsize('P')*8}}
+                    if nonce is not None:
+                        response['worker_nonce'] = nonce
                 else:
                     require(simulation is not None, "CREATE is required first")
                     if operation == STEP:

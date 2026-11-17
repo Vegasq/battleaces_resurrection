@@ -15,6 +15,14 @@ class ConfigurationError(ValueError):
 
 
 @dataclass(frozen=True)
+class WineWorkerConfig:
+    wine_executable: Path
+    windows_python: Path
+    prefix_template: Path
+    cgroup_parent: Path | None = None
+
+
+@dataclass(frozen=True)
 class HostConfig:
     source: Path
     listen_host: str
@@ -36,6 +44,7 @@ class HostConfig:
     minimum_client_revision: int = CLIENT_REVISION
     client_update_message: str = DEFAULT_UPDATE_MESSAGE
     experimental_command_scheduling: bool = True
+    wine_worker: WineWorkerConfig | None = None
 
 
 def load_config(path):
@@ -53,7 +62,7 @@ def load_config(path):
     except (OSError, UnicodeError, ValueError, RecursionError):
         raise ConfigurationError('Cannot read a bounded valid host configuration') from None
     optional_fields = {'dashboard_host', 'dashboard_port', 'minimum_client_revision', 'client_update_message',
-                       'experimental_command_scheduling'}
+                       'experimental_command_scheduling', 'wine_worker'}
     fields = set(HostConfig.__dataclass_fields__) - {'source', 'access_mode'} - optional_fields
     if (not isinstance(value, dict) or type(value.get('schema')) is not int or value['schema'] not in (1, 2)
             or set(value) - optional_fields != fields | {'schema'} | ({'access_mode'} if value['schema'] == 2 else set())):
@@ -64,6 +73,23 @@ def load_config(path):
     value.setdefault('minimum_client_revision', CLIENT_REVISION)
     value.setdefault('client_update_message', DEFAULT_UPDATE_MESSAGE)
     value.setdefault('experimental_command_scheduling', True)
+    value.setdefault('wine_worker', None)
+    worker = value['wine_worker']
+    if worker is not None:
+        required = {'wine_executable', 'windows_python', 'prefix_template'}
+        if (not isinstance(worker, dict) or not required <= set(worker)
+                or set(worker) - required - {'cgroup_parent'}):
+            raise ConfigurationError('wine_worker requires wine_executable, windows_python and prefix_template; cgroup_parent is optional')
+        resolved = {}
+        for name, item in worker.items():
+            if name == 'cgroup_parent' and item is None:
+                resolved[name] = None
+                continue
+            if (not isinstance(item, str) or not item.strip() or '\0' in item
+                    or item.startswith(('\\\\', '//'))):
+                raise ConfigurationError('wine_worker.' + name + ' must be a nonempty local path')
+            resolved[name] = (path.parent / item).resolve()
+        value['wine_worker'] = WineWorkerConfig(**resolved)
     try: validate_policy(value['minimum_client_revision'], value['client_update_message'])
     except ValueError as error: raise ConfigurationError(str(error)) from None
     try:

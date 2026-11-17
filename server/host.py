@@ -1,4 +1,4 @@
-"""Config-file Windows host with local startup checks and bounded diagnostics."""
+"""Config-file host with explicit native-Windows or Linux/Wine worker routing."""
 from __future__ import annotations
 import argparse
 import asyncio
@@ -29,8 +29,11 @@ from . import protocol
 
 
 def prepare(config):
-    if os.name != 'nt' or ctypes.sizeof(ctypes.c_void_p) != 8:
-        raise ConfigurationError('The simulation host requires64-bit Windows')
+    if config.wine_worker is None:
+        if os.name != 'nt' or ctypes.sizeof(ctypes.c_void_p) != 8:
+            raise ConfigurationError('The simulation host requires64-bit Windows or an explicit wine_worker configuration on Linux')
+    elif not sys.platform.startswith('linux') or ctypes.sizeof(ctypes.c_void_p) != 8:
+        raise ConfigurationError('wine_worker requires a64-bit Linux coordinator')
     manifest = verify_assets(config.assets_directory)
     template = GameTemplate.load(config.assets_directory / 'map-1v1.pb.gz',
         catalog_path=config.assets_directory / 'unit-catalog.json', descriptors_path=config.assets_directory / 'descriptors')
@@ -49,21 +52,45 @@ def prepare(config):
     return template, context, store, manifest
 
 
-async def check_native(config, template):
+def select_worker_backend(config):
+    if config.wine_worker is None:
+        return None
+    from .wine_worker import WineWorkerBackend
+    settings = config.wine_worker
+    try:
+        options = {'cgroup_parent': settings.cgroup_parent} if settings.cgroup_parent is not None else {}
+        return WineWorkerBackend(wine_executable=settings.wine_executable,
+                                 windows_python=settings.windows_python,
+                                 prefix_template=settings.prefix_template, **options)
+    except (OSError, ValueError) as error:
+        raise ConfigurationError('Invalid wine_worker runtime: ' + str(error)) from None
+
+
+async def check_native(config, template, *, backend=None):
     match = template.build_match([dict(slot=0, player_id=1, name='Health A', army_id=0),
                                   dict(slot=1, player_id=2, name='Health B', army_id=1)],
                                  template.default_decks, seed=1, game_name='host-health-check')
     worker = await SimulationWorker.create(match.raw_game_data, config.assets_directory / 'Simulation.dll',
-                                           working_directory=config.data_directory / 'workers')
+                                           working_directory=config.data_directory / 'workers', backend=backend)
     try:
         initial = await worker.state()
         result = await worker.process_frame(field_uint(1, 0) + field_uint(2, 20) + field_uint(3, 50))
         if initial['frame'] != 0xffffffff or result.frame != 0:
             raise WorkerError('native startup check returned an unexpected frame')
         report = dict(pid=worker.pid, simulation_sha256=worker.dll_sha256, created=True, stepped_frame=result.frame)
+        if backend is not None:
+            report.update(guardian_pid=worker.pid, native_pid=worker.native_pid,
+                          worker_runtime=worker.runtime_info)
     finally:
         await worker.close()
     if worker.process.poll() != 0: raise WorkerError('native startup check did not close cleanly')
+    if backend is not None:
+        statistics = worker.backend_statistics
+        if (not isinstance(statistics, dict) or statistics.get('native_exit_code') != 0
+                or not all(statistics.get(name) is True for name in
+                           ('cleanup_complete', 'prefix_removed', 'cgroup_removed'))):
+            raise WorkerError('Wine native startup check did not complete owned worker cleanup')
+        report['backend_statistics'] = statistics
     report.update(exit_code=0, reaped=True)
     return report
 
@@ -77,13 +104,15 @@ async def run(config, *, check_only=False, on_progress=None, on_ready=None):
 
 async def _run_owned(config, *, check_only=False, on_progress=None, on_ready=None):
     template, context, store, manifest = prepare(config)
+    backend = select_worker_backend(config)
     if on_progress: on_progress('assets_and_storage_checked')
-    native = await check_native(config, template)
+    native = await check_native(config, template, backend=backend)
     if on_progress: on_progress('native_checked')
     health = dict(passed=True, python=platform.python_version(), openssl=ssl.OPENSSL_VERSION,
         platform=platform.platform(), pointer_bits=ctypes.sizeof(ctypes.c_void_p)*8,
         game_build=manifest['game_build'], game_protocol=protocol.VERSION, asset_format=manifest['asset_format'],
         tls=context is not None, credential_store_checked=store is not None, native=native,
+        worker_backend='wine' if backend is not None else 'windows',
         scope='local configuration, asset hashes, private storage if enabled, native create/step/close; no internet reachability proof')
     print(json.dumps(health, separators=(',', ':')), flush=True)
     if check_only: return health
@@ -116,9 +145,9 @@ async def _run_owned(config, *, check_only=False, on_progress=None, on_ready=Non
             experimental_command_scheduling=config.experimental_command_scheduling,
             tls_context=context, admission=AdmissionController(store, rc_open=config.access_mode == 'rc-open') if context else None,
             sim_factory=lambda data: SimulationWorker.create(data, config.assets_directory / 'Simulation.dll',
-                working_directory=config.data_directory / 'workers'),
+                working_directory=config.data_directory / 'workers', backend=backend),
             ai_factory=lambda data, bots: SimulationWorker.create(data, config.assets_directory / 'Simulation.dll',
-                working_directory=config.data_directory / 'workers', ai=AISetup(config.assets_directory, bots)))
+                working_directory=config.data_directory / 'workers', ai=AISetup(config.assets_directory, bots), backend=backend))
         if config.dashboard_port:
             dashboard = Dashboard(server, config.data_directory / 'web-matches.json')
             try:

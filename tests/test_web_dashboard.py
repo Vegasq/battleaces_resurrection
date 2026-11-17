@@ -162,7 +162,7 @@ class HostDashboardTests(unittest.IsolatedAsyncioTestCase):
     async def test_host_lifetime_disabled_check_and_web_failure(self):
         from server import host
         from server.configuration import HostConfig
-        config = NS(data_directory=Path('unused-data'), assets_directory=Path('unused-assets'),
+        config = NS(data_directory=Path('unused-data'), assets_directory=Path('unused-assets'), wine_worker=None,
                     log_max_bytes=65536, log_backups=2, diagnostic_audit=False,
                     max_rooms=4, input_window=64, access_mode='rc-open',
                     listen_host='127.0.0.1', listen_port=47623,
