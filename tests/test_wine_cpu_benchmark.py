@@ -18,7 +18,11 @@ UNIT = 'ba-cpu-bench-'+NONCE+'.service'
 
 def identity():
     return dict(Id=UNIT, Description=t.description(NONCE), LoadState='loaded', ActiveState='active',
-                InvocationID=INVOCATION, ControlGroup='/system.slice/'+UNIT)
+                InvocationID=INVOCATION, ControlGroup='/system.slice/'+UNIT, MainPID='701')
+
+
+def stopped_identity(active='inactive'):
+    return dict(identity(), ActiveState=active, MainPID='0', ControlGroup='')
 
 
 class CPUPlanningTests(unittest.TestCase):
@@ -72,6 +76,35 @@ class CPUPlanningTests(unittest.TestCase):
             with self.subTest(field=field), self.assertRaises(ValueError):
                 t.verify_identity(wrong, UNIT, NONCE, INVOCATION)
 
+    def test_cleared_cgroup_is_only_valid_for_stopped_cleanup(self):
+        for active in ('inactive', 'failed'):
+            state = stopped_identity(active)
+            with self.subTest(active=active):
+                self.assertEqual(t.verify_identity(state, UNIT, NONCE, INVOCATION, cleanup=True), state)
+                with self.assertRaisesRegex(ValueError, 'not active'):
+                    t.verify_identity(state, UNIT, NONCE, INVOCATION)
+
+    def test_cleanup_refuses_active_missing_or_malformed_cgroup(self):
+        for active in ('active', 'activating', 'deactivating', 'reloading'):
+            for control in ('', None, '/', 'relative/'+UNIT, '/system.slice/../'+UNIT,
+                            '/system.slice//'+UNIT, '//system.slice/'+UNIT, '/system.slice/live.service'):
+                state = identity(); state.update(ActiveState=active, ControlGroup=control)
+                with self.subTest(active=active, control=control), self.assertRaisesRegex(ValueError, 'ControlGroup'):
+                    t.verify_identity(state, UNIT, NONCE, INVOCATION, cleanup=True)
+
+    def test_stopped_cleanup_requires_explicit_zero_main_pid_and_empty_cgroup(self):
+        for main in (None, '', '701', '-1', '00', 0):
+            state = stopped_identity(); state['MainPID'] = main
+            with self.subTest(main=main), self.assertRaisesRegex(ValueError, 'main PID'):
+                t.verify_identity(state, UNIT, NONCE, INVOCATION, cleanup=True)
+        for control in (None, '/', '/system.slice/live.service'):
+            state = stopped_identity(); state['ControlGroup'] = control
+            with self.subTest(control=control), self.assertRaisesRegex(ValueError, 'ControlGroup'):
+                t.verify_identity(state, UNIT, NONCE, INVOCATION, cleanup=True)
+        state = stopped_identity(); del state['ControlGroup']
+        with self.assertRaisesRegex(ValueError, 'ControlGroup'):
+            t.verify_identity(state, UNIT, NONCE, INVOCATION, cleanup=True)
+
     def test_retained_cgroup_effective_mask_and_inode_fail_closed(self):
         handle = t.UnitCpuset.__new__(t.UnitCpuset)
         handle.path, handle.fd, handle.identity, handle.selected = Path('task'), 42, (1, 2), {0, 2}
@@ -117,6 +150,13 @@ class CPUPlanningTests(unittest.TestCase):
 
 
 class UnitLifecycleTests(unittest.IsolatedAsyncioTestCase):
+    async def test_systemd_query_includes_current_main_pid(self):
+        with patch.object(t, 'command', AsyncMock(return_value=(0, 'LoadState=loaded\nMainPID=0\nControlGroup=\n', ''))) as command:
+            state = await t.unit_state(UNIT)
+        self.assertEqual(state['MainPID'], '0')
+        self.assertEqual(state['ControlGroup'], '')
+        self.assertIn('--property=MainPID', command.call_args.args[0])
+
     async def test_retained_client_termination_escalates_with_finite_waits(self):
         process = SimpleNamespace(returncode=None, terminate=Mock(), kill=Mock(),
                                   wait=AsyncMock(side_effect=[TimeoutError(), 0]))
@@ -161,6 +201,14 @@ class UnitLifecycleTests(unittest.IsolatedAsyncioTestCase):
             await t.precreate_unit(dict(unit=UNIT, nonce=NONCE, cpus=[0]))
         constructor.assert_not_called()
 
+    async def test_precreate_refuses_stopped_cleared_cgroup_before_opening_it(self):
+        env = dict(BA_CPU_BENCH_UNIT=UNIT, BA_CPU_BENCH_NONCE=NONCE, INVOCATION_ID=INVOCATION)
+        with patch.dict(t.os.environ, env, clear=True), \
+             patch.object(t, 'unit_state', AsyncMock(return_value=stopped_identity())), \
+             patch.object(t, 'UnitCpuset') as constructor, self.assertRaisesRegex(ValueError, 'not active'):
+            await t.precreate_unit(dict(unit=UNIT, nonce=NONCE, cpus=[0]))
+        constructor.assert_not_called()
+
     async def test_stop_never_targets_unrelated_or_replaced_invocation(self):
         for field, value in (('Description', 'live service'), ('InvocationID', 'c'*32)):
             wrong = identity(); wrong[field] = value
@@ -175,6 +223,55 @@ class UnitLifecycleTests(unittest.IsolatedAsyncioTestCase):
             result = await t.stop_owned(UNIT, NONCE, INVOCATION)
         command.assert_awaited_once_with([t.SYSTEMCTL, 'stop', UNIT], timeout=25)
         self.assertTrue(result['unit_absent'])
+
+    async def test_already_stopped_cleared_cgroup_needs_no_stop_or_invented_path(self):
+        for active in ('inactive', 'failed'):
+            state = stopped_identity(active)
+            with self.subTest(active=active), \
+                 patch.object(t, 'unit_state', AsyncMock(return_value=state)) as query, \
+                 patch.object(t, 'command', AsyncMock()) as command:
+                result = await t.stop_owned(UNIT, NONCE, INVOCATION)
+            query.assert_awaited_once_with(UNIT)
+            command.assert_not_awaited()
+            self.assertEqual(result['final_state'], state)
+            self.assertEqual(result['stopped_owned_invocation'], INVOCATION)
+            self.assertTrue(result['already_stopped'])
+
+    async def test_terminal_no_cgroup_still_requires_exact_owner_and_invocation(self):
+        for field, value in (('Id', 'live.service'), ('Description', 'unrelated'),
+                             ('LoadState', 'error'), ('InvocationID', 'c'*32),
+                             ('InvocationID', ''), ('InvocationID', None)):
+            state = stopped_identity(); state[field] = value
+            with self.subTest(field=field, value=value), \
+                 patch.object(t, 'unit_state', AsyncMock(return_value=state)), \
+                 patch.object(t, 'command', AsyncMock()) as command, self.assertRaises(ValueError):
+                await t.stop_owned(UNIT, NONCE, INVOCATION)
+            command.assert_not_awaited()
+
+    async def test_terminal_with_retained_cgroup_still_uses_bounded_owned_stop(self):
+        state = stopped_identity(); state['ControlGroup'] = identity()['ControlGroup']
+        with patch.object(t, 'unit_state', AsyncMock(side_effect=[state, dict(LoadState='not-found')])), \
+             patch.object(t, 'command', AsyncMock(return_value=(0, '', ''))) as command:
+            result = await t.stop_owned(UNIT, NONCE, INVOCATION)
+        command.assert_awaited_once_with([t.SYSTEMCTL, 'stop', UNIT], timeout=25)
+        self.assertTrue(result['unit_absent'])
+
+    async def test_owned_stop_accepts_terminal_cleared_cgroup_after_stop(self):
+        after = stopped_identity()
+        with patch.object(t, 'unit_state', AsyncMock(side_effect=[identity(), after])), \
+             patch.object(t, 'command', AsyncMock(return_value=(0, '', ''))) as command:
+            result = await t.stop_owned(UNIT, NONCE, INVOCATION)
+        command.assert_awaited_once_with([t.SYSTEMCTL, 'stop', UNIT], timeout=25)
+        self.assertEqual(result['final_state'], after)
+
+    async def test_poststop_revalidates_terminal_owner_invocation_and_main_pid(self):
+        for field, value in (('Id', 'live.service'), ('Description', 'unrelated'),
+                             ('InvocationID', 'c'*32), ('MainPID', '701'), ('ControlGroup', '/')):
+            after = stopped_identity(); after[field] = value
+            with self.subTest(field=field), \
+                 patch.object(t, 'unit_state', AsyncMock(side_effect=[identity(), after])), \
+                 patch.object(t, 'command', AsyncMock(return_value=(0, '', ''))), self.assertRaises(ValueError):
+                await t.stop_owned(UNIT, NONCE, INVOCATION)
 
     async def test_preexisting_unit_refused_before_systemd_run(self):
         with patch.object(t, 'unit_state', AsyncMock(return_value=identity())), \

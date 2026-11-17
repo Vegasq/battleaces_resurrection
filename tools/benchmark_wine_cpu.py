@@ -30,7 +30,7 @@ SYSTEMCTL = '/usr/bin/systemctl'
 SYSTEMD_RUN = '/usr/bin/systemd-run'
 BOOTSTRAP = "import runpy,sys;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('tools.benchmark_wine_cpu',run_name='__main__')"
 UNIT_RE = re.compile(r'ba-cpu-bench-[0-9a-f]{32}\.service\Z')
-PROPERTIES = ('Id', 'Description', 'LoadState', 'ActiveState', 'InvocationID', 'ControlGroup',
+PROPERTIES = ('Id', 'Description', 'LoadState', 'ActiveState', 'InvocationID', 'ControlGroup', 'MainPID',
               'Result', 'ExecMainCode', 'ExecMainStatus')
 
 
@@ -182,14 +182,28 @@ def description(nonce):
     return 'BattleAces owned CPU benchmark '+nonce
 
 
-def verify_identity(state, unit, nonce, invocation=None):
+def verify_identity(state, unit, nonce, invocation=None, *, cleanup=False):
     b.require(state.get('Id') == unit and state.get('Description') == description(nonce)
               and state.get('LoadState') == 'loaded'
+              and type(state.get('InvocationID')) is str
               and re.fullmatch(r'[0-9a-f]{32}', state.get('InvocationID', '')) is not None,
               'task unit ownership identity differs')
     b.require(invocation is None or state['InvocationID'] == invocation, 'task unit invocation changed')
-    control = PurePosixPath(state.get('ControlGroup', ''))
-    b.require(control.is_absolute() and '..' not in control.parts and control.name == unit,
+    terminal = state.get('ActiveState') in ('inactive', 'failed')
+    if cleanup and terminal:
+        b.require(state.get('MainPID') == '0', 'stopped task unit still has a main PID')
+        # systemd v255 unit_prune_cgroup releases an empty cgroup_path;
+        # dbus-unit.c property_get_cgroup then reports exactly the empty string.
+        # This is cleanup evidence only, never a substitute pre-CREATE path.
+        if state.get('ControlGroup') == '':
+            return state
+    if not cleanup:
+        b.require(state.get('ActiveState') == 'active', 'task unit is not active before CREATE')
+    raw_control = state.get('ControlGroup')
+    b.require(type(raw_control) is str, 'task unit ControlGroup identity differs')
+    control = PurePosixPath(raw_control)
+    b.require(control.is_absolute() and control.parts[0] == '/' and '..' not in control.parts
+              and str(control) == raw_control and control.name == unit,
               'task unit ControlGroup identity differs')
     return state
 
@@ -401,10 +415,16 @@ async def stop_owned(unit, nonce, invocation=None):
     state = await unit_state(unit)
     if state.get('LoadState') == 'not-found':
         return dict(unit_absent=True)
-    verify_identity(state, unit, nonce, invocation)
+    verify_identity(state, unit, nonce, invocation, cleanup=True)
+    if state.get('ControlGroup') == '':
+        # Already stopped and pruned; do not race unit GC with a redundant stop.
+        return dict(unit_absent=False, final_state=state, already_stopped=True,
+                    stopped_owned_invocation=state['InvocationID'])
     code, _, stderr = await command([SYSTEMCTL, 'stop', unit], timeout=25)
     b.require(code == 0, 'owned unit stop failed: '+stderr)
     after = await unit_state(unit)
+    if after.get('LoadState') != 'not-found':
+        verify_identity(after, unit, nonce, state['InvocationID'], cleanup=True)
     b.require(after.get('LoadState') == 'not-found' or after.get('ActiveState') in ('inactive', 'failed'),
               'task unit remains active after stop')
     return dict(unit_absent=after.get('LoadState') == 'not-found', final_state=after,
