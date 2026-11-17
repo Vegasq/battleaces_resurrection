@@ -1,0 +1,38 @@
+PUBLIC GAME ACCESS - N42 -2026-11-17 UTC
+
+Nick requested:"Unblock any visitors on both servers. Start with europe".
+This supersedes N39's owner-only game-access choice. SSH and dashboard retain
+the separate owner restriction. Both operations are COMPLETE without restart.
+
+Europe/be.sendsignal.cc/134.209.176.39 opened first at00:23:54UTC.
+America/ba.sendsignal.cc/165.227.125.73 followed at00:24:38UTC.
+Each existing inet ba_prediction_gate received exactly one public exception:
+  tcp dport 47623 accept
+The default drop policy,owner/loopback/established rules and IPv6 neighbour
+discovery remain unchanged. The separate TCP47624 dashboard chain is unchanged.
+No DigitalOcean cloud firewalls were present;no cloud firewall mutation needed.
+
+The persistent /etc/ba-prediction-allowlist.nft was replaced atomically after
+nft syntax validation,then the owned table was updated in one nft transaction.
+The existing enabled loader service reads that file on boot. No service/unit,
+host config,assets,identity or game process was changed. No reboot was performed.
+Policy SHA256 before:9bd77e20f245ce8787a01464c37bb10ce4535d1d8c395fefa7a3078c4e4fc766.
+Policy SHA256 after:9bff62106b7545d3acd0684d3746e25a9a0a79ae632940885ad9590d537023a6.
+Root-only prior-policy/rules/service receipts on each host:
+  /srv/ba-runtime/public-game-access-20261117/
+
+Verification
+America connected to Europe's game port using TLS1.3;Europe then connected to
+America's. These sources are outside the owner's allowlist. Both cross-region
+probes time out on SSH22 and dashboard47624. Owner dashboard access remains
+healthy;both report persistence_ok=true,closing=false,38 histories at the check.
+Europe MainPID189907 and America MainPID61682 remain active/running with zero
+restarts before/after. Existing sessions were not stopped. TLS reachability is
+not a new authenticated match or physical smoothness qualification.
+
+Private receipts:local/public-game-access-20261117/{europe,america}-apply.json,
+{europe,america}-public-probe.json and health-after.json in the active worktree.
+RC1 release notes now describe public game access. All four release asset IDs,
+digests,tag and publication state are unchanged. Artifact manifests/older
+deployment notes retain their original snapshot scope;this record is the current
+network access policy. N39 playtest acceptance remains separate.

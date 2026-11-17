@@ -61,8 +61,8 @@ test launcher is required. Explicitly local AI remains local. Both human players
 need compatible scheduling clients and the same selected server. No prediction
 is enabled. Use the matching0.5.0-rc1 host;no IP/identity reset is needed.
 
-The two project hosts use TCP47623 and remain owner-IP-only during
-controlled testing. Their dashboards also remain owner-only. Online movement
+The two project hosts accept public game connections on TCP47623 as of
+2026-11-17UTC. Their dashboards and SSH remain owner-only. Online movement
 and latency remain under evaluation. This release does not close
 the remaining acceptance gates in docs/REMAINING_DELIVERY_PLAN.txt.
 

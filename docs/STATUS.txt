@@ -1,4 +1,10 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-17UTC N42 COMPLETE:public game TCP47623 opened on Europe first,then
+America. Persistent owner gate now permits game connections from all sources;
+cross-region TLS passes while SSH/dashboard remain inaccessible to non-owner
+addresses. Both existing server PIDs remain running,zero restarts. RC1 notes
+updated;installer assets unchanged. This supersedes owner-only game access.
+Details:public-game-access-20261117.txt. N39 playtest acceptance remains open.
 2026-11-16 N41 COMPLETE:both0.5.0-rc1 installers,checksums and release manifest
 replaced on the existing published prerelease and downloaded/hash-verified.
 Artifacts use clean e0520c9;normal packaged launch forwards that build and the
