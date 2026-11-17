@@ -1,4 +1,13 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-17UTC N47 WINDOWS ATTRIBUTION QUALIFIED:exact Rust control/profile pairs
+match all1562Wasp/1823Crab frames per arm with normal cleanup. Wasp combat active
+27.929ms partitions into20.952ms original simulation(75percent),0.564ms RustFFI,
+2.214ms Python parse,1.996ms validation,1.395ms responseJSON plus small remainder.
+These are this PC's durations;post-Rust1CPU Linux attribution is pendingVPN
+reachability under DEV.txt N47-SSH. The isolated profile VM has its approved
+72h cleanup deadline. CI44144077081 and44144077037 pass;Windows each1891tests/
+112skips,launcher/history green after one unchanged-source installer-timeout
+retry. No production/runtime optimization or20Hz claim. Scope:rust-worker-profile.txt.
 2026-11-17UTC N46 FUNCTIONAL RUST/WINE PASS:explicit decoder identity travels
 through owned guardian;fresh originalAI and all1823states match on Windows and
 Linux/Wine for both decoder arms. Linux lifecycle36controls pass. Exploratory
