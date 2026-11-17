@@ -1,4 +1,15 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-17UTC N45 WORKER INTEGRATION PASS:explicit hash-bound Rust library now
+decodes state inside opted-in native workers. Twelve alternating replays check
+20310frames with zero observable mismatches and normal cleanup. Median combat
+STEP RPC means39.530->30.053ms(Wasp) and13.412->10.976ms(Crab/AI);all pairs
+improve. These unpaced Windows results do not qualify cloud/publication/player
+acceptance. Native Linux shared-library authored CI44121963978 passes;full
+Windows matrix44121964236 passes1847tests/111skips per Python3.12/3.14.8,launcher
+build and4556-entry history audits. Isolated N45 scope is complete;fresh-AI,
+Linux Wine-worker integration and end-to-end timing remain open.
+Default launchers/live services unchanged.
+Implementation6d9f762,test-portability fix efd4434;rust-worker-integration.txt.
 2026-11-17UTC N44 PORTABLE DECODER MILESTONE COMPLETE:Windows original-snapshot
 parity and native Linux authored parity pass. Linux CI44114388000 builds a real
 x86_64 ELF without Wine;all decoder/tooling controls pass. Authored800 median

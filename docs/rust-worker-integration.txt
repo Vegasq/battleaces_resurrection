@@ -1,5 +1,5 @@
 BATTLE ACES - N45 ISOLATED RUST DECODER WORKER INTEGRATION
-Updated:2026-11-17UTC. Qualification in progress;default runtime stays Python.
+Updated:2026-11-17UTC. Isolated integration qualified;default runtime stays Python.
 
 SCOPE
 Continue N44 by loading the Rust decoder into an explicitly opted-in native
@@ -56,6 +56,13 @@ fmt/clippy pass;Python adapter/worker regression78tests/19skips pass.
 Library SHA256:135b53056f34c9e87e5561254762792d24fef483fe74e7e4642bd81e61ab99b1
 Source-owned pinned release Cargo receipt:local/rust-worker-20261117/cargo-build01.jsonl
 Native results:local/rust-worker-20261117/verify01/verification.json
+verification SHA256:3ae5da983b79db8d48336c391aa40d582141ed21e894caea42b0c32df91b4f5e
+Cargo/compiler/source-to-library binding:local/rust-worker-20261117/build-binding01.json
+binding SHA256:f95da2177874c3f2498bf800dcf4aeadae6ad982dfaad4326cf8b30d4c03f90f
+Focused Python controls64/64 PASS,including10 orchestration refusal/drift controls.
+Strict staged source audit1389entries,zero failures. Implementation6d9f762 is
+pushed on feature/rust-snapshot-decoder;native library/full compatibility CI
+44121530700/44121530804 is running. This branch has not been merged or deployed.
 
 Whole-worker STEP RPC milliseconds,median of three per-run summaries:
 Workload/phase     Python mean  Rust mean  Python p95  Rust p95
@@ -68,5 +75,33 @@ STEP calls above50ms with Rust(99/600Python);p99 remains54.378ms. This is an
 unpaced Windows worker comparison,including FFI/JSON conversion and pipe IPC.
 It does not establish the N43 Linux1vCPU20Hz/publication/network/player gates.
 Crab/AI uses recorded AI inputs;fresh-AI integration remains a separate check.
-Native Linux library and complete compatibility CI are pending.
+Native Linux library CI44121963978 PASS at efd4434:8Rust tests,65Python controls,
+fmt/clippy,ELF CLI comparison,and actual shared-library ABI32valid/290refused/
+1000ownershipcycles. No game captures/assets or Wine were used in that job.
+https://github.com/Vegasq/battleaces_resurrection/actions/runs/44121963978
+Linux library SHA256:1f8effdf63faa30d0414f93fd39199c91fc65e9eb42d31db99bcf5313b6dbc25
+Retained log:local/rust-worker-20261117/linux-ci44121963978.log
+log SHA256:50d55979af86a7e531912fd9836375313eeb5c84329774aea75709d80a2e6744
+Full Windows compatibility CI44121964236 PASS at efd4434:1847tests/111skips on
+each Python3.12/3.14.8;launcher build and both history audits pass(4556entries,
+9exact historical reviews,zero failures). No test limits or runtime guards
+were relaxed. This completes the isolated integration scope.
+https://github.com/Vegasq/battleaces_resurrection/actions/runs/44121964236
+Retained log:local/rust-worker-20261117/windows-ci44121964236.log
+log SHA256:3e4ce324b956c8383d79d26c79811ab15cb01357e68a70721a0a8a70eee52108
+First Linux CI44121530700 stops in mocked orchestration controls:the simulated
+Windows verifier reached a real Windows-only benchmark preflight on Linux.
+Rust8tests/fmt/clippy pass before that failure. A test-only correction mocks
+the benchmark preflight with its runner and adds an explicit POSIX regression
+control. All11 controls pass locally at efd4434;production/native proof source
+is unchanged. Failed log:local/rust-worker-20261117/linux-ci44121530700-failed.log.
+Source CI44121530804 was canceled after this replacement push to avoid duplicate
+full suites;both replacement runs pass as recorded above.
+
+NEXT
+The production candidate still needs fresh-AI end-to-end server qualification,
+coordinator/publication timing under controlled network conditions and human
+acceptance. Linux Wine-worker loading/packaging of the Windows Rust library is
+also unqualified. N43's failed cadence/startup criteria remain open. No live
+deployment or rollout is inferred from these local worker measurements.
 No server deployment,release,user install or new cloud VM is part of this work.

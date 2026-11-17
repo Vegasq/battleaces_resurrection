@@ -13,11 +13,12 @@ COMPLETE - N44 PORTABLE RUST SNAPSHOT DECODER FIRST MILESTONE
 No production runtime or prediction changes. Original DLLs/captures remain local;
 Linux CI uses authored inputs. Scope and checks:rust-snapshot-decoder.txt.
 
-N45 - ISOLATED RUST DECODER INTEGRATION
+COMPLETE - N45 ISOLATED RUST DECODER INTEGRATION
 [x] Integrate into an opted-in worker with explicit library/hash identity.
 [x] Verify native ownership/protocol/cleanup and every replayed observable state.
 [x] Measure alternating same-machine worker RPC pairs and record limits.
-[ ] Finish native Linux library and complete compatibility CI.
+[x] Finish native Linux library and complete compatibility CI.
+[ ] Next:qualify fresh AI and Linux Wine-worker packaging/integration.
 [ ] Later:qualify end-to-end public match cadence and player acceptance.
 Scope:rust-worker-integration.txt. Live services remain unchanged.
 
