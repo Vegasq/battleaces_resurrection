@@ -586,3 +586,34 @@ correctness gate;it does not prove SDK generation/reset/direct-mutation coverage
 multithread/reentry/fault recovery,performance,Linux or20Hz. Next is one bounded
 SDK eligibility proof before selected real-game replay and timing. Live hosts,
 installed client,normal launchers and releases remain unchanged.
+
+BOUNDED SDK SHADOW16 - PREPARATION IN PROGRESS
+The next missing claim is whether one actual UnitLayer interval has complete
+tracked mutation routing and stable identity. A proposed shadow window begins
+at the first qualifying call in frames1072..1091 and ends at first4096completed
+mutators,end1091 or180seconds. Ordinary full1562frame replay continues outside
+that window,with separate1800second overall deadline. Actual gameplay calls
+original functions once;indexed15 operates ONLY on a rebased private clone.
+Strict flags0 hook policy:insert43540,remove439b0,constructor40c60,clear42f20.
+Both handler-bearing destructors42e00/42c40 (unwindflags3,handler342638) remain
+UNHOOKED and their full bytes must stay unchanged. The original six-entry design
+and static facts remain retained;an explicit four-entry revision will bind them.
+Known normal destructor paths reach clear42f20 before tree clearing/freeing;
+retire the selected activation there or on constructor entry. This observes
+ctor/clear retirement,not destructor entry or a complete birth-to-death theorem.
+Independent native entry tokens expose calls bypassing the two selected vtable
+forwarders. Before/after exact root,links,livebits,leaf IDs,heights,20byte
+aggregates and private-index checks expose net untracked structural changes.
+The current32aggregate bytes,including tails,refresh the private clone before
+each operation after structural checks. Internal12byte tails remain RAW
+DIFFERENCES,without precise-merge-destination or global-padding claims. This
+structural eligibility projection does not change15's qualified mutation policy,
+and cannot itself qualify real indexed-gameplay behavior or performance.
+Initial/final/first-mismatch raw snapshots and bounded compact operation records
+support the new audit. No per-call Python/JS bridge;native census callbacks.
+Every unsupported lifetime/TID/nesting/routing/drop/coherence condition retires
+eligibility while original forwarding continues. Source/page/pin/ABI/error and
+natural-cleanup gates still apply. Hook prefix/unwind review,helper/templates,
+Python custody/bootstrap/plan and authored controls are currently being prepared.
+No16native run,real indexed gameplay or speed win is claimed.20Hz stays OPEN;
+no new spending,live server,installed client or release change.
