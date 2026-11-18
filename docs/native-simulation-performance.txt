@@ -6,10 +6,16 @@ LATEST DECISION
 Math screens and tree-loop08/09/10 do not justify integration. Each tree variant
 passes the selected native/reference-state and cleanup gates,but its single
 matched timing pair is slower. No useful speed win or20Hz acceptance is claimed.
-Stop those rewrites. Next is observational work-shape profile12 to measure
-search-prefix size and hit-path depth by address/type cohort before selecting a
-structural optimization. Scheduler/count policy remains unknown after bounded
-review. Live hosts,client/installers and releases remain untouched.
+Stop those rewrites. Work-shape12 now qualifies all1562states and complete
+bounded counters:2,420,341removals search978,595,868nodes (404.32per call).
+UnitLayer accounts for65.65percent of visits,with531.05visits and9.41matching
+path edges per hit. Counts motivate structural work;they are not CPU shares.
+Read-only feasibility13 finds path-only parent maintenance incomplete:original
+insertion can recursively rebalance an entire subtree. Next:bounded original
+insertion link-delta proof14,plus a separate fixed-single-CPU multiply13 screen.
+Earlier math screens had no captured effective mask;their mixed default-host
+results remain rejected. Windows worker affinity does not emulate a cloud CPU.
+Scheduler/count policy stays unknown. Live/client/releases remain untouched.
 
 QUESTION AND ROUTING
 The prior Linux two-core compact candidate still averages59.7ms Wasp combat
@@ -433,3 +439,44 @@ not established. OS-default versus engine-owned pool,worker count and tuning
 remain UNKNOWN. Import names,Default strings and affinity do not prove a knob.
 No runtime/API setter/global change follows. Focused private note SHA256:
 082b1ff6b95e194f7934dabebc7f539fc45d54f73398b32f696c8c7a727a851a
+
+OBSERVATIONAL WORK-SHAPE12 - COMPLETE AT COUNTING SCOPE
+The unchanged qualified10search supplies visited-prefix and hit-path reports.
+The separate native observer forwards every call once and retains its result;
+bounded saturating counters group raw owner tuples and TIDs.19Rust controls,
+20bootstrap controls,6driver controls and4strict audit refusals pass. Actual
+observer replay preserves every1562stable row and ordinary natural cleanup.
+Four raw snapshots and115shared bindings/156files independently verify. No
+counter loss,unknown classification,overflow or installation/destruction calls.
+All2,420,341active removals are hits,with978,595,868prefix visits:
+  UnitLayer:1,209,753calls;642,434,832visits (65.65percent),mean531.05;
+    mean matching-hit path9.41edges,max1915visits/max15edges.
+  Two Visibility cohorts:604,189/605,564calls;176,158,238/159,810,727visits.
+  Anchored:835calls;192,071visits.
+Four address cohorts are not object lifetimes;raw TIDs are not generations or
+proof of all-call serialization. UnitLayer has one observed TID;Visibility has
+four. This instrumented work-count run provides no timing or CPU-share claim.
+At least128visits:81.37percent of calls/96.52percent of visits. At least512:
+28.39percent of calls/57.79percent of visits. A separate retained correction
+fixes one-off assistant threshold labels;original audit bin bounds/captures
+were correct. No rerun/source/capture changes. Strict audit SHA256:
+4cac7d3e0760e751ab93b20b35d0435fec1a15fbafc11641a648316cef7ab8f0
+Threshold correction SHA256:
+c74a361e95d58ae1bb905b8ccaf4845f258b0a5f7c29e6c28d508d0128a55681
+
+NEXT STRUCTURAL CLAIM AND DISTINCT CPU REGIME
+Read-only feasibility13 finds original insertion's nonoverlap branch invokes
+recursive full-subtree rebalance;ordinary rotations also modify promoted roots
+outside the old descent path. Allocation-bit differences and old-path links
+alone cannot maintain a correct general parent index. A bounded original-insert
+all-link delta oracle14 is being prepared before index implementation. Duplicate
+first-DFS order,lifetime/reset and complete mutation coverage remain unproved.
+Feasibility note SHA256:
+a97744e7aa9e1f88b53da8700b16f1211be26ceec00922a097aface300aa8b21
+Separately,13prepares one matched multiply-only screen with the same explicit
+single allowed worker CPU in both arms,applied before CREATE and verified on
+the retained live process before STEP/after CREATE/before CLOSE. Earlier masks
+are UNKNOWN;do not retroactively call them multi-core. This changes scheduling
+regime rather than repeating the prior uncontrolled-host pair. Exact native
+oracle,ABI replacement and owned cleanup gates remain required. No native13
+result,cloud comparison,integration or20Hz success is claimed.
