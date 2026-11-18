@@ -318,4 +318,39 @@ Next:separate immutable two-argument native adapter and matched1562frame SDK
 baseline/candidate. A four-vtable-slot experiment can leave original instructions
 and fallback entry untouched;atomic publication requires configured compatible
 targets pinned until process death and immediate exact page-protection restore.
-No SDK installation/replay or speedup is yet claimed. Linux/20Hz remain open.
+Callable07alone claims no SDK replay or speedup. Selected SDK08qualification
+follows below;Linux/20Hz remain open.
+
+MATCHED SDK VTABLE SCREEN08 - FUNCTIONAL PASS,PERFORMANCE REGRESSION
+The separate two-argument native adapter is initialized once and pinned with
+the original/candidate DLLs until owned process death. Only four aligned vtable
+qwords change;the original instructions/fallback entry remain unchanged. Two
+data pages are temporarily writable and regain their exact original protection.
+Retained before/after/final bytes independently confirm the four-cell footprint.
+Fourteen pure installer controls,ten adapter mock tests and ten driver controls
+pass. Static guards against the actual SDK file pass before any native launch.
+Both fresh owned arms then match every1562reference frame and stable row field,
+pass all source/build/input/page/counter guards,and exit normally with retained
+Popen handles closed. Actual Jobs naturally drain an extra process in94/109ms,
+then report2/0/0 empty/no force;its origin remains unknown. Initial offline
+all-snapshots-empty refusal remains retained;final-empty is the existing cleanup
+contract. No replay or capture was changed to fix that parser assumption.
+Each active replay makes2,420,341adapter calls. Candidate handles ALL as fast
+hits,with zero miss/fallback/unknown;installation/destruction adds zero calls.
+This establishes real selected-corpus activation,not a speed benefit.
+Whole-worker RPC single-pair results,nearest-rank percentiles:
+  Movement mean22.377739->25.210010ms (+12.66%);p9532.2962->35.9410ms.
+  Combat mean33.471438->36.804567ms (+9.96%);p9548.3930->52.8497ms.
+  Combat>50ms:24->53of600;movement0->0of600.
+Do not integrate,repeat or send08to Linux qualification. Full-tree preflight
+adds work after an early hit;the observed regression does not isolate its CPU
+cost from other candidate overhead. Strict independent audit verifies156bound
+files and107shared source/build bindings. Pair-summary SHA256:
+800268d217e64da387f41fc0ed3c1c162d1422151714d4ca1efa4730de29c08c
+Future09 stops at the first DFS hit like the original,then validates saved links
+and sibling-root safety before any mutation. Stable valid acyclic/unshared tree
+memory remains a caller precondition;unvisited suffix corruption is not promised
+to be rejected. Misses still search the full tree. Separate source/oracle/replay
+qualification is required;09has no measured result yet. No index or TLS cache.
+Neither this functional screen nor any narrow prototype closes Linux,20Hz,
+all-mode,resource/RTT/concurrency or player acceptance. Live services unchanged.

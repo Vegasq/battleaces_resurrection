@@ -1,4 +1,12 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-18UTC N50 SDK08 FUNCTIONAL PASS,PERFORMANCE REGRESSION:both arms match
+all1562reference rows and source/build/page/normal-cleanup guards. Candidate
+handles all2,420,341active calls as fast hits,but movement/combat RPC means
+worsen12.66/9.96percent;combatp9548.393->52.850ms and>50ms frames24->53.
+Independent audit verifies156bindings. No08integration/repeat/Linux trial.
+Next:separate09first-hit search with path/sibling-root validation before writes;
+no persistent cache and no measured09win yet.20Hz remains OPEN. Live hosts,
+installed game and releases unchanged. See native-simulation-performance.txt.
 2026-11-18UTC N50 CALLABLE TREE PROTOTYPE PASS AT NARROW SCOPE:99owned native
 pairs match defined state and normal-return GPR/XMM/RSP/canaries;54fast hits,
 27misses,18fallbacks. Natural Job2/0/0 empty/child0 and source/build guards pass.
