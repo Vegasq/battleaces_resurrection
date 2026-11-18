@@ -1,4 +1,13 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-18UTC N50 OWNER-RIP14 QUALIFIED:control/observer each preserve1562states
+and exact source/marker/stop-before-CLOSE/empty-Job guards. Observer2945samples,
+maxpause0.2877ms/cumulative53.1093ms;seven offline controls pass after two retained
+reader refusals. RIP occupancy is not CPU time/wait evidence. Recurrent43890
+range is a shared entity AabbTree removal byID;duplicates,mutations,padding and
+caller/concurrency contracts prevent an immediate index replacement. Next:
+owned original-vs-original tree oracle before any per-call pruning candidate.
+No tree patch/speedup/20Hz claim. Source9d7fda6 CI remains passing;live services,
+installed game and release artifacts unchanged. See native-simulation-performance.txt.
 2026-11-18UTC N50 COMPATIBILITY CI PASS:source9d7fda6 passes2053tests/112skips
 on each Windows Python3.12/3.14.8 (44337393501);Linux44337393432 passes14Rust/
 236portable controls and actual FFI checks. Fixture clock/queue-order failures

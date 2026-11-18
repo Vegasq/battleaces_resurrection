@@ -8,6 +8,7 @@ N50 - ORIGINAL SIMULATION COST / LARGE-ARMY TAIL LATENCY
 [x] Reuse retained native profiles:SimStep dominates;slow frames track CPU work.
 [x] Audit supported tuning:profiling/logs already off;no thread-count API evidenced.
 [x] Qualify owned system/Pathing-child timing with exact replay/state and observer control.
+[x] Qualify bounded owner-thread RIP control/observer and actual pause/cleanup limits.
 [ ] Optimize the measured hotspot while preserving native gameplay/checksums/commands.
 [ ] Requalify candidate on Linux before the unchanged broader20Hz acceptance matrix.
 On the prior VM,compact Wasp combat averages59.7ms;two-core native p95 is81.1ms.
@@ -17,8 +18,10 @@ Both1562-frame captures preserve every state and normal owned cleanup. Reuse
 native-simulation-performance.txt and the private hash-bound reports;
 no broad replay matrix is repeated merely to reproduce the completed measurements.
 Two bit-exact native math screens preserve every state but show mixed gains
-below1percent;do not repeat or integrate them. Next:owned native instruction
-sampling within pathing,keeping RIP occupancy distinct from actual CPU cost.
+below1percent;do not repeat or integrate them. Owner-RIP14 points to a shared
+entity-tree removal helper. Next:bounded original-tree oracle and exact contract
+before a per-call pruning candidate;persistent indexing remains unjustified.
+RIP occupancy is distinct from CPU cost and does not identify its parent system.
 Compatibility CI9d7fda6 passes both Windows versions and native Linux controls.
 Sol6.1 medium handles retained analysis;high handles interface/diagnostic tools.
 No live rollout,resizing,installer/release replacement or new spending is included.

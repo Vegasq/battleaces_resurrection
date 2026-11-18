@@ -128,9 +128,9 @@ not selected a useful optimization. WPR kernel profiling needs privileges absent
 from this token;no trace/elevation/global setting change was attempted. Private
 plan13 instead prepares a100Hz sampler restricted to the source-published native
 owner thread,with a fused native pause/context-read/resume call and an owned
-synthetic positive control before SDK use. This reports RIP occupancy,not kernel
-CPU cost,wait durations or stacks;actual CPU counters stay separate. No sampler
-or SDK profiling run is qualified at this checkpoint.
+synthetic positive control before SDK use. Qualified14 results below report RIP
+occupancy,not kernel CPU cost,wait durations or stacks;actual CPU counters stay
+separate. Next:the identified tree-removal contract/oracle,not more math pairs.
 
 PRIVATE EVIDENCE
 Root:local/native-simulation-20261118/. Original captures/inputs/libraries remain
@@ -214,3 +214,52 @@ module tests after correction. Final source9d7fda6 passes Windows44337393501:
 236portable controls and actual authored FFI checks. Exact passing/failed logs
 are retained;normal launchers and original SDK bytes remain unchanged.
 Original failed/reproduction logs remain private under ci-checkpoint01/.
+
+OWNER-THREAD RIP CONTROL/OBSERVER14
+The task-local Rust helper performs suspend,CONTROL context read,private marker
+read and one resume in a single native call;Python does not run while a resume
+is owed. Header-derived layout matches an actual owned synthetic-loop control:
+177samples,152known-loop PCs,four identity/layout refusals and an injected-error
+resume pass. No SDK was loaded in that control. SDK14 baseline/observer each
+match1562input/full-state/history frames;all source/plan/bootstrap/marker/native
+helper/stop-before-CLOSE/empty-Job checks independently pass. Baseline makes no
+native sampling calls. No original SDK file or instruction was patched.
+Observer2945calls produce2945raw rows:1825outsideSTEP,1055insideSDK image
+(52setup/276movement/727combat),65insideSTEP outsideimage,zero odd/nonexec.
+Eligible samples cover270/600movement and535/600combat frames. Maximum measured
+pause0.2877ms,cumulative53.1093ms. NativeQPC sample gaps mean15.8294ms,p9518.9001ms,
+max36.6701ms;target100Hz is not claimed as achieved. Separate coarse timer gaps
+and signed schedule deltas are preserved without assigning a scheduler cause.
+Observer RPC mean/p95 increases:movement+0.482/+0.509ms,combat+1.030/+2.174ms;
+these are observer/environment deltas,not a speedup. CPU endpoint counters cover
+the whole replay envelope and are never assigned to individual RIPs or phases.
+Strict summary140bindings SHA256:
+5f8b4a97ab9d05d1bf8dbb9be3f33659166840a57482830b4f3ef56b17de6531
+Private root:native-pc-summary14/. Two parser refusals remain preserved:UInt64
+Windows FILETIME exceeded an incorrectly reused53-bit guard;nonnegative schedule
+lateness was not a source contract. Offline reader fixes require no recapture;
+seven focused controls pass. Failed SDK13 remains failed:an optional protected
+descendant-image query interrupted its cleanup observer. Cleanup14 instead uses
+only the existing Job counters/PID list and retained worker,with bounded natural
+drain;all actual14Jobs finish active0/terminated0/empty without forced cleanup.
+
+NEXT BOUNDED NATIVE TARGET - ENTITY TREE REMOVAL
+The largest identified containing range,RVA43890..439ab,has48movement and58combat
+observations. Exact283byte static body is a left-first tree-leaf erase by32-bit
+ID;missing IDs can traverse every reachable node. RTTI binds the shared code to
+entity AabbTree/BaseLayer,AnchoredLayer,UnitLayer and UnitVisibilityLayer methods.
+Samples do not identify which derived layer/caller or inclusive system owns it.
+No CPU-share,instruction-retirement,wait or contention claim follows from RIPs.
+The method rewrites links,collapses parents,sets free-pool bits and recomputes
+ancestor metadata. Duplicates select the first current DFS match;insertion/
+rotation can invalidate cached paths. Constructor/destructor paths are bounded,
+but typed callers,complete lifetime/reset coverage and concurrency remain open.
+Persistent indexing is not justified. A smaller per-call DFS/path-pruning oracle
+is being assessed;original mutation code and free/update order must remain.
+Aggregate helpers write20bytes but original callers copy32;12tail bytes cannot
+be silently masked as irrelevant. First prepare an owned original-vs-original
+cloned-tree/raw-padding control before any replacement or SDK experiment.
+Exact body SHA256:
+89a83f41cc757bb2579e0bceb264fdf3942a96d9bc39323868821e7935c549d4
+Focused private proofs:hot-function43890-static01,tree43890-contract02,
+tree43890-class03 and tree43890-prune04. No tree candidate/patch is qualified.
