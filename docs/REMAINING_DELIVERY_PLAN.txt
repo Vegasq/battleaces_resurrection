@@ -14,7 +14,7 @@ N50 - ORIGINAL SIMULATION COST / LARGE-ARMY TAIL LATENCY
 [!] Reject tree-loop08/09/10screens:exact-state passes but no measured speed win.
 [x] Profile operation-size/owner distributions;all1562states/counters/cleanup pass.
 [x] Qualify original-insert deltas;small closures fail deep-rebalance cases.
-[ ] Implement and qualify owned indexed callable with mixed-operation coherence.
+[x] Qualify owned indexed callable:116mixed operations/cache/ABI/cleanup pass.
 [ ] Qualify selected SDK lifetime/mutation coverage before index integration.
 [x] Screen exact multiply under a separate fixed-single-worker-CPU regime.
 [!] Reject13math timing:movement -0.625percent,combat +0.530percent;no integration.
@@ -38,7 +38,8 @@ integrate,repeat or send08/09/10toLinux. Stop these small tree-loop rewrites.
 Profile12 records978.6million visits/2.42million removals;UnitLayer65.65percent
 of visits. Counts are not CPU cost or lifetime proof. Original-insert14
 passes42structural/ABI/cleanup cases;small closures fail6deep-rebalance cases.
-Next:owned indexed-callable15/mixed-operation oracle,then separate SDK eligibility.
+Owned indexed15passes116mixed operations and strict raw/cache/ABI/cleanup audit.
+Next:selected SDK lifetime/mutation eligibility,then full replay and timing.
 Single-CPU math13also gives no consistent speed win. An index remains unqualified.
 RIP occupancy is distinct from CPU cost and does not identify its parent system.
 Compatibility CI9d7fda6 passes both Windows versions and native Linux controls.

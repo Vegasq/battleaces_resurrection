@@ -13,7 +13,9 @@ path edges per hit. Counts motivate structural work;they are not CPU shares.
 Read-only feasibility13 finds path-only parent maintenance incomplete:original
 insertion can recursively rebalance an entire subtree. Original insertion
 link-delta14 now passes42cases;both small closures fail6deep-rebalance cases.
-Next:owned context-scoped indexed callable15 and mixed-operation coherence oracle.
+Owned context-scoped indexed callable15 now passes116mixed operations and
+strict offline audit. Next:selected SDK lifetime/mutation eligibility,then replay
+and timing. Authored callable correctness alone does not qualify real SDK use.
 The separate fixed-single-CPU multiply13 screen
 also gives mixed sub-one-percent changes and does not justify integration.
 Earlier math screens had no captured effective mask;their mixed default-host
@@ -545,3 +547,42 @@ UnitLayer insertion or prove absence of active reset/direct-call bypasses.
 No SDK integration,native15run,speed win or20Hz acceptance yet. Models remain
 Sol6.1 high for native core/interface review,medium for Python/offline audit;
 parent owns actual runs. No live/client/release/new cloud change.
+
+INDEXED CALLABLE15 - OWNED MIXED-OPERATION QUALIFICATION PASS
+The private compiled callable and unchanged original run against two rebased,
+disjoint authored clones. One fill pattern reuses14's three-pattern insertion
+evidence.17mixed fixtures execute116operations:20build,30insert,49remove,
+17drop. Thirteen Rust controls and four pure Python controls pass;separate
+native source/interface review clears the frozen ABI/build. No SDK world/hook.
+The actual owned corpus CLI exits0;defined game state/order and independently
+walked sidecar coherence pass AFTER EACHoperation.195per-operation normal-return
+sentinel receipts and3specific positive/negative controls pass. Full64root is
+checked in memory;fullRAX/privateABI/foreignSEH remain unqualified. Candidate
+path counts:local insert21,rebuild8,insert-invalid1;remove-hit30,miss15,fallback4.
+These are operation counts,not elapsed-cost or a speed result.
+Strict offline audit checks4,176complete compressed/raw buffers (259,158,848raw
+bytes),348JSON joins,88source+29native bindings and a4,642file audit manifest.
+It independently reconstructs every livebit,parent,IDbucket/probe path and exact
+work/header count;separate06path-first model verifies every removal poststate.
+Three genuine-evidence refusal controls pass. Natural worker0/Job2/0/0empty,
+no force,closed handles,normal module unload and buffer release all verify.
+The historical extra process origin remains unknown;no lifetime-total1 claim.
+Raw clone equality stays FALSE in83of116operations,confined to modeled/historical
+merge-tail differences. Fast remove retains its own exact12tail bytes. No global
+padding irrelevance or full raw-heap equivalence is asserted.
+The final verification is1,049,064bytes,488above the inherited1MiB reader limit.
+A NEW15explicit4MiB offline reader handles it and the capture manifest;old readers,
+captures and original failures are unchanged. The small oracle receipt binds an
+external full capture manifest bySHA/count/size. No rerun was needed.
+Candidate DLL SHA256:
+599dbb23902fbb3522e9c108a35e12913e58a716fd6ca2e81252d9834248ad65
+Build-receipt SHA256:
+6ce78db5efa56d8291ea6f797fae936607c9ef539e61a8a220ce5dfcb42ab15b
+Strict offline summary SHA256:
+576b2e1a03ec126ebe89f9b603c57c2862cc95d3fd167a7eeb81dd816a4851f4
+Qualification is LIMITED to caller-owned stable serialized lifetime with every
+mutation routed through wrappers. This passes the meaningful indexed-callable
+correctness gate;it does not prove SDK generation/reset/direct-mutation coverage,
+multithread/reentry/fault recovery,performance,Linux or20Hz. Next is one bounded
+SDK eligibility proof before selected real-game replay and timing. Live hosts,
+installed client,normal launchers and releases remain unchanged.

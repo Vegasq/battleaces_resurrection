@@ -1,4 +1,13 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-18UTC N50 INDEXED CALLABLE15 QUALIFIED AT OWNED SCOPE:116mixed
+operations preserve original defined state/order and complete sidecar coherence.
+13Rust/4Python controls plus native interface review pass. Strict audit checks
+4,176full buffers/348joins/195ABI receipts and natural worker0/Jobempty cleanup;
+3offline refusal controls pass. Raw equality remains FALSE83operations due to
+explicit merge-tail differences. No world/SDK integration or speed claim yet.
+Next:selected SDK lifetime/reset/mutation eligibility,then real replay/timing.
+20Hz/Linux/full matrix remain OPEN. Live/client/releases unchanged. See
+native-simulation-performance.txt.
 2026-11-18UTC N50 ORIGINAL INSERT14 QUALIFIED:42authored actual insertions
 pass structural/defined-state/normal-return ABI/natural cleanup. Independent
 audit verifies637bindings/420raw+gzip buffers/all4096bits/links/order. Raw39
