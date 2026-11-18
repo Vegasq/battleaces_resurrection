@@ -11,8 +11,10 @@ bounded counters:2,420,341removals search978,595,868nodes (404.32per call).
 UnitLayer accounts for65.65percent of visits,with531.05visits and9.41matching
 path edges per hit. Counts motivate structural work;they are not CPU shares.
 Read-only feasibility13 finds path-only parent maintenance incomplete:original
-insertion can recursively rebalance an entire subtree. Next:bounded original
-insertion link-delta proof14. The separate fixed-single-CPU multiply13 screen
+insertion can recursively rebalance an entire subtree. Original insertion
+link-delta14 now passes42cases;both small closures fail6deep-rebalance cases.
+Next:owned context-scoped indexed callable15 and mixed-operation coherence oracle.
+The separate fixed-single-CPU multiply13 screen
 also gives mixed sub-one-percent changes and does not justify integration.
 Earlier math screens had no captured effective mask;their mixed default-host
 results remain rejected. Windows worker affinity does not emulate a cloud CPU.
@@ -503,3 +505,43 @@ screens or Linux qualification. The complete20Hz target remains OPEN. Earlier
 uncontrolled-mask results remain negative and their actual masks UNKNOWN.
 No game/native DLL file,live host,installed client or release changed. Audit SHA:
 45f2c9009cfecee54f5a76ceeb797ed787eca434373c3236cc41f463c91c8360
+
+ORIGINAL INSERTION DELTA14 - STRUCTURAL PASS,SMALL CLOSURES INCOMPLETE
+A load-only owned child calls original insertion once on each of14authored
+fixtures across3patterns. No SimInit/world,index,code patch or gameplay change.
+Nineteen pure controls and static code/config/build checks pass. Actual42calls
+preserve defined model state,normal-return GPR/XMM/RSP/canaries and cleanup.
+The unchanged sentinel captures EAX only;full64root is checked in memory,not
+claimed as a fullRAX/private-ABI/foreign-SEH proof. Modules/buffers/handles close
+naturally,original DLL/source identities remain unchanged.
+Independent strict audit verifies637bindings,420complete raw/gzip buffers,
+126case joins,all4096allocation bits,reachable graphs,links,heights,IDs and
+leaf order. All42ABI receipts and3specific self-controls verify;3offline
+refusal controls pass. Raw mismatches39 remain confined to exactly modeled
+merge-tail bytes. New leaf input copies all32initialized aggregate bytes and
+is fully checked. Raw equivalence remains FALSE;global tail irrelevance unproved.
+C0(pre-insert path+new nodes) and C1(plus immediate pre/post child roots) both
+FAIL on deep nonoverlap left/right cases across3patterns:6retained negatives.
+Actual changed old link owners lie outside both closures. The ordinary predicted
+local-branch cases fit C1 in this finite corpus;this is not a universal theorem.
+Branch/rotation labels are authored model predictions,not native tracing.
+Audit SHA256:
+d414b49f95cee0336ba100e0ecd5cf35e0022ec24da4799845cabc32a7a899dc
+
+INDEXED CALLABLE15 - PRIVATE IMPLEMENTATION STARTED,NOT QUALIFIED
+Design15 assigns a caller-owned preallocated sidecar and explicit generation,
+with a stable serialized tree and all mutations routed through wrappers.
+Cached parent paths target O(depth) unique-ID removal;duplicates compare current
+root-to-leaf paths to retain firstDFS. Mutation retains qualified free order,
+20defined aggregate bytes/12retained tail bytes,signed max WITHOUT+1 and root
+stored last. Original insertion runs once;local parent changes are tracked and
+nonoverlap rebalance rebuilds the affected tree. Refusal disables the sidecar
+and forwards one original operation before any candidate mutation.
+The next proof is a paired mixed insert/remove callable oracle checking every
+sidecar parent/ID entry against an independent full-tree walk after EACHoperation.
+That walk is oracle-only. Lifetime/mutation completeness for real SDK instances
+remains a separate gate:existing four remove slots/preCLOSE do not intercept
+UnitLayer insertion or prove absence of active reset/direct-call bypasses.
+No SDK integration,native15run,speed win or20Hz acceptance yet. Models remain
+Sol6.1 high for native core/interface review,medium for Python/offline audit;
+parent owns actual runs. No live/client/release/new cloud change.

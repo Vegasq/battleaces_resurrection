@@ -1,4 +1,13 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-18UTC N50 ORIGINAL INSERT14 QUALIFIED:42authored actual insertions
+pass structural/defined-state/normal-return ABI/natural cleanup. Independent
+audit verifies637bindings/420raw+gzip buffers/all4096bits/links/order. Raw39
+mismatches remain explicit merge-tail differences. C0/C1closures both FAIL6
+deep-rebalance cases;ordinary local cases fitC1 only within this finite corpus.
+Next:private context-owned indexed callable15 and mixed-operation coherence
+oracle. No native15run,SDK lifecycle coverage,integration or speed result yet.
+20Hz remains OPEN. Live/client/releases unchanged. Detailed evidence:
+native-simulation-performance.txt.
 2026-11-18UTC N50 SINGLE-CPU MULTIPLY13 NO CONSISTENT WIN:both1562state arms
 pass CPU0/mask1 preCREATE/preSTEP/afterCREATE/preCLOSE,exact source/native oracle
 and ordinary worker0/Jobempty cleanup. Strict audit132files/four controls pass.
