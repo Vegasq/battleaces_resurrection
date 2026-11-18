@@ -11,8 +11,8 @@ N50 - ORIGINAL SIMULATION COST / LARGE-ARMY TAIL LATENCY
 [x] Qualify bounded owner-thread RIP control/observer and actual pause/cleanup limits.
 [x] Qualify callable tree-removal prototype for defined state/normal-return ABI only.
 [x] Qualify controlled four-slot adapter/full1562frame replay and natural cleanup.
-[!] Reject full-tree-validation08screen:movement/combat RPC means worsen13/10percent.
-[!] Reject first-hit09screen:every1562state matches,but RPC means worsen3.3/2.6percent.
+[!] Reject tree-loop08/09/10screens:exact-state passes but no measured speed win.
+[ ] Profile operation-size/owner distributions before selecting a structural change.
 [ ] Optimize the measured hotspot while preserving native gameplay/checksums/commands.
 [ ] Requalify candidate on Linux before the unchanged broader20Hz acceptance matrix.
 On the prior VM,compact Wasp combat averages59.7ms;two-core native p95 is81.1ms.
@@ -28,10 +28,10 @@ but rawrepeatability FAILS on copied tail bytes;independent audit retains that
 limit. Callable Rust whole-wrapper99pair oracle passes defined state/normal
 register-stack ABI;raw bytes differ in36pairs and remain recorded. Both08SDK
 arms match1562states with2.42million active calls,but candidate is slower.
-First-hit09also matches every1562state but remains slower. Do not integrate,
-repeat or send08/09toLinux. Next:review separate10valid-tree hot loop with
-O(depth)checks on every mutation address before writes;no measured10result.
-Persistent indexing stays unjustified.
+First-hit09and trusted-search10also match1562states but remain slower. Do not
+integrate,repeat or send08/09/10toLinux. Stop these small tree-loop rewrites.
+Next:observational prefix-visit/hit-depth/owner profile12 to judge structural
+opportunities. Counts are not CPU cost or lifetime proof;indexing stays unjustified.
 RIP occupancy is distinct from CPU cost and does not identify its parent system.
 Compatibility CI9d7fda6 passes both Windows versions and native Linux controls.
 Sol6.1 medium handles retained analysis;high handles interface/diagnostic tools.

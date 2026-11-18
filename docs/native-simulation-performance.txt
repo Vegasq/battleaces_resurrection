@@ -2,6 +2,15 @@ BATTLE ACES - N50 ORIGINAL SIMULATION PERFORMANCE
 Updated:2026-11-18. Hotspot identified;optimization and20Hz remain OPEN.
 Current queue:REMAINING_DELIVERY_PLAN.txt. N48/N49 evidence remains qualified.
 
+LATEST DECISION
+Math screens and tree-loop08/09/10 do not justify integration. Each tree variant
+passes the selected native/reference-state and cleanup gates,but its single
+matched timing pair is slower. No useful speed win or20Hz acceptance is claimed.
+Stop those rewrites. Next is observational work-shape profile12 to measure
+search-prefix size and hit-path depth by address/type cohort before selecting a
+structural optimization. Scheduler/count policy remains unknown after bounded
+review. Live hosts,client/installers and releases remain untouched.
+
 QUESTION AND ROUTING
 The prior Linux two-core compact candidate still averages59.7ms Wasp combat
 against50ms per complete update. Identify original native cost before changing
@@ -384,4 +393,43 @@ Next bounded proposal10 moves pool-slot/live checks from every searched node
 to the root and complete mutation path/sibling roots before writes. Search
 memory validity remains an explicit trusted-tree caller precondition,as in the
 original native method;arbitrary bad-prefix recovery is not promised. A separate
-contract review,implementation/oracle and replay are required. No10result yet.
+contract review,implementation/oracle and replay are required;the completed10
+screen follows below.
+
+TRUSTED-SEARCH10 - FUNCTIONAL PASS,NO USEFUL WIN
+Variant10 validates the root once,searches trusted valid node memory without
+per-node pool-slot/live/seen diagnostics,then validates the matching leaf,every
+ancestor and sibling root before mutation. The original valid/stable/acyclic/
+unshared mutable-tree precondition remains explicit;bad-prefix recovery is not
+promised. Config112/Report32 and the07mutation block remain unchanged.
+Twenty Rust mock tests,13pure oracle controls and117actual native paired
+operations pass defined-state/normal-return ABI/natural cleanup scope. All1872
+buffers and2336bindings independently verify;raw equality remains FALSE in39
+pairs under the same tail policy. Callable audit SHA256:
+0e37e8db13b9a753f86e9b1361e201e02316dd24c4f4aaaec770e33b9c5dbe69
+Fresh1562frame SDK baseline/candidate each pass exact stable rows,109shared
+source/build bindings,page/protection/pin guards and natural owned cleanup.
+Each active replay has2,420,341calls,candidate ALLfast-hit/no fallback/miss/
+unknown;installation/destruction delta0. Whole-worker RPC single-pair results:
+  Movement mean22.301951->22.572011ms (+1.211%);p9531.6190->32.0538ms.
+  Combat mean33.270845->33.801237ms (+1.594%);p9547.6912->49.0042ms.
+  Combat>50ms:23->28of600;movement0->0of600. Percentiles are nearest-rank.
+The independent offline pair audit checks158bound files and four refusal
+controls. No integration,repeat or Linux run is justified. Pair-summary SHA256:
+30330afac73d8e398c8b3b7be8ccbaeabe39d2e108623d8d114b2992970429a2
+Stop these O(n)tree-loop variants. No further small rewrite is selected from
+their timings. Next is a separate observational operation-size/owner profile:
+prefix visit and matching-hit path-depth distributions,with bounded address/TID
+cohorts. These are work counts,not CPU cost or object/thread lifetime proof.
+The existing candidate10would supply reports for that measurement;it remains
+rejected as an optimization. No observational profile or structural win yet.
+
+BOUNDED SCHEDULER REVIEW11
+The additional read-only review inspects2491new code bytes across four exact
+functions,retained init/step/import evidence and one three-cell reference scan.
+SimInit's inspected path resets logging/profiling. Threadpool work APIs are
+resolved and stored,but an actual simulation dispatcher/count-selection path is
+not established. OS-default versus engine-owned pool,worker count and tuning
+remain UNKNOWN. Import names,Default strings and affinity do not prove a knob.
+No runtime/API setter/global change follows. Focused private note SHA256:
+082b1ff6b95e194f7934dabebc7f539fc45d54f73398b32f696c8c7a727a851a

@@ -1,4 +1,13 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-18UTC N50 TREE10 STILL NO SPEED WIN:117native pairs and both1562frame
+SDK arms pass exact defined/reference state and natural owned cleanup. All2.42m
+active calls use candidate,but movement/combat RPC means rise1.211/1.594percent;
+combatp9547.691->49.004ms,>50ms23->28. No10integration/repeat/Linux run.
+Stop these small tree-loop rewrites;next is observational work-size/owner
+profiling before a structural change. Bounded scheduler review finds no actual
+dispatch/count-policy link;no tuning knob is justified.20Hz remains OPEN.
+Live hosts,installed client and releases unchanged. Detailed evidence is in
+native-simulation-performance.txt.
 2026-11-18UTC N50 FIRST-HIT09 FUNCTIONAL PASS,STILL SLOWER:117native oracle
 pairs and both1562frame SDK arms preserve defined/reference state and natural
 owned cleanup. Candidate activates all2,420,341calls. Movement/combat RPC means
