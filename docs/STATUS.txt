@@ -1,4 +1,14 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-18UTC N50 HOTSPOT IDENTIFIED;20HZ OPEN:owned source-bound Windows
+system/child captures preserve every1562Wasp state and normal cleanup. Pathing
+accounts for64percent of instrumented combat STEP;AttackSurround dominates its
+mean,LocalSteering its worst tails. Retained Linux profiles favor substantial
+CPU work;no supported thread-count knob is evidenced. Twenty-eight authored
+gate/parser checks pass;full compatibility CI pending. A private100386-case
+leading-zero native oracle has zero mismatches;matched whole-replay performance
+and broader compatibility are not yet measured. Static Ghidra queries succeed,
+but their controller needs forced owned-child cleanup and remains lifecycle FAIL.
+See native-simulation-performance.txt. No live/client/release or cloud change.
 2026-11-17UTC N48/N49 COMPLETE AT CANDIDATE/MEASUREMENT SCOPE:Windows and
 Linux Wasp/Crab3pairs preserve every1562/1823frame per arm and pass defined
 STEP mean/p95 gates. Actual compact Room/fresh originalAI/command/history/

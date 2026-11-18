@@ -1,0 +1,149 @@
+BATTLE ACES - N50 ORIGINAL SIMULATION PERFORMANCE
+Updated:2026-11-18. Hotspot identified;optimization and20Hz remain OPEN.
+Current queue:REMAINING_DELIVERY_PLAN.txt. N48/N49 evidence remains qualified.
+
+QUESTION AND ROUTING
+The prior Linux two-core compact candidate still averages59.7ms Wasp combat
+against50ms per complete update. Identify original native cost before changing
+gameplay,raising hosting cost or repeating the broad performance matrix.
+Sol6.1 medium handles retained-profile analysis and strict offline summaries;
+Sol6.1 high handles the interface/owned-gate audit and bounded sensor review.
+Parent coordinates runtime evidence,source integration and qualification.
+No new billable resource,live service or installed-client change is included.
+
+RETAINED PROFILES - SUBSTANTIAL CPU WORK
+Existing N49 Linux two-core Wasp combat means:SimStep47.233ms versus
+SimProcessMsg0.150ms. SimStep process/caller CPU56.933/46.583ms. Slowest5percent
+average94.593ms wall/105.667ms processCPU;wall/processCPU correlation0.963.
+One/two-core same-frame costs also correlate. These favor substantial computation
+over a pure wall-only wait explanation,without proving a native hotspot or
+excluding synchronization/scheduling. CPU deltas are quantized despite100ns
+units:observed10ms Linux/15.625ms Windows. No thread stacks/wait reasons exist
+in those eight retained profiles. Cross-host comparisons do not prove Wine cost.
+
+SUPPORTED INTERFACE AND STATIC BOUNDARY
+SimInit(bool enableProfiling) already receives False;console/file sinks already
+use SimSetLogFlags(0). No supported thread-count setter is evidenced in the26
+exports or audited GameConfig/GlobalConfig schema. Internal policy stays unknown.
+Exact original DLL SHA256:
+107bb83dc416a16492277392c50104660e34c48911345ae2e0d5afe3929a07fb
+Ordinary LLVM/PE inspection identifies export14180->closure105f0->body34610.
+The body iterates system objects and calls vtable update+8/checksum+16.
+The main REA connection initially lacked a Ghidra/IDA provider. A task-local
+portable Ghidra12.1.4 and isolated REA stdio process subsequently returned real
+pseudocode/Evidence for eight selected helpers/operators. No global/MCP config
+changed. All eight static queries and evidence export pass;controller lifecycle
+does NOT pass because one remaining owned Job process required forced cleanup.
+Preserve that failure. Static results remain scoped;assembly controls exact ABI.
+
+OWNED NATIVE CAPTURE AND REFUSAL CONTROLS
+tools.profile_native_systems runs one explicit-full Wasp replay. After native
+world initialization,before CREATE reply,it publishes a nonce-bound ready
+receipt. The coordinator queries the retained process handle and exact owned
+Job before external attach. Release requires matching PID,parent,image,source,
+ready/identity hashes and nonce. Timeout/malformed release/abort closes the
+initialized world. Launch/Job proxies restore immediately and on failure.
+An optional1s capture drain occurs after serve(),outside STEP. Normal launchers
+never import this tool. Thirteen authored ownership/gate controls pass.
+
+The private Frida observer checks PID/image/module/world and exact loaded code
+bytes. It records direct system dispatch wall time with QPC Int64 differences;
+no original arguments,returns or game state are written. Ordered vector/object/
+vtable/method identity is checked before/after every STEP. Trivial ret/return-zero
+leaves remain untimed with null elapsed and zero observed callbacks. Their entry
+classification is cached before interception;other hook failures refuse capture.
+Frame chunks retain partial evidence;late errors cannot be hidden by completion.
+
+The first sensor refused a three-byte xor-eax/ret stub. Its replay still matches
+all1562states and exits0,but instrumentation qualification FAILED. Preserve it.
+Corrected sensor02 finishes1562frames,41systems and30messages with no error or
+truncation. Native input/full-state/ownership-history and normal Job/thread/
+worker cleanup guards all pass. A fresh ordinary control matches every frame.
+
+tools.summarize_native_systems independently binds the final detached REA record,
+script SHA/config,nonce/world/gate/worker/source/input files and original PE
+vtable/method/RTTI bytes. It checks every timed-role count,all1562retained
+input/state hashes,null exclusions and sequential timing conservation. It
+rejects all script/capture errors including those after complete. Nine authored
+tests cover hostile captures/source bindings and phase/statistic controls.
+The child parser adds6tests;all28authored checks pass on Python3.12/3.14 at
+their respective scopes. Full compatibility CI is pending.
+
+MEASURED WINDOWS HOTSPOT - INSTRUMENTED,NOT A SPEEDUP
+Combat mean inclusive native SimStep21.191ms,p9534.981ms:
+SystemPathing update13.658ms(64.45percent),p9522.674ms.
+SystemFOW update4.503ms(21.25percent),p959.570ms.
+SystemTargeting0.911ms;SystemPathfind0.504ms;SystemBroadphase0.244ms.
+Movement SimStep8.721ms;Pathing6.725ms(77.11percent),p9515.963ms.
+Checksums are disabled in the original retained world;none are turned off here.
+Combat residual0.243ms includes untimed stubs,dispatch,other STEP and observer
+work. These are inclusive wall observations,not native CPU-stack attribution.
+RPC means:ordinary control22.207ms movement/33.326ms combat;instrumented
+23.632/35.080ms. Deltas+1.424/+1.753ms combine observer/environment/order effects,
+not isolated hook cost. Primary N48/N49 measurements remain unprofiled.
+Windows results do not assign Linux hotspot durations or establish20Hz/capacity.
+
+PATHING CHILD CAPTURE
+Pathing updateRVAf9540 invokes child vtable methods throughf97a6(returnf97a9)
+in two subpasses. Two is a subpass count,not an evidenced worker setting.
+The next bounded observer measures parent,ten child methods and the essential
+final pass. Frozen vectors/caller/thread/count guards and exact original PE
+metadata are independently checked by tools.summarize_pathing_children.
+All1562states/inputs and normal owned cleanup pass;30final detached messages
+contain no sensor errors/truncation. No nested scope is added twice.
+Combat means:Pathing13.670ms;AttackSurround4.051ms,PositionUpdate2.536ms,
+Collision2.042ms,LocalSteering2.037ms,CircumventObstacles1.337ms.
+Among the slowest5percent of parent frames,LocalSteering averages11.548ms.
+Frame1082 has parent55.999ms,LocalSteering36.986ms,STEP64.159ms.
+Thus average-cost and tail-cost targets differ. Final pass0.012ms and parent
+residual0.190ms remain separate from STEP residual6.985ms. Combat RPC mean
+delta+0.939ms versus the ordinary control includes environment/observer effects.
+
+NEXT MISSING CLAIM
+A repeated registry hit lookup is statically read-only,but miss initialization
+has side effects;its runtime cost/hoistability is unproven. The final pathing
+helper can change simulation state and must not be removed as cleanup.
+Both hot child operators contain component writes and ownership atomics;those
+are not proven job waits. Shared register-only leading-zero/fixedpoint table
+helpers offer smaller exactness boundaries. Measure call frequency and prove
+any replacement bit-for-bit before a native optimization. No floating-point
+substitution,missing collision/vision work or removed subpass is justified.
+An isolated native oracle compares a baseline-x64 BSR leading-zero candidate
+with the complete original178-byte leaf:100386cases,zero mismatches,including
+zero/extremes/every bit-length bucket and seeded random inputs. Own code uses
+RW->RX memory and normal retained-handle/Job1/0/0 cleanup. This proves tested
+value parity,not performance or whole-game compatibility. No SDK file changed.
+Next:matched Frida baseline/candidate full replay,then repeated pairs only if
+the screening result warrants it. Candidate hooks remain private diagnostics;
+normal workers/launchers do not load them. New Linux spending is not authorized.
+Optimization/parity,controlled Linux qualification and the unchanged end-to-end
+20Hz/RTT/jitter/concurrency/startup/resource/player matrix remain required.
+
+PRIVATE EVIDENCE
+Root:local/native-simulation-20261118/. Original captures/inputs/libraries remain
+ignored and are never supplied to public CI. system-summary03/summary.json
+SHA256:3d6aa835a60b3e1ae3c6207c53c0203d7114a3952be3d5de0c7d1157efc38b50
+Final REA Evidence:
+ev_6696f312f22606d553508c80e38db1c444eea57279248e7be7651033894a64aa
+Sensor02 bundle contains final detached history;failed sensor01 remains retained.
+The summary binds90files. A raw source snapshot preserves the measured version
+before subsequent implementation changes. Source-snapshot01.zip SHA256:
+c139b7adb533b16479b294e952764fefc158659f8a55787e8f2ebcbdb98cf832
+The common parser refactor preserves old summary03 and requalifies capture02
+offline into system-summary04. Child pathing-summary01/summary.json SHA256:
+79c0234933be73edd4d10240a529fa34e18fd02990c5d6c54bd3b5f3a68df0bc
+Final child REA Evidence:
+ev_2cc843f8d3f90cecf0930799bb9587e26427cf30fd08841f8a019ae7a2f8b340
+No performance optimization or live rollout is claimed at this checkpoint.
+Leading-zero oracle verification SHA256:
+3bf8606d0d634b48c1460c663db42e49d0361c18c89eda0ced6b754ecf89ec57
+The first math-call counter refused missing CModule atomic support before STEP;
+its failed report remains retained. Replacement Rust atomic counter05 completes
+the full replay. Independent offline verification qualifies numeric observations
+for20frames1072..1091:34,815,643multiply;6,154,788leading-zero;4,645,012square;
+2,313,093/1,293,272/869,592calls to the three polynomial helpers. Counts cover
+all threads and nested helpers separately;they are not CPU time or combat means.
+Preserved stale prose still names962..981,so full instrumentation-contract PASS
+is false despite qualified numeric/source/state/freeze checks. No silent repair
+or native rerun conceals it. math-counts-summary05/summary.json SHA256:
+4913f154b50222d1d196742012c8e401eda1caba0adf03d6a054d19b9b477c82

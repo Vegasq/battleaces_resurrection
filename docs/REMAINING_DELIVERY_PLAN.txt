@@ -1,17 +1,25 @@
 BATTLE ACES - CURRENT DELIVERY ROADMAP
-Updated:2026-11-17. Final release acceptance remains OPEN.
+Updated:2026-11-18. Final release acceptance remains OPEN.
 [x] means complete at the stated scope;[ ] means remaining work/evidence;
 [!] means a measured failure of the acceptance target.
 Prior baseline queue preserved at history/2026-11-15/scheduling-ai-base-plan.txt.
 
-NEXT - ORIGINAL SIMULATION COST / LARGE-ARMY TAIL LATENCY
-[ ] Investigate original simulation cost/tails before another end-to-end20Hz run.
-N48/N49 below are complete at scoped candidate/measurement level. On the test VM,
-compact Wasp combat still averages59.7ms;two-core native profiling has81.1ms p95.
-A complete20Hz update has50ms. No Wine penalty,capacity or perceived-lag fix is
-established. Later matrix remains in linux-native-coordinator-acceptance.txt.
-Live deployment,resizing,installer/release replacement and any new billable
-resource require their separate concrete later decision;none is requested now.
+N50 - ORIGINAL SIMULATION COST / LARGE-ARMY TAIL LATENCY
+[x] Reuse retained native profiles:SimStep dominates;slow frames track CPU work.
+[x] Audit supported tuning:profiling/logs already off;no thread-count API evidenced.
+[x] Qualify owned system/Pathing-child timing with exact replay/state and observer control.
+[ ] Optimize the measured hotspot while preserving native gameplay/checksums/commands.
+[ ] Requalify candidate on Linux before the unchanged broader20Hz acceptance matrix.
+On the prior VM,compact Wasp combat averages59.7ms;two-core native p95 is81.1ms.
+A complete20Hz update has50ms. Current Windows capture identifies Pathing64percent
+of combat STEP;AttackSurround dominates mean cost,LocalSteering the worst tails.
+Both1562-frame captures preserve every state and normal owned cleanup. Reuse
+native-simulation-performance.txt and the private hash-bound reports;
+no broad replay matrix is repeated merely to reproduce the completed measurements.
+Sol6.1 medium handles retained analysis;high handles interface/diagnostic tools.
+No live rollout,resizing,installer/release replacement or new spending is included.
+Later matrix:linux-native-coordinator-acceptance.txt. Goal remains20Hz;N50 is an
+investigation/optimization stage,not a substitute success criterion.
 
 COMPLETE - N48 COMPACT SERVER STATE CANDIDATE
 [x] Record task plan,model/effort routing,dependencies and acceptance gates.

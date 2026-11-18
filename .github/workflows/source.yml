@@ -18,4 +18,5 @@ jobs:
       - run: python -m tools.audit_repository --history
       - if: matrix.python-version == '3.14.8'
         run: powershell -File server/build_launcher.ps1
+      - run: New-Item -ItemType Directory -Force local | Out-Null
       - run: python -m unittest discover -s tests -v

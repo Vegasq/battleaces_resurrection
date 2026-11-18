@@ -27,6 +27,8 @@ jobs:
         run: cargo +1.98.1 test --locked --manifest-path rust/snapshot-decoder/Cargo.toml
       - name: Check decoder lints
         run: cargo +1.98.1 clippy --locked --all-targets --manifest-path rust/snapshot-decoder/Cargo.toml -- -D warnings
+      - name: Prepare authored diagnostic scratch directory
+        run: mkdir -p local
       - name: Check parity verifier and private corpus controls
         run: >-
           python -B -m unittest
@@ -35,7 +37,9 @@ jobs:
           tests.test_state_projection tests.test_compact_server_state tests.test_compact_worker_verifier
           tests.test_compact_profile tests.test_worker_affinity tests.test_worker_cpu_benchmark
           tests.test_wine_cpu_benchmark tests.test_compact_room_verifier tests.test_hybrid_flow_verifier
-          tests.test_rust_projection_ffi_verifier -q
+          tests.test_rust_projection_ffi_verifier
+          tests.test_profile_native_systems tests.test_summarize_native_systems
+          tests.test_summarize_pathing_children -q
       - name: Build native Linux release executable
         run: |
           cargo +1.98.1 build --release --locked --manifest-path rust/snapshot-decoder/Cargo.toml

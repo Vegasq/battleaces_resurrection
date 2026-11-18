@@ -20,6 +20,7 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
+  native-simulation-performance.txt - N50 original simulation/Pathing hotspots,owned captures and next optimization
   worker-cpu-scaling-evidence.txt - N49 Windows/Linux CPU scaling,native attribution and verified cleanup
   compact-state-evidence.txt - N48 Windows/Linux parity,Room/fresh AI,paired timings,JSON savings and limits
   worker-cpu-linux-environment.txt - N49 owned systemd/cpuset environment and runtime preflight requirements
