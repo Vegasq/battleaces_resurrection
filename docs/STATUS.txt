@@ -1,4 +1,12 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-18UTC N50 SINGLE-CPU MULTIPLY13 NO CONSISTENT WIN:both1562state arms
+pass CPU0/mask1 preCREATE/preSTEP/afterCREATE/preCLOSE,exact source/native oracle
+and ordinary worker0/Jobempty cleanup. Strict audit132files/four controls pass.
+Movement RPC44.419->44.141ms (-0.625percent),combat52.945->53.226 (+0.530percent);
+combatp9580.597->80.862ms. No integration/repeats/combined math orLinux trial.
+Next:original insertion structural-delta14 proof;no index qualification yet.
+Windows affinity is not cloud1vCPU;earlier masks UNKNOWN.20Hz remains OPEN.
+Live/client/releases unchanged. See native-simulation-performance.txt.
 2026-11-18UTC N50 WORK-SHAPE12 QUALIFIED:all1562states,natural cleanup and
 complete counters pass.2.42million removals search978.6million nodes;UnitLayer
 accounts for65.65percent of visits,with531mean visits versus9.41hit-path edges.

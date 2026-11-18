@@ -12,7 +12,8 @@ UnitLayer accounts for65.65percent of visits,with531.05visits and9.41matching
 path edges per hit. Counts motivate structural work;they are not CPU shares.
 Read-only feasibility13 finds path-only parent maintenance incomplete:original
 insertion can recursively rebalance an entire subtree. Next:bounded original
-insertion link-delta proof14,plus a separate fixed-single-CPU multiply13 screen.
+insertion link-delta proof14. The separate fixed-single-CPU multiply13 screen
+also gives mixed sub-one-percent changes and does not justify integration.
 Earlier math screens had no captured effective mask;their mixed default-host
 results remain rejected. Windows worker affinity does not emulate a cloud CPU.
 Scheduler/count policy stays unknown. Live/client/releases remain untouched.
@@ -478,5 +479,27 @@ single allowed worker CPU in both arms,applied before CREATE and verified on
 the retained live process before STEP/after CREATE/before CLOSE. Earlier masks
 are UNKNOWN;do not retroactively call them multi-core. This changes scheduling
 regime rather than repeating the prior uncontrolled-host pair. Exact native
-oracle,ABI replacement and owned cleanup gates remain required. No native13
-result,cloud comparison,integration or20Hz success is claimed.
+oracle,ABI replacement and owned cleanup gates remain required. The resulting13screen follows below;no cloud comparison,integration or20Hz
+success is claimed.
+
+FIXED-SINGLE-CPU MULTIPLY13 - FUNCTIONAL PASS,NO CONSISTENT SPEED WIN
+One separate matched pair restricts only the owned Windows worker toCPU0/mask1
+before CREATE/native initialization. PreSTEP,after CREATE and preCLOSE receipts
+bind the same live retained Popen/handle and verify mask1. The coordinator,
+host frequency/load and resources remain unrestricted;this is not cloud1vCPU.
+Both arms preserve all1562stable states,exact source/input/native oracle and
+JS12 binding,and natural worker0/Jobempty/no-force/handle cleanup. Frida actual
+running/armed and final complete/detached envelopes pass with no errors or
+truncation. Continuous session retention until death is parent attestation;
+REA final status does not record a detach reason or prove continuous retention.
+The parent kept each session/script alive and closed it only after worker death.
+Whole-worker RPC single-pair results,nearest-rank percentiles:
+  Movement mean44.418907->44.141364ms (-0.625%);p9577.498500->75.631400ms.
+  Combat mean52.945290->53.225827ms (+0.530%);p9580.596500->80.861700ms.
+  Combat>50ms261->256of600;movement122->121of600.
+Strict independent audit verifies132bound files and four pure refusal controls.
+These mixed tiny changes do NOT justify integration,repeats,combined math/CLZ
+screens or Linux qualification. The complete20Hz target remains OPEN. Earlier
+uncontrolled-mask results remain negative and their actual masks UNKNOWN.
+No game/native DLL file,live host,installed client or release changed. Audit SHA:
+45f2c9009cfecee54f5a76ceeb797ed787eca434373c3236cc41f463c91c8360

@@ -14,7 +14,8 @@ N50 - ORIGINAL SIMULATION COST / LARGE-ARMY TAIL LATENCY
 [!] Reject tree-loop08/09/10screens:exact-state passes but no measured speed win.
 [x] Profile operation-size/owner distributions;all1562states/counters/cleanup pass.
 [ ] Prove original-insert structural deltas before implementing an index.
-[ ] Screen exact multiply under a separate fixed-single-worker-CPU regime.
+[x] Screen exact multiply under a separate fixed-single-worker-CPU regime.
+[!] Reject13math timing:movement -0.625percent,combat +0.530percent;no integration.
 [ ] Optimize the measured hotspot while preserving native gameplay/checksums/commands.
 [ ] Requalify candidate on Linux before the unchanged broader20Hz acceptance matrix.
 On the prior VM,compact Wasp combat averages59.7ms;two-core native p95 is81.1ms.
@@ -34,7 +35,7 @@ First-hit09and trusted-search10also match1562states but remain slower. Do not
 integrate,repeat or send08/09/10toLinux. Stop these small tree-loop rewrites.
 Profile12 records978.6million visits/2.42million removals;UnitLayer65.65percent
 of visits. Counts are not CPU cost or lifetime proof. Next:original-insert14
-link-delta oracle and distinct fixed-single-CPU multiply13 screen. Original
+link-delta oracle. Single-CPU math13also gives no consistent speed win. Original
 insertion can rebalance off-path subtrees;an index remains unqualified.
 RIP occupancy is distinct from CPU cost and does not identify its parent system.
 Compatibility CI9d7fda6 passes both Windows versions and native Linux controls.
