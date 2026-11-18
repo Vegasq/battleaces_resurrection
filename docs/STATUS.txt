@@ -1,4 +1,11 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-18UTC N50 FIRST-HIT09 FUNCTIONAL PASS,STILL SLOWER:117native oracle
+pairs and both1562frame SDK arms preserve defined/reference state and natural
+owned cleanup. Candidate activates all2,420,341calls. Movement/combat RPC means
+rise3.326/2.621percent;combatp9548.235->49.847ms,>50ms26->30. Independent audit
+verifies158files/109shared bindings. No09integration/repeat/Linux run. Next:
+review separate10valid-tree search with O(depth)mutation-address guards. No10
+result or20Hz success claimed. Live/client/release state unchanged.
 2026-11-18UTC N50 SDK08 FUNCTIONAL PASS,PERFORMANCE REGRESSION:both arms match
 all1562reference rows and source/build/page/normal-cleanup guards. Candidate
 handles all2,420,341active calls as fast hits,but movement/combat RPC means

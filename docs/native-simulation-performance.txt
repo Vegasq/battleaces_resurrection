@@ -354,3 +354,34 @@ to be rejected. Misses still search the full tree. Separate source/oracle/replay
 qualification is required;09has no measured result yet. No index or TLS cache.
 Neither this functional screen nor any narrow prototype closes Linux,20Hz,
 all-mode,resource/RTT/concurrency or player acceptance. Live services unchanged.
+
+FIRST-HIT09 - FUNCTIONAL PASS,STILL A TIMING REGRESSION
+The separate09search stops at the first matching DFS leaf and validates saved
+links/sibling roots in O(depth) before mutation. Budget/count fields describe
+the searched prefix;unvisited-suffix corruption rejection is not promised.
+Seventeen Rust mocks,eight pure oracle controls and117actual native paired
+operations pass defined-state/normal-return ABI/cleanup scope. All1872raw/gzip
+buffers and2333bindings independently verify. Raw equality stays FALSE in39
+pairs under the unchanged20byte-write/12byte-retain policy. Callable audit SHA:
+eb0af29d0801b1529bb04ea2c6c70b79570cc1e568562f3f0d57a1542ed4e2dc
+The metadata-only SDK bootstrap derivative uses the SAME adapter08binary and
+publication/pin/page/pre-close logic;15pure controls and actual image guards
+pass. Driver controls pass10tests. Fresh matched full1562frame arms preserve
+every stable row and all109shared source/build bindings. Both again make
+2,420,341active calls;candidate ALLfast-hit with zero fallback/miss/unknown,
+installation/destruction delta0. Exact four-cell/page guards and natural
+Job2/0/0 empty/no force/closed-handle checks pass;extra drains93/94ms.
+Whole-worker RPC single-pair results,nearest-rank percentiles:
+  Movement mean22.329282->23.072031ms (+3.326%);p9531.4633->32.7657ms.
+  Combat mean33.328160->34.201655ms (+2.621%);p9548.2346->49.8473ms.
+  Combat>50ms:26->30of600;movement0->0of600.
+This is still a REGRESSION. Do not integrate,repeat or qualify09onLinux. The
+strict offline pair audit checks158bound files. Its first derivative metadata
+refusal remains retained;only the new offline verifier was corrected,with four
+pure refusal controls passing. No replay/capture/source was changed. Summary SHA:
+0be1ec440dfd915603d94d6473f955698ba10296c03e4f8d88ccdec371c3a41e
+Next bounded proposal10 moves pool-slot/live checks from every searched node
+to the root and complete mutation path/sibling roots before writes. Search
+memory validity remains an explicit trusted-tree caller precondition,as in the
+original native method;arbitrary bad-prefix recovery is not promised. A separate
+contract review,implementation/oracle and replay are required. No10result yet.
