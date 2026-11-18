@@ -1,4 +1,11 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-18UTC N50 CALLABLE TREE PROTOTYPE PASS AT NARROW SCOPE:99owned native
+pairs match defined state and normal-return GPR/XMM/RSP/canaries;54fast hits,
+27misses,18fallbacks. Natural Job2/0/0 empty/child0 and source/build guards pass.
+Raw equivalence remains FALSE in36pairs under the explicit20byte-write/12byte
+tail-retention policy.13Rust mock and10pure Python controls pass. This is not
+SDK correctness,foreign-SEH or a speedup. Preparing a separate2arg adapter and
+matched full1562frame SDK replay.20Hz remains OPEN;live/client/releases unchanged.
 2026-11-18UTC N50 ORIGINAL TREE CONTROL COMPLETE:84pairs/168originalcalls match
 defined state and natural owned cleanup. Rawrepeatability FAILS in24pairs;
 independent audit confines retained differences to copied12byte ancestor tails.

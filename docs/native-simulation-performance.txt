@@ -262,7 +262,7 @@ now completed;raw-byte repeatability FAILS while defined-member checks pass.
 Exact body SHA256:
 89a83f41cc757bb2579e0bceb264fdf3942a96d9bc39323868821e7935c549d4
 Focused private proofs:hot-function43890-static01,tree43890-contract02,
-tree43890-class03 and tree43890-prune04. No tree candidate/patch is qualified.
+tree43890-class03 and tree43890-prune04. No SDK tree patch is qualified.
 
 ORIGINAL TREE REPEATABILITY05 / INDEPENDENT OFFLINE AUDIT06
 The load-only original wrapper completed84pairs/168calls on authored cloned
@@ -283,4 +283,39 @@ tail irrelevance or qualify a candidate. Offline observations06 SHA256:
 The recursive43890 body has handler-bearing unwind metadata. Assess a compiled
 whole-wrapper iterative removal before any recursive detour;preserve firstDFS,
 duplicates,free/update order and defined fields. A bounded native differential
-oracle and ABI checks precede SDK replay. No tree prototype has run yet.
+oracle and ABI checks precede SDK replay;callable prototype07 follows below.
+
+CALLABLE WHOLE-WRAPPER CANDIDATE07
+The private compiled Rust prototype uses an invocation-local iterative DFS/path,
+validates its bounded pool/tree domain before writes,and calls original free/
+merge helpers in the original order. It removes the first current DFS duplicate,
+preserves signed heightmax without+1 and stores the root last. Unsupported
+layouts delegate the whole original wrapper before mutation. No index,TLS,
+recursive hook,instruction patch,SDK initialization or world is used here.
+Thirteen authored Rust mock tests pass,including4095nodes/depth64,duplicate
+removal,bounds/alias/unary/cycle/shared rejection and mutation ordering. Ten pure
+Python comparator/retention/ABI-reader controls pass. Frozen candidate DLL SHA:
+956a1ec341b83edd5f5707b5e69943a11e00e71c72febad0da627ff4daa09ea6
+Actual owned native control completes99original/candidate pairs:54fast hits,
+27fast misses,18whole-original fallbacks. Every defined-state comparison and
+normal-return GPR/XMM/RSP/canary check passes,including specific positive and
+deliberate GPR/XMM-clobber controls. Job2/0/0 is empty with normal child0,
+all modules unloaded,source/build guards unchanged and no forced cleanup.
+Historical extra-child origin stays unknown,separate from natural cleanup.
+Candidate deliberately writes20aggregate bytes and retains the12byte tail.
+Raw equivalence is FALSE in36pairs and remains separately recorded. This is
+defined-member/callable scope only,not global tail irrelevance,foreign-SEH,
+full native heap/SDK equivalence or performance acceptance. All before/after
+buffers are retained for every pair. Verification SHA256:
+890a159f853c6ed02990257a539d95ad86e373480f03602bd63f4bb2e0f6d9c8
+Independent offline audit verifies1987bound files,including all1584compressed/raw
+buffers,297pair JSON joins,198normal-return ABI receipts and three self-controls.
+Its separate path-first model agrees for all99pairs. Tuple-versus-JSON-list
+metadata normalization is an offline reader detail;frozen captures stay unchanged.
+tree-wrapper-summary07.json SHA256:
+f28e5452a8269aa8e118af8645a7836b57b02c2ccf9dd2dc2980d23e0edbb1b5
+Next:separate immutable two-argument native adapter and matched1562frame SDK
+baseline/candidate. A four-vtable-slot experiment can leave original instructions
+and fallback entry untouched;atomic publication requires configured compatible
+targets pinned until process death and immediate exact page-protection restore.
+No SDK installation/replay or speedup is yet claimed. Linux/20Hz remain open.
