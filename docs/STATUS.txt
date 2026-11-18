@@ -1,4 +1,11 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-18UTC N50 ORIGINAL TREE CONTROL COMPLETE:84pairs/168originalcalls match
+defined state and natural owned cleanup. Rawrepeatability FAILS in24pairs;
+independent audit confines retained differences to copied12byte ancestor tails.
+This is not global padding irrelevance,candidate qualification or a speedup.
+Next:compiled whole-wrapper candidate/oracle plan,avoiding relocation of the
+recursive handler-bearing body. No tree patch or SDK candidate has run.
+Source9d7fda6 remains the tested source;live/client/release artifacts unchanged.
 2026-11-18UTC N50 OWNER-RIP14 QUALIFIED:control/observer each preserve1562states
 and exact source/marker/stop-before-CLOSE/empty-Job guards. Observer2945samples,
 maxpause0.2877ms/cumulative53.1093ms;seven offline controls pass after two retained

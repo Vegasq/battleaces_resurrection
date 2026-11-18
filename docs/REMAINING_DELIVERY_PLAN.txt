@@ -19,8 +19,10 @@ native-simulation-performance.txt and the private hash-bound reports;
 no broad replay matrix is repeated merely to reproduce the completed measurements.
 Two bit-exact native math screens preserve every state but show mixed gains
 below1percent;do not repeat or integrate them. Owner-RIP14 points to a shared
-entity-tree removal helper. Next:bounded original-tree oracle and exact contract
-before a per-call pruning candidate;persistent indexing remains unjustified.
+entity-tree removal helper. Original-tree84pair control matches defined state
+but rawrepeatability FAILS on copied tail bytes;independent audit retains that
+limit. Next:bounded compiled whole-wrapper candidate/oracle plan,then native
+ABI/differential checks before SDK replay;persistent indexing stays unjustified.
 RIP occupancy is distinct from CPU cost and does not identify its parent system.
 Compatibility CI9d7fda6 passes both Windows versions and native Linux controls.
 Sol6.1 medium handles retained analysis;high handles interface/diagnostic tools.

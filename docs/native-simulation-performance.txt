@@ -257,9 +257,30 @@ but typed callers,complete lifetime/reset coverage and concurrency remain open.
 Persistent indexing is not justified. A smaller per-call DFS/path-pruning oracle
 is being assessed;original mutation code and free/update order must remain.
 Aggregate helpers write20bytes but original callers copy32;12tail bytes cannot
-be silently masked as irrelevant. First prepare an owned original-vs-original
-cloned-tree/raw-padding control before any replacement or SDK experiment.
+be silently masked as irrelevant. The owned original-vs-original control has
+now completed;raw-byte repeatability FAILS while defined-member checks pass.
 Exact body SHA256:
 89a83f41cc757bb2579e0bceb264fdf3942a96d9bc39323868821e7935c549d4
 Focused private proofs:hot-function43890-static01,tree43890-contract02,
 tree43890-class03 and tree43890-prune04. No tree candidate/patch is qualified.
+
+ORIGINAL TREE REPEATABILITY05 / INDEPENDENT OFFLINE AUDIT06
+The load-only original wrapper completed84pairs/168calls on authored cloned
+trees,with no SimInit/world/candidate/patch. All defined-state checks pass;
+24pairs differ in raw bytes,so overall/raw-repeatability remain FAIL. Exact
+owned Job cleanup,normal child0,buffer release,DLL unload and source/code
+identity checks pass. No full register/unwind or performance claim follows.
+verification.json SHA256:
+484ba3905d8dd90f830ab9ea9fd51ecfb37505ef7f02ed14955be9a2076fee73
+Independent audit verifies216compressed/raw pool blobs and all84pair receipts.
+The24retained after-pairs differ only at updated ancestor node+0x34..0x3f;
+an independent first-DFS/path model agrees outside that12byte tail. The60
+reported equal pairs lack retained after-buffers:their equality remains
+source-bound recorded evidence,not independently decompressible evidence.
+This characterizes original stack-tail variability;it does not prove global
+tail irrelevance or qualify a candidate. Offline observations06 SHA256:
+5bdaa330db23aa0fb5fe31217cbff5145d1d0f1359f1d6382c1344bd021d08a4
+The recursive43890 body has handler-bearing unwind metadata. Assess a compiled
+whole-wrapper iterative removal before any recursive detour;preserve firstDFS,
+duplicates,free/update order and defined fields. A bounded native differential
+oracle and ABI checks precede SDK replay. No tree prototype has run yet.
