@@ -3,10 +3,12 @@ import asyncio
 from collections import deque
 import copy
 import gzip
+from itertools import count
 import json
 from pathlib import Path
 import struct
 import tempfile
+import traceback
 from types import MethodType, SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -248,6 +250,15 @@ class BufferedTLSControl(unittest.IsolatedAsyncioTestCase):
             schema(folder)
             frozen = b.SourceTemplate(match.raw_game_data, catalog_path=None, descriptors_path=folder)
             frozen.benchmark_seed, frozen.expected_raw = spec['seed'], match.raw_game_data
+            preparation_failures = deque(maxlen=4)
+            build_match = frozen.build_match
+            def traced_build_match(*args, **kwargs):
+                try:
+                    return build_match(*args, **kwargs)
+                except Exception:
+                    preparation_failures.append(traceback.format_exc(limit=8)[-4096:])
+                    raise
+            frozen.build_match = traced_build_match
             source.attach_template(frozen)
             (folder/'bot-catalog.json').write_text(json.dumps(catalog_fixture()))
             catalog = BotCatalog(folder)
@@ -270,6 +281,12 @@ class BufferedTLSControl(unittest.IsolatedAsyncioTestCase):
                 audit=trace.emit, data_dir=folder, audit_state=False,
                 tls_context=tls.load_server_context(self.pki['cert'], self.pki['key']),
                 admission=admission.AdmissionController(None, rc_open=True), experimental_command_scheduling=True)
+            # The frozen source requires these names in their original seats.
+            # Equal queue timestamps legitimately use profile ID as a tiebreaker,
+            # which reverses these two identities on a coarse Windows clock.
+            # This replay fixture controls admission order, not queue expiry.
+            queue_ticks = count()
+            experiment.server.community.public.clock = lambda: next(queue_ticks)/1000
             experiment.port = (await experiment.server.start('127.0.0.1', 0))[1]
             experiment.client_tls = tls.load_client_context(self.pki['ca'], 'localhost')
             failure = None
@@ -298,7 +315,8 @@ class BufferedTLSControl(unittest.IsolatedAsyncioTestCase):
                                 relevant.append({key: value[:1024] if isinstance(value, str) else value
                                                  for key in fields if (value := row.get(key)) is not None})
                         failure.add_note('synthetic TLS replay diagnostics: '+json.dumps(dict(
-                            events=list(relevant), worker_start_failures=list(worker_start_failures)), sort_keys=True))
+                            events=list(relevant), worker_start_failures=list(worker_start_failures),
+                            preparation_failures=list(preparation_failures)), sort_keys=True))
                     except Exception as diagnostic_error:
                         failure.add_note('synthetic TLS replay diagnostics unavailable: '+type(diagnostic_error).__name__)
             result = b.qualify_replay(trace.rows, experiment.episodes, source)

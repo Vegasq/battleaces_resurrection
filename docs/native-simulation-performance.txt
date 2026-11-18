@@ -57,8 +57,10 @@ Frame chunks retain partial evidence;late errors cannot be hidden by completion.
 The first sensor refused a three-byte xor-eax/ret stub. Its replay still matches
 all1562states and exits0,but instrumentation qualification FAILED. Preserve it.
 Corrected sensor02 finishes1562frames,41systems and30messages with no error or
-truncation. Native input/full-state/ownership-history and normal Job/thread/
-worker cleanup guards all pass. A fresh ordinary control matches every frame.
+truncation. Native input/full-state/ownership-history and normal worker/thread
+cleanup guards all pass. Job membership was queried at the ready gate;these
+captures do not independently record terminal Job accounting. A fresh ordinary
+control matches every frame.
 
 tools.summarize_native_systems independently binds the final detached REA record,
 script SHA/config,nonce/world/gate/worker/source/input files and original PE
@@ -113,11 +115,17 @@ with the complete original178-byte leaf:100386cases,zero mismatches,including
 zero/extremes/every bit-length bucket and seeded random inputs. Own code uses
 RW->RX memory and normal retained-handle/Job1/0/0 cleanup. This proves tested
 value parity,not performance or whole-game compatibility. No SDK file changed.
-Next:matched Frida baseline/candidate full replay,then repeated pairs only if
-the screening result warrants it. Candidate hooks remain private diagnostics;
+The first matched screen below shows no useful consistent gain;do not repeat
+that CLZ candidate now. Fixedpoint multiply is the next measured-call target.
+Candidate hooks remain private diagnostics;
 normal workers/launchers do not load them. New Linux spending is not authorized.
 Optimization/parity,controlled Linux qualification and the unchanged end-to-end
 20Hz/RTT/jitter/concurrency/startup/resource/player matrix remain required.
+Both math screens below have mixed sub-one-percent mean changes. Do not repeat
+them or integrate their hooks into normal workers. Next:sample actual native
+CPU instruction/stack locations within the measured pathing work;entry counts
+alone have not selected a useful optimization. Installed Windows WPR capability
+and a bounded owned-capture plan are being assessed before any trace starts.
 
 PRIVATE EVIDENCE
 Root:local/native-simulation-20261118/. Original captures/inputs/libraries remain
@@ -147,3 +155,54 @@ Preserved stale prose still names962..981,so full instrumentation-contract PASS
 is false despite qualified numeric/source/state/freeze checks. No silent repair
 or native rerun conceals it. math-counts-summary05/summary.json SHA256:
 4913f154b50222d1d196742012c8e401eda1caba0adf03d6a054d19b9b477c82
+The fixedpoint multiply oracle also passes1,232,448variants from102704pairs,
+including negative/extreme values,output/input aliases,unaligned buffers,
+pointer returns and canaries. Actual Job1/0/0,normal exit,code free/unload and
+unchanged source/DLL pass. multiply-oracle-run02/verification.json SHA256:
+447d1905c962e9db5fec26f2ebc68ac8cf607287eed9d09aa85566f53385fac7
+Initial matched baseline06 was aborted before STEP after the release controller
+assumed the wrong REA status/path representation. Its failed artifacts remain.
+Corrected07 checks the actual retained status offline before another native run.
+No baseline06 performance or natural-cleanup qualification is claimed.
+Baseline07 matches every state/worker0 but actual Job2/1/0 fails descendant
+cleanup. Baseline09 separately finds Job2/0/0 and an empty exact PID list before
+close;the extra child had naturally exited before its identity could be read.
+Original09 all-child-identity gate FAIL remains unchanged. A separate scoped
+assessment qualifies natural empty-Job cleanup;no child-origin inference is made.
+The original frozen sensor prose still asks for total1,so its complete metadata
+contract remains false. This is separate from replay/numeric/cleanup scope.
+Candidate10 matches all1562states and Job2/0/0 empty/no active kill. Sessions
+stay pinned until the owned worker exits naturally. Strict pair summary10:
+085eb8d0ac31ef7264c30d574ec8e99f953d65cbb73608cca72a0360b7b3e685
+Exploratory RPC movement mean22.517->22.699ms,p9531.620->32.016ms;combat mean
+33.412->33.272ms,p9548.545->48.521ms. Combat50ms misses24/600 in both arms.
+The0.42percent combat change with slightly worse movement is not a useful
+consistent improvement. No further CLZ-only pairs are warranted now. Concurrent
+focused test load during the first candidate seconds and uncontrolled order/
+frequency limit this single screen;it is not repeated performance acceptance.
+Multiply-only12 uses matched baseline/candidate scripts,one24byte allocation
+per arm and only the multiply entry replacement in candidate. Complete52byte
+original guards,aligned35byte prefix,preceding16bytes,tail and actual value/
+reference receipts bind both native states. Every1562input/state/history match,
+final REA record and scoped Job2/0/0 natural cleanup passes. Corrected12 prose
+qualifies actual empty-Job cleanup separately from lifetime totals/unknown origin;
+unlike frozen06,it does not require total1. Strict summary117bindings SHA256:
+d1bf1e3e825e62ece99df09fb7905a32331e4c8eabfccd3f8946599ec64eb244
+Movement RPC mean22.133->22.316ms,p9531.144->32.030ms;combat33.329->33.134ms,
+p9548.585->47.858ms. The0.58percent combat mean change and worse movement do
+not establish a meaningful consistent win. No further multiply pairs now.
+
+CI FOLLOW-UP
+Source7c08967 Linux44332127131 passes14Rust/236portable tests and actual FFI.
+Windows44332127308 attempt1 has an unchanged5s Node fixture timeout;all7focused
+tests pass locally. Its one unchanged retry exposes an existing real-clock15ms
+eligibility assertion. Test-only137d12f replaces that threshold with controlled
+clock/event ordering;10module tests pass on each Python3.12/3.14.
+137d12f Linux44335313987 passes. Windows44335313963 instead aborts an existing
+synthetic TLS match before worker creation. A forced equal-queue-clock run
+reproduces reversed seats/exact source-bootstrap refusal;CI attribution is
+inferred because its original diagnostics sanitize ValueError. Fixture-only
+strictly increasing queue timestamps preserve all assertions/deadlines;bounded
+traceback capture improves future failure evidence. Both versions pass10focused
+module tests after correction. Full corrected-source compatibility CI is pending.
+Original failed/reproduction logs remain private under ci-checkpoint01/.

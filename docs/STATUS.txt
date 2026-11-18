@@ -1,4 +1,12 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-18UTC N50 MATH SCREENS DO NOT JUSTIFY INTEGRATION:leading-zero and
+multiply replacements preserve all1562states and scoped natural cleanup;combat
+mean changes0.42/0.58percent with slightly worse movement. No useful consistent
+win or20Hz acceptance. No further pairs for these candidates;next assess actual
+CPU instruction/stack samples within pathing. Original failures/metadata limits
+are retained separately. Linux CI passes;Windows compatibility remains pending
+after focused test-only clock/queue-order fixture corrections. See
+native-simulation-performance.txt. Live services/client/releases unchanged.
 2026-11-18UTC N50 HOTSPOT IDENTIFIED;20HZ OPEN:owned source-bound Windows
 system/child captures preserve every1562Wasp state and normal cleanup. Pathing
 accounts for64percent of instrumented combat STEP;AttackSurround dominates its

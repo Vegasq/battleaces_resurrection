@@ -16,6 +16,9 @@ of combat STEP;AttackSurround dominates mean cost,LocalSteering the worst tails.
 Both1562-frame captures preserve every state and normal owned cleanup. Reuse
 native-simulation-performance.txt and the private hash-bound reports;
 no broad replay matrix is repeated merely to reproduce the completed measurements.
+Two bit-exact native math screens preserve every state but show mixed gains
+below1percent;do not repeat or integrate them. Next:actual native CPU instruction/
+stack sampling within pathing,then choose an optimization by measured CPU cost.
 Sol6.1 medium handles retained analysis;high handles interface/diagnostic tools.
 No live rollout,resizing,installer/release replacement or new spending is included.
 Later matrix:linux-native-coordinator-acceptance.txt. Goal remains20Hz;N50 is an
