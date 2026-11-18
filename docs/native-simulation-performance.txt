@@ -69,7 +69,7 @@ input/state hashes,null exclusions and sequential timing conservation. It
 rejects all script/capture errors including those after complete. Nine authored
 tests cover hostile captures/source bindings and phase/statistic controls.
 The child parser adds6tests;all28authored checks pass on Python3.12/3.14 at
-their respective scopes. Full compatibility CI is pending.
+their respective scopes. Final compatibility CI below passes on corrected source.
 
 MEASURED WINDOWS HOTSPOT - INSTRUMENTED,NOT A SPEEDUP
 Combat mean inclusive native SimStep21.191ms,p9534.981ms:
@@ -123,9 +123,14 @@ Optimization/parity,controlled Linux qualification and the unchanged end-to-end
 20Hz/RTT/jitter/concurrency/startup/resource/player matrix remain required.
 Both math screens below have mixed sub-one-percent mean changes. Do not repeat
 them or integrate their hooks into normal workers. Next:sample actual native
-CPU instruction/stack locations within the measured pathing work;entry counts
-alone have not selected a useful optimization. Installed Windows WPR capability
-and a bounded owned-capture plan are being assessed before any trace starts.
+instruction locations within the measured pathing work;entry counts alone have
+not selected a useful optimization. WPR kernel profiling needs privileges absent
+from this token;no trace/elevation/global setting change was attempted. Private
+plan13 instead prepares a100Hz sampler restricted to the source-published native
+owner thread,with a fused native pause/context-read/resume call and an owned
+synthetic positive control before SDK use. This reports RIP occupancy,not kernel
+CPU cost,wait durations or stacks;actual CPU counters stay separate. No sampler
+or SDK profiling run is qualified at this checkpoint.
 
 PRIVATE EVIDENCE
 Root:local/native-simulation-20261118/. Original captures/inputs/libraries remain
@@ -204,5 +209,8 @@ reproduces reversed seats/exact source-bootstrap refusal;CI attribution is
 inferred because its original diagnostics sanitize ValueError. Fixture-only
 strictly increasing queue timestamps preserve all assertions/deadlines;bounded
 traceback capture improves future failure evidence. Both versions pass10focused
-module tests after correction. Full corrected-source compatibility CI is pending.
+module tests after correction. Final source9d7fda6 passes Windows44337393501:
+2053tests/112skips on each Python3.12/3.14.8. Linux44337393432 passes14Rust/
+236portable controls and actual authored FFI checks. Exact passing/failed logs
+are retained;normal launchers and original SDK bytes remain unchanged.
 Original failed/reproduction logs remain private under ci-checkpoint01/.

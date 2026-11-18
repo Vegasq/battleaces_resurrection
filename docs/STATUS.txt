@@ -1,4 +1,12 @@
 BATTLE ACES - CURRENT STATUS
+2026-11-18UTC N50 COMPATIBILITY CI PASS:source9d7fda6 passes2053tests/112skips
+on each Windows Python3.12/3.14.8 (44337393501);Linux44337393432 passes14Rust/
+236portable controls and actual FFI checks. Fixture clock/queue-order failures
+and controlled reproduction remain retained. Both exact math screens show mixed
+sub-one-percent changes and will not be integrated/repeated. Next private plan13
+prepares owner-thread RIP occupancy with a fused native sampler/positive control;
+privileged WPR was not started. No sampler/SDK profile yet qualified.20Hz OPEN;
+live servers,installed client and release artifacts unchanged.
 2026-11-18UTC N50 MATH SCREENS DO NOT JUSTIFY INTEGRATION:leading-zero and
 multiply replacements preserve all1562states and scoped natural cleanup;combat
 mean changes0.42/0.58percent with slightly worse movement. No useful consistent
