@@ -9,6 +9,7 @@ import struct
 import tempfile
 from types import MethodType, SimpleNamespace
 import unittest
+from unittest.mock import patch
 import uuid
 
 from server import admission, dedicated_server as ds, tls_transport as tls
@@ -171,24 +172,53 @@ class SourceControls(unittest.TestCase):
 class EligibilityControls(unittest.IsolatedAsyncioTestCase):
     async def test_future_entity_waits_for_normal_validation_but_due_invalid_input_fails(self):
         available = False
+        events = []
         def validate(slot, body):
+            self.assertEqual((slot, body), (0, b'input'))
+            events.append(('validate', available))
             if not available: raise ValueError('authored entity not created')
             return body
         room = SimpleNamespace(state='running', frame=1, match_id='fixture',
                                validation=SimpleNamespace(validate_player_input=validate))
         peer = SimpleNamespace(slot=0, applied=0, tasks=[], frames=asyncio.Queue())
         trace = MemoryTrace()
-        async def create_entity():
-            nonlocal available
-            await asyncio.sleep(.02); available = True
-        change = asyncio.create_task(create_entity())
-        await asyncio.wait_for(b.wait_for_input_eligibility(room, [peer], 3, {0: b'input'}, trace), 1)
-        await change
-        self.assertTrue(trace.rows[-1]['ownership_eligibility_wait'])
-        self.assertGreaterEqual(trace.rows[-1]['elapsed_ms'], 15)
-        available, room.frame = False, 3
-        with self.assertRaisesRegex(ValueError, 'invalid when its native frame is due'):
-            await b.wait_for_input_eligibility(room, [peer], 3, {0: b'input'}, trace)
+        clock_ms = 0
+        trace.now = lambda: clock_ms
+        waiting, retry = asyncio.Event(), asyncio.Event()
+        async def poll_wait(delay):
+            self.assertGreater(delay, 0)
+            events.append(('wait', available))
+            waiting.set()
+            await retry.wait()
+        # Gate the diagnostic poll itself. Wall-clock sleep duration does not
+        # establish that validation waited for the entity on every event loop.
+        # Replacing this module's reference leaves the test event loop intact.
+        with patch.object(b, 'asyncio', SimpleNamespace(sleep=poll_wait)):
+            pending = asyncio.create_task(b.wait_for_input_eligibility(room, [peer], 3, {0: b'input'}, trace))
+            try:
+                await asyncio.wait_for(waiting.wait(), 1)
+                self.assertEqual(events, [('validate', False), ('wait', False)])
+                self.assertFalse(pending.done())
+                self.assertEqual(trace.rows, [])
+                available, clock_ms = True, 20
+                events.append(('create_entity', True))
+                retry.set()
+                await asyncio.wait_for(pending, 1)
+                self.assertEqual(events, [('validate', False), ('wait', False),
+                                          ('create_entity', True), ('validate', True)])
+                self.assertEqual(len(trace.rows), 1)
+                self.assertTrue(trace.rows[0]['ownership_eligibility_wait'])
+                self.assertEqual(trace.rows[0]['elapsed_ms'], 20)
+
+                available, room.frame = False, 3
+                with self.assertRaisesRegex(ValueError, 'invalid when its native frame is due'):
+                    await b.wait_for_input_eligibility(room, [peer], 3, {0: b'input'}, trace)
+                self.assertEqual(events[-2:], [('validate', True), ('validate', False)])
+                self.assertEqual(sum(event[0] == 'wait' for event in events), 1)
+                self.assertEqual(len(trace.rows), 1)
+            finally:
+                if not pending.done(): pending.cancel()
+                await asyncio.gather(pending, return_exceptions=True)
 
 
 class BufferedTLSControl(unittest.IsolatedAsyncioTestCase):
